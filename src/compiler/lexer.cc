@@ -151,6 +151,9 @@ bool lexer::next_numeric_literal() {
                     type = OCT;
                     _position += 1;
                     break;
+                case '8':
+                case '9':
+                    // TODO: push invalid octal digit 8/9 error;
                 default:
                     // just a single zero literal
                     token->raw_code = _code.substr(_position, 1);
