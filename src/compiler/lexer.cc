@@ -351,4 +351,123 @@ bool lexer::is_splitter() {
     return true;
 }
 
+std::string lexer::get_token_type_name(int token_type_code) {
+    std::string type_name;
+    switch (token_type_code) {
+        case 0:
+            type_name = "unknown";
+            break;
+        case 1:
+            type_name = "eof";
+            break;
+        case 2:
+            type_name = "inline comment";
+            break;
+        case 3:
+            type_name = "interline_comment";
+            break;
+        case 4:
+            type_name = "identifier";
+            break;
+        case 5:
+            type_name = "numeric_literal";
+            break;
+        case 6:
+            type_name = "l_paren";
+            break;
+        case 7:
+            type_name = "r_paren";
+            break;
+        case 8:
+            type_name = "l_square";
+            break;
+        case 9:
+            type_name = "r_square";
+            break;
+        case 10:
+            type_name = "l_brace";
+            break;
+        case 11:
+            type_name = "r_brace";
+            break;
+        case 12:
+            type_name = "comma";
+            break;
+        case 13:
+            type_name = "semi";
+            break;
+        case 14:
+            type_name = "eq";
+            break;       
+        case 15:
+            type_name = "plus";
+            break;
+        case 16:
+            type_name = "minus";
+            break;
+        case 17:
+            type_name = "multi";
+            break;
+        case 18:
+            type_name = "slash";
+            break;
+        case 19:
+            type_name = "modulus";
+            break;
+        case 20:
+            type_name = "less";
+            break;         
+        case 21:
+            type_name = "greater";
+            break;
+        case 22:
+            type_name = "equaleq";
+            break;
+        case 23:
+            type_name = "exclaimeq";
+            break;
+        case 24:
+            type_name = "greatereq";
+            break;
+        case 25:
+            type_name = "lesseq";
+            break;
+        case 26:
+            type_name = "exclaim";
+            break;     
+        case 27:
+            type_name = "ampamp";
+            break;
+        case 28:
+            type_name = "pipepipe";
+            break;
+        case 29:
+            type_name = "if";
+            break;
+        case 30:
+            type_name = "else";
+            break;
+        case 31:
+            type_name = "while";
+            break;   
+        case 32:
+            type_name = "continue";
+            break;
+        case 33:
+            type_name = "break";
+            break;
+        case 34:
+            type_name = "return";
+            break;
+        case 35:
+            type_name = "int";
+            break;
+        case 36:
+            type_name = "const";
+            break;   
+    }
+
+    return type_name;
+}
+
 

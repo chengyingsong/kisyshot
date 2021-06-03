@@ -25,6 +25,8 @@ namespace kisyshot::compiler{
          * This will directly write all tokens into context.
          */
         bool lex();
+        // get the token_type name
+        std::string get_token_type_name(int token_type_code);
     private:
         // copy of the code
         std::string_view _code;

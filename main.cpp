@@ -117,7 +117,7 @@ int main(){
     l.lex();
     for(auto& r:ctx->tokens){
         auto t = *r;
-        std::cout << t.raw_code;
+        std::cout << "(" << t.raw_code << ", "<< l.get_token_type_name(static_cast<int>(t.token_type)) << ")\n";
     }
     return 0;
 }

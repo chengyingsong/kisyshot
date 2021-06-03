@@ -1,0 +1,17 @@
+[
+{
+  "directory": "D:/Data/VS-Code-Cpp/kisyshot/build",
+  "command": "D:/Software/TDM-GCC-64/bin/x86_64-w64-mingw32-g++.exe   @CMakeFiles/kisyshot.dir/includes_CXX.rsp -g   -std=gnu++1z -o CMakeFiles/kisyshot.dir/main.cpp.obj -c D:/Data/VS-Code-Cpp/kisyshot/main.cpp",
+  "file": "D:/Data/VS-Code-Cpp/kisyshot/main.cpp"
+},
+{
+  "directory": "D:/Data/VS-Code-Cpp/kisyshot/build",
+  "command": "D:/Software/TDM-GCC-64/bin/x86_64-w64-mingw32-g++.exe   @CMakeFiles/kisyshot.dir/includes_CXX.rsp -g   -std=gnu++1z -o CMakeFiles/kisyshot.dir/src/ast/token.cc.obj -c D:/Data/VS-Code-Cpp/kisyshot/src/ast/token.cc",
+  "file": "D:/Data/VS-Code-Cpp/kisyshot/src/ast/token.cc"
+},
+{
+  "directory": "D:/Data/VS-Code-Cpp/kisyshot/build",
+  "command": "D:/Software/TDM-GCC-64/bin/x86_64-w64-mingw32-g++.exe   @CMakeFiles/kisyshot.dir/includes_CXX.rsp -g   -std=gnu++1z -o CMakeFiles/kisyshot.dir/src/compiler/lexer.cc.obj -c D:/Data/VS-Code-Cpp/kisyshot/src/compiler/lexer.cc",
+  "file": "D:/Data/VS-Code-Cpp/kisyshot/src/compiler/lexer.cc"
+}
+]
