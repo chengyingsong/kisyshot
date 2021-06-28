@@ -1,5 +1,5 @@
-#include "ast/token.h"
+#include <ast/token.h>
 
-bool kisyshot::ast::token::is(kisyshot::ast::token_type_t type) const {
-    return same_type(token_type, type);
+bool kisyshot::ast::Token::is(kisyshot::ast::TokenType type) const {
+    return sameType(token_type, type);
 }

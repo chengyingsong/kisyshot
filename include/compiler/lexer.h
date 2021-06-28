@@ -1,54 +1,56 @@
 #pragma once
+
+#include <ast/token.h>
 #include <memory>
 #include "context.h"
-#include "ast/token.h"
+
 namespace kisyshot::compiler{
     /**
      * Lexical analyser for SysY language
      */
-    class lexer {
+    class Lexer {
     public:
         /**
-         * Constructs a lexer from given syntax analyse context.
+         * Constructs a Lexer from given syntax analyse Context.
          *
-         * The life of the raw codes of the tokens lexed by this lexer is decided by the life time of the life time of
-         * member 'code' of the given parameter 'context'. Result of accessing to context's tokens is undefined after
+         * The life of the raw codes of the tokens lexed by this Lexer is decided by the life time of the life time of
+         * member 'code' of the given parameter 'Context'. Result of accessing to Context's tokens is undefined after
          * the content of the code have been collected.
-         * @param context:  the compile context during lexical analyse and syntax analyse
+         * @param context:  the compile Context during lexical analyse and syntax analyse
          * @param diagnosticStream: the diagnostic info collector to report errors to
          */
-        explicit lexer(const std::shared_ptr<context> &context);
+        explicit Lexer(const std::shared_ptr<Context> &context);
 
         /**
-         * Lex all tokens from given code string and store all into context.
+         * Lex all tokens from given code string and store all into Context.
          *
-         * This will directly write all tokens into context.
+         * This will directly write all tokens into Context.
          */
         bool lex();
     private:
         // copy of the code
         std::string_view _code;
-        // syntax context
-        std::shared_ptr<context> _context;
+        // syntax Context
+        std::shared_ptr<Context> _context;
         // current relative position to the first char in the _code variable
         size_t _position;
-        // marks if the lexer had met the end of the code file
+        // marks if the Lexer had met the end of the code file
         bool _eof;
-        // lex a token and write it into context
+        // lex a Token and write it into Context
         bool next();
         // continue to lex a numeric const
-        bool next_numeric_literal();
+        bool nextNumericLiteral();
         // continue to lex a identifier
-        bool next_identifier(size_t offset = 0);
+        bool nextIdentifier(size_t offset = 0);
         // continue to lex a operator
-        bool next_operator();
+        bool nextOperator();
         // continue to lex a inline comment
-        bool next_inline_comment();
+        bool nextInlineComment();
         // continue to lex a interline comment
-        bool next_interline_comment();
-        bool is_splitter();
+        bool nextInterlineComment();
+        bool isSplitter();
 
-        ast::token_type_t curr_token_type();
-        bool curr_token_is(ast::token_type_t token_type);
+        ast::TokenType currTokenType();
+        bool currTokenIs(ast::TokenType token_type);
     };
 }
