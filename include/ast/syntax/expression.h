@@ -40,7 +40,7 @@ namespace kisyshot::ast::syntax{
 
         const std::shared_ptr<Expression> &getRight() const;
 
-    private:
+    
         std::shared_ptr<Expression> _left;
         TokenType _operatorType;
         std::size_t _opIndex;
@@ -64,7 +64,7 @@ namespace kisyshot::ast::syntax{
 
         const std::shared_ptr<Expression> &getRight() const;
 
-    private:
+    
         TokenType _operatorType;
         std::size_t _opIndex;
         std::shared_ptr<Expression> _right;
@@ -83,7 +83,7 @@ namespace kisyshot::ast::syntax{
         std::string toString() override ;
         std::shared_ptr<Identifier> getIdentifier();
 
-    private:
+    
         std::shared_ptr<Identifier> _name;
     };
 
@@ -99,7 +99,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override ;
         std::string toString() override ;
 
-    private:
+    
         std::size_t _leftParenIndex;
         std::size_t _rightParenIndex;
         std::shared_ptr<Expression> _innerExpression;
@@ -126,7 +126,7 @@ namespace kisyshot::ast::syntax{
 
         size_t getRSquareIndex() const;
 
-    private:
+    
         std::shared_ptr<Expression> _indexedExpr;
         std::shared_ptr<Expression> _index;
         std::size_t _lSquareIndex;
@@ -156,7 +156,7 @@ namespace kisyshot::ast::syntax{
 
         size_t getRParenIndex() const;
 
-    private:
+    
         std::shared_ptr<Identifier> _name;
         std::vector<std::shared_ptr<Expression>> _arguments;
         std::size_t _lParenIndex;
@@ -177,7 +177,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
-    private:
+    
         std::size_t _numericIndex;
         std::string_view _rawCode;
     };
@@ -194,7 +194,7 @@ namespace kisyshot::ast::syntax{
         SyntaxType getType() override;
         bool hasChild() override;
 
-    private:
+    
         std::size_t _lParenIndex, _rParenIndex;
         std::vector<std::shared_ptr<Expression>> _array;
     };

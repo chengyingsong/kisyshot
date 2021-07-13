@@ -6,7 +6,7 @@
 
 namespace kisyshot::ast::syntax {
     class VarDefinition:public SyntaxNode, public ISyntaxList<Expression>{
-    private:
+
         std::shared_ptr<Identifier> _varName;
         std::shared_ptr<Expression> _initialValue;
         std::vector<std::shared_ptr<Expression>> _array;
@@ -33,7 +33,7 @@ namespace kisyshot::ast::syntax {
         size_t getEqualTokenIndex() const;
     };
     class VarDeclaration:public Statement, public ISyntaxList<VarDefinition>{
-    private:
+
         std::shared_ptr<Type> _type;
         std::vector<std::shared_ptr<VarDefinition>> _varDefs;
         std::size_t _constTokenIndex;

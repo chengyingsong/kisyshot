@@ -37,7 +37,7 @@ namespace kisyshot::ast::syntax{
         size_t getElseTokenIndex() const;
         size_t getLParenIndex() const;
         size_t getRParenIndex() const;
-    private:
+    
         std::shared_ptr<Statement> _if;
         std::shared_ptr<Statement> _else;
         std::shared_ptr<Expression> _condition;
@@ -66,7 +66,7 @@ namespace kisyshot::ast::syntax{
         size_t getRParenIndex() const;
         const std::shared_ptr<Expression> &getCondition() const;
         const std::shared_ptr<Statement> &getBody() const;
-    private:
+    
         std::size_t _whileTokenIndex;
         std::size_t _lParenIndex;
         std::size_t _rParenIndex;
@@ -84,7 +84,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
-    private:
+    
         std::size_t _semiTokenIndex;
     };
 
@@ -98,7 +98,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
-    private:
+    
         std::size_t _breakTokenIndex;
         std::size_t _semiTokenIndex;
     };
@@ -113,7 +113,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
-    private:
+    
         std::size_t _continueTokenIndex;
         std::size_t _semiTokenIndex;
     };
@@ -130,7 +130,7 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override ;
         void setSemiTokenIndex(size_t semiTokenIndex);
 
-    private:
+    
         std::size_t _returnTokenIndex;
         std::size_t _semiTokenIndex;
         std::shared_ptr<Expression> _value;
@@ -148,7 +148,7 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override ;
         void add(const std::shared_ptr<Statement>& child) override ;
 
-    private:
+    
         std::vector<std::shared_ptr<Statement>> _children;
         std::size_t _lBraceTokenIndex;
         std::size_t _rBraceTokenIndex;
@@ -164,7 +164,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
-    private:
+    
         std::shared_ptr<Expression> _expression;
         std::size_t _semiTokenIndex;
     };

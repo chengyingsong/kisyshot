@@ -26,7 +26,7 @@ namespace kisyshot::ast::syntax {
         size_t getLParenIndex() const;
         size_t getRParenIndex() const;
 
-    private:
+    
         std::shared_ptr<Type> _returnType;
         std::shared_ptr<Identifier> _name;
         std::shared_ptr<ParamList> _params;

@@ -20,7 +20,7 @@ namespace kisyshot::ast::syntax{
 
         const std::shared_ptr<Identifier> &getName() const;
 
-    private:
+
         std::size_t _dimension;
         std::shared_ptr<Identifier> _name;
         std::shared_ptr<Type> _type;
@@ -34,7 +34,7 @@ namespace kisyshot::ast::syntax{
         void add(const std::shared_ptr<ParamDeclaration>& param) override ;
         std::size_t start() override;
         std::size_t end() override;
-    private:
+
         std::vector<std::shared_ptr<ParamDeclaration>> _params;
     };
 }
