@@ -21,9 +21,9 @@ namespace kisyshot::ast::syntax{
         const std::shared_ptr<Identifier> &getName() const;
 
 
-        std::size_t _dimension;
-        std::shared_ptr<Identifier> _name;
-        std::shared_ptr<Type> _type;
+        std::size_t dimension;
+        std::shared_ptr<Identifier> name;
+        std::shared_ptr<Type> type;
     };
     class ParamList: public SyntaxNode, public ISyntaxList<ParamDeclaration>{
     public:
@@ -35,6 +35,6 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override;
         std::size_t end() override;
 
-        std::vector<std::shared_ptr<ParamDeclaration>> _params;
+        std::vector<std::shared_ptr<ParamDeclaration>> params;
     };
 }

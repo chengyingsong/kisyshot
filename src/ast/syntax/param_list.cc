@@ -6,28 +6,28 @@ namespace kisyshot::ast::syntax {
 
     ParamDeclaration::ParamDeclaration(const std::shared_ptr<Type> &type, const std::shared_ptr<Identifier> &name,
                                        size_t dim) {
-        _name = name;
-        _type = type;
-        _dimension = dim;
+        this->name = name;
+        this->type = type;
+        this->dimension = dim;
     }
 
     void ParamDeclaration::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_name, false);
-        syntaxWalker(_type, true);
+        syntaxWalker(name, false);
+        syntaxWalker(type, true);
     }
 
     void ParamDeclaration::writeCurrentInfo(std::ostream &s) {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << "ParamDeclaration "
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::cyan << "'" << _type->toString() << " " << _name->toString();
+              << rang::fg::cyan << "'" << type->toString() << " " << name->toString();
 
             s << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "ParamDeclaration "
               << "<" << this << "> "
-              << "'" << _type->toString() << " " << _name->toString();
+              << "'" << type->toString() << " " << name->toString();
             s << "'" << std::endl;
         }
     }
@@ -41,32 +41,32 @@ namespace kisyshot::ast::syntax {
     }
 
     std::weak_ptr<Identifier> ParamDeclaration::getParamName() {
-        return _name;
+        return name;
     }
 
     std::weak_ptr<Type> ParamDeclaration::getParamType() {
-        return _type;
+        return type;
     }
 
     std::size_t ParamDeclaration::start() {
-        return _type->start();
+        return type->start();
     }
 
     std::size_t ParamDeclaration::end() {
-        return _name->end();
+        return name->end();
     }
 
     size_t ParamDeclaration::getDimension() const {
-        return _dimension;
+        return dimension;
     }
 
     const std::shared_ptr<Identifier> &ParamDeclaration::getName() const {
-        return _name;
+        return name;
     }
 
     void ParamList::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        for (std::size_t i = 0; i < _params.size(); i++) {
-            syntaxWalker(_params[i], i == _params.size() - 1);
+        for (std::size_t i = 0; i < params.size(); i++) {
+            syntaxWalker(params[i], i == params.size() - 1);
         }
     }
 
@@ -86,22 +86,22 @@ namespace kisyshot::ast::syntax {
     }
 
     bool ParamList::hasChild() {
-        return !_params.empty();
+        return !params.empty();
     }
 
     void ParamList::add(const std::shared_ptr<ParamDeclaration> &param) {
-        _params.push_back(param);
+        params.push_back(param);
     }
 
     std::size_t ParamList::start() {
-        if (_params.empty())
+        if (params.empty())
             return invalidTokenIndex;
-        return _params.front()->start();
+        return params.front()->start();
     }
 
     std::size_t ParamList::end() {
-        if (_params.empty())
+        if (params.empty())
             return invalidTokenIndex;
-        return _params.back()->end();
+        return params.back()->end();
     }
 }

@@ -27,11 +27,11 @@ namespace kisyshot::ast::syntax {
         size_t getRParenIndex() const;
 
     
-        std::shared_ptr<Type> _returnType;
-        std::shared_ptr<Identifier> _name;
-        std::shared_ptr<ParamList> _params;
-        std::shared_ptr<Statement> _body;
-        std::size_t _lParenIndex;
-        std::size_t _rParenIndex;
+        std::shared_ptr<Type> returnType;
+        std::shared_ptr<Identifier> name;
+        std::shared_ptr<ParamList> params;
+        std::shared_ptr<Statement> body;
+        std::size_t lParenIndex;
+        std::size_t rParenIndex;
     };
 }

@@ -7,36 +7,36 @@ namespace kisyshot::ast::syntax {
 
     Function::Function(const std::shared_ptr<Type> &returnType, const std::shared_ptr<Identifier> &name,
                        const std::shared_ptr<ParamList> &params, const std::shared_ptr<Statement> &body) {
-        _returnType = returnType;
-        _name = name;
-        _params = params;
-        _body = body;
-        _lParenIndex = invalidTokenIndex;
-        _rParenIndex = invalidTokenIndex;
+        this->returnType = returnType;
+        this->name = name;
+        this->params = params;
+        this->body = body;
+        this->lParenIndex = invalidTokenIndex;
+        this->rParenIndex = invalidTokenIndex;
     }
 
     void Function::setLParenIndex(std::size_t lParenIndex) {
-        _lParenIndex = lParenIndex;
+        lParenIndex = lParenIndex;
     }
 
     void Function::setRParenIndex(std::size_t rParenIndex) {
-        _rParenIndex = rParenIndex;
+        rParenIndex = rParenIndex;
     }
 
     void Function::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_name, false);
-        syntaxWalker(_returnType, false);
-        syntaxWalker(_params, false);
-        syntaxWalker(_body, true);
+        syntaxWalker(name, false);
+        syntaxWalker(returnType, false);
+        syntaxWalker(params, false);
+        syntaxWalker(body, true);
     }
 
     void Function::writeCurrentInfo(std::ostream &s) {
         std::ostringstream methodData;
-        methodData << "'" << _returnType->toString() << " " << _name->toString();
+        methodData << "'" << returnType->toString() << " " << name->toString();
 
         methodData << "(";
-        if (_params->hasChild()) {
-            _params->forEachChild([&methodData](const std::weak_ptr<SyntaxNode> &n, bool isLast) {
+        if (params->hasChild()) {
+            params->forEachChild([&methodData](const std::weak_ptr<SyntaxNode> &n, bool isLast) {
                 auto para = std::static_pointer_cast<ParamDeclaration>(n.lock());
                 methodData << para->getParamType().lock()->toString()
                            << (isLast ? ")'" : ", ");
@@ -65,44 +65,44 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t Function::start() {
-        return _returnType->start();
+        return returnType->start();
     }
 
     std::size_t Function::end() {
-        if (_body->getType() == SyntaxType::BlockStatement)
-            return _body->end();
-        if (_body->end() != invalidTokenIndex)
-            return _body->end();
-        if (_rParenIndex != invalidTokenIndex)
-            return _rParenIndex;
-        if (_params->hasChild())
-            return _params->end();
-        if (_lParenIndex != invalidTokenIndex)
-            return _lParenIndex;
-        return _name->end();
+        if (body->getType() == SyntaxType::BlockStatement)
+            return body->end();
+        if (body->end() != invalidTokenIndex)
+            return body->end();
+        if (rParenIndex != invalidTokenIndex)
+            return rParenIndex;
+        if (params->hasChild())
+            return params->end();
+        if (lParenIndex != invalidTokenIndex)
+            return lParenIndex;
+        return name->end();
     }
 
     const std::shared_ptr<Type> &Function::getReturnType() const {
-        return _returnType;
+        return returnType;
     }
 
     const std::shared_ptr<Identifier> &Function::getName() const {
-        return _name;
+        return name;
     }
 
     const std::shared_ptr<ParamList> &Function::getParams() const {
-        return _params;
+        return params;
     }
 
     const std::shared_ptr<Statement> &Function::getBody() const {
-        return _body;
+        return body;
     }
 
     size_t Function::getLParenIndex() const {
-        return _lParenIndex;
+        return lParenIndex;
     }
 
     size_t Function::getRParenIndex() const {
-        return _rParenIndex;
+        return rParenIndex;
     }
 }

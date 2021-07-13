@@ -7,10 +7,10 @@
 namespace kisyshot::ast::syntax {
     class VarDefinition:public SyntaxNode, public ISyntaxList<Expression>{
 
-        std::shared_ptr<Identifier> _varName;
-        std::shared_ptr<Expression> _initialValue;
-        std::vector<std::shared_ptr<Expression>> _array;
-        std::size_t _equalTokenIndex;
+        std::shared_ptr<Identifier> varName;
+        std::shared_ptr<Expression> initialValue;
+        std::vector<std::shared_ptr<Expression>> array;
+        std::size_t equalTokenIndex;
     public:
         explicit VarDefinition(const std::shared_ptr<Identifier> &name);
         void add(const std::shared_ptr<Expression> &child) override;
@@ -34,10 +34,10 @@ namespace kisyshot::ast::syntax {
     };
     class VarDeclaration:public Statement, public ISyntaxList<VarDefinition>{
 
-        std::shared_ptr<Type> _type;
-        std::vector<std::shared_ptr<VarDefinition>> _varDefs;
-        std::size_t _constTokenIndex;
-        std::size_t _semiTokenIndex;
+        std::shared_ptr<Type> type;
+        std::vector<std::shared_ptr<VarDefinition>> varDefs;
+        std::size_t constTokenIndex;
+        std::size_t semiTokenIndex;
     public:
         void setSemiTokenIndex(size_t semiTokenIndex);
         VarDeclaration(const std::shared_ptr<Type> &type, size_t constIndex = invalidTokenIndex);

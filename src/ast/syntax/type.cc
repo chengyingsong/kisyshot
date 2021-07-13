@@ -5,11 +5,11 @@
 
 namespace kisyshot::ast::syntax{
     Type::Type(const std::shared_ptr<Identifier> &typeName) {
-        _typeId = typeName;
+        this->typeName = typeName;
     }
 
     void Type::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_typeId,true);
+        syntaxWalker(typeName, true);
     }
 
     void Type::writeCurrentInfo(std::ostream &s) {
@@ -26,7 +26,7 @@ namespace kisyshot::ast::syntax{
     }
 
     std::string Type::toString() {
-        return _typeId->toString();
+        return typeName->toString();
     }
 
     SyntaxType Type::getType() {
@@ -38,11 +38,11 @@ namespace kisyshot::ast::syntax{
     }
 
     std::size_t Type::start() {
-        return _typeId->start();
+        return typeName->start();
     }
 
     std::size_t Type::end() {
-        return _typeId->end();
+        return typeName->end();
     }
 
 }

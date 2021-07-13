@@ -4,12 +4,12 @@
 namespace kisyshot::ast::syntax {
 
     Identifier::Identifier(const std::string &id, std::size_t tokId) {
-        _identifier = id;
-        _tokenId = tokId;
+        identifier = id;
+        tokenIndex = tokId;
     }
 
     std::string Identifier::toString() {
-        return _identifier;
+        return identifier;
     }
 
     void Identifier::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {}
@@ -18,12 +18,12 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << "Identifier "
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::green << "'" << _identifier << "'"
+              << rang::fg::green << "'" << identifier << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "Identifier "
               << "<" << this << "> "
-              << "'" << _identifier << "'" << std::endl;
+              << "'" << identifier << "'" << std::endl;
         }
     }
 
@@ -36,10 +36,10 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t Identifier::start() {
-        return _tokenId;
+        return tokenIndex;
     }
 
     std::size_t Identifier::end() {
-        return _tokenId;
+        return tokenIndex;
     }
 }

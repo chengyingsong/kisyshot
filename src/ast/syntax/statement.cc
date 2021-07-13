@@ -6,19 +6,19 @@ namespace kisyshot::ast::syntax {
                              const std::shared_ptr<Expression> &condition,
                              const std::shared_ptr<Statement> &ifClause,
                              const std::shared_ptr<Statement> &elseClause) {
-        _if = ifClause;
-        _else = elseClause;
-        _condition = condition;
-        _ifTokenIndex = ifTokenIndex;
+        this->ifClause = ifClause;
+        this->elseClause = elseClause;
+        this->condition = condition;
+        this->ifTokenIndex = ifTokenIndex;
     }
 
     void IfStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_condition, false);
-        if (_else == nullptr) {
-            syntaxWalker(_if, true);
+        syntaxWalker(condition, false);
+        if (elseClause == nullptr) {
+            syntaxWalker(ifClause, true);
         } else {
-            syntaxWalker(_if, false);
-            syntaxWalker(_else, true);
+            syntaxWalker(ifClause, false);
+            syntaxWalker(elseClause, true);
         }
     }
 
@@ -27,13 +27,13 @@ namespace kisyshot::ast::syntax {
             s << rang::fg::magenta << "IfStatement "
               << rang::fg::yellow << "<" << this << "> "
               << rang::fg::blue << "condition: "
-              << rang::fg::green << "'" << _condition->toString() << "'"
+              << rang::fg::green << "'" << condition->toString() << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "IfStatement "
               << "<" << this << "> "
               << "condition: "
-              << "'" << _condition->toString() << "'"
+              << "'" << condition->toString() << "'"
               << std::endl;
         }
     }
@@ -47,71 +47,71 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t IfStatement::start() {
-        return _ifTokenIndex;
+        return ifTokenIndex;
     }
 
     std::size_t IfStatement::end() {
-        if (_else != nullptr)
-            return _else->end();
-        return _if->end();
+        if (elseClause != nullptr)
+            return elseClause->end();
+        return ifClause->end();
     }
 
     void IfStatement::setLParenIndex(size_t lParenIndex) {
-        _lParenIndex = lParenIndex;
+        lParenIndex = lParenIndex;
     }
 
     void IfStatement::setRParenIndex(size_t rParenIndex) {
-        _rParenIndex = rParenIndex;
+        rParenIndex = rParenIndex;
     }
 
     void IfStatement::setElse(const std::shared_ptr<Statement> &elseClause) {
-        _else = elseClause;
+        this->elseClause = elseClause;
     }
 
     const std::shared_ptr<Statement> &IfStatement::getIf() const {
-        return _if;
+        return ifClause;
     }
 
     const std::shared_ptr<Statement> &IfStatement::getElse() const {
-        return _else;
+        return elseClause;
     }
 
     const std::shared_ptr<Expression> &IfStatement::getCondition() const {
-        return _condition;
+        return condition;
     }
 
     size_t IfStatement::getIfTokenIndex() const {
-        return _ifTokenIndex;
+        return ifTokenIndex;
     }
 
     size_t IfStatement::getLParenIndex() const {
-        return _lParenIndex;
+        return lParenIndex;
     }
 
     size_t IfStatement::getRParenIndex() const {
-        return _rParenIndex;
+        return rParenIndex;
     }
 
     void IfStatement::setElseTokenIndex(size_t index) {
-        _elseTokenIndex = index;
+        elseTokenIndex = index;
     }
 
     size_t IfStatement::getElseTokenIndex() const {
-        return _elseTokenIndex;
+        return elseTokenIndex;
     }
 
 
     WhileStatement::WhileStatement(std::size_t whileTokenIndex,
                                    const std::shared_ptr<Expression> &condition,
                                    const std::shared_ptr<Statement> &body) {
-        _whileTokenIndex = whileTokenIndex;
-        _condition = condition;
-        _body = body;
+        this->whileTokenIndex = whileTokenIndex;
+        this->condition = condition;
+        this->body = body;
     }
 
     void WhileStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_condition, false);
-        syntaxWalker(_body, true);
+        syntaxWalker(condition, false);
+        syntaxWalker(body, true);
     }
 
     void WhileStatement::writeCurrentInfo(std::ostream &s) {
@@ -119,13 +119,13 @@ namespace kisyshot::ast::syntax {
             s << rang::fg::magenta << "WhileStatement "
               << rang::fg::yellow << "<" << this << "> "
               << rang::fg::blue << "condition: "
-              << rang::fg::green << "'" << _condition->toString() << "'"
+              << rang::fg::green << "'" << condition->toString() << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "WhileStatement "
               << "<" << this << "> "
               << "condition: "
-              << "'" << _condition->toString() << "'"
+              << "'" << condition->toString() << "'"
               << std::endl;
         }
     }
@@ -139,43 +139,43 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t WhileStatement::start() {
-        return _whileTokenIndex;
+        return whileTokenIndex;
     }
 
     std::size_t WhileStatement::end() {
-        return _body->end();
+        return body->end();
     }
 
     void WhileStatement::setLParenIndex(size_t lParenIndex) {
-        _lParenIndex = lParenIndex;
+        lParenIndex = lParenIndex;
     }
 
     void WhileStatement::setRParenIndex(size_t rParenIndex) {
-        _rParenIndex = rParenIndex;
+        rParenIndex = rParenIndex;
     }
 
     size_t WhileStatement::getWhileTokenIndex() const {
-        return _whileTokenIndex;
+        return whileTokenIndex;
     }
 
     size_t WhileStatement::getLParenIndex() const {
-        return _lParenIndex;
+        return lParenIndex;
     }
 
     size_t WhileStatement::getRParenIndex() const {
-        return _rParenIndex;
+        return rParenIndex;
     }
 
     const std::shared_ptr<Expression> &WhileStatement::getCondition() const {
-        return _condition;
+        return condition;
     }
 
     const std::shared_ptr<Statement> &WhileStatement::getBody() const {
-        return _body;
+        return body;
     }
 
     NopStatement::NopStatement(std::size_t semiTokenIndex) {
-        _semiTokenIndex = semiTokenIndex;
+        tokenIndex = semiTokenIndex;
     }
 
     void NopStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -202,16 +202,16 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t NopStatement::start() {
-        return _semiTokenIndex;
+        return tokenIndex;
     }
 
     std::size_t NopStatement::end() {
-        return _semiTokenIndex;
+        return tokenIndex;
     }
 
     BreakStatement::BreakStatement(std::size_t breakTokenIndex, std::size_t semiTokenIndex) {
-        _breakTokenIndex = breakTokenIndex;
-        _semiTokenIndex = semiTokenIndex;
+        breakTokenIndex = breakTokenIndex;
+        semiTokenIndex = semiTokenIndex;
     }
 
     void BreakStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -238,16 +238,16 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t BreakStatement::start() {
-        return _breakTokenIndex;
+        return breakTokenIndex;
     }
 
     std::size_t BreakStatement::end() {
-        return _semiTokenIndex == invalidTokenIndex ? _breakTokenIndex : _semiTokenIndex;
+        return semiTokenIndex == invalidTokenIndex ? breakTokenIndex : semiTokenIndex;
     }
 
     ContinueStatement::ContinueStatement(std::size_t continueTokenIndex, std::size_t semiTokenIndex) {
-        _continueTokenIndex = continueTokenIndex;
-        _semiTokenIndex = semiTokenIndex;
+        continueTokenIndex = continueTokenIndex;
+        semiTokenIndex = semiTokenIndex;
     }
 
     void ContinueStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -275,40 +275,40 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t ContinueStatement::start() {
-        return _continueTokenIndex;
+        return continueTokenIndex;
     }
 
     std::size_t ContinueStatement::end() {
-        return _semiTokenIndex == invalidTokenIndex ? _continueTokenIndex : _semiTokenIndex;
+        return semiTokenIndex == invalidTokenIndex ? continueTokenIndex : semiTokenIndex;
     }
 
     ReturnStatement::ReturnStatement(std::size_t returnTokenIndex, std::size_t semiTokenIndex) {
-        _returnTokenIndex = returnTokenIndex;
-        _semiTokenIndex = semiTokenIndex;
-        _value = nullptr;
+        returnTokenIndex = returnTokenIndex;
+        semiTokenIndex = semiTokenIndex;
+        value = nullptr;
     }
 
     void ReturnStatement::setValue(const std::shared_ptr<Expression> &value) {
-        _value = value;
+        this->value = value;
     }
 
     void ReturnStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        if (_value != nullptr)
-            syntaxWalker(_value, true);
+        if (value != nullptr)
+            syntaxWalker(value, true);
     }
 
     void ReturnStatement::writeCurrentInfo(std::ostream &s) {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::magenta << "ReturnStatement "
               << rang::fg::yellow << "<" << this << "> ";
-            if (_value != nullptr)
-                s << rang::fg::green << "value: '" << _value->toString() << "'";
+            if (value != nullptr)
+                s << rang::fg::green << "value: '" << value->toString() << "'";
             s << rang::fg::reset << std::endl;
         } else {
             s << "ReturnStatement "
               << "<" << this << "> ";
-            if (_value != nullptr)
-                s << rang::fg::green << "value: '" << _value->toString() << "'";
+            if (value != nullptr)
+                s << rang::fg::green << "value: '" << value->toString() << "'";
             s << std::endl;
         }
     }
@@ -318,27 +318,27 @@ namespace kisyshot::ast::syntax {
     }
 
     bool ReturnStatement::hasChild() {
-        return _value != nullptr;
+        return value != nullptr;
     }
 
     std::size_t ReturnStatement::start() {
-        return _returnTokenIndex;
+        return returnTokenIndex;
     }
 
     std::size_t ReturnStatement::end() {
-        if (_semiTokenIndex != invalidTokenIndex)
-            return _semiTokenIndex;
-        if (_value != nullptr)
-            return _value->end();
-        return _returnTokenIndex;
+        if (semiTokenIndex != invalidTokenIndex)
+            return semiTokenIndex;
+        if (value != nullptr)
+            return value->end();
+        return returnTokenIndex;
     }
 
     void ReturnStatement::setSemiTokenIndex(size_t semiTokenIndex) {
-        _semiTokenIndex = semiTokenIndex;
+        semiTokenIndex = semiTokenIndex;
     }
 
     void BlockStatement::add(const std::shared_ptr<Statement> &child) {
-        _children.push_back(child);
+        children.push_back(child);
     }
 
     void BlockStatement::writeCurrentInfo(std::ostream &s) {
@@ -353,8 +353,8 @@ namespace kisyshot::ast::syntax {
     }
 
     void BlockStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        for (size_t id = 0; id < _children.size(); id++) {
-            syntaxWalker(_children[id], id == _children.size() - 1);
+        for (size_t id = 0; id < children.size(); id++) {
+            syntaxWalker(children[id], id == children.size() - 1);
         }
     }
 
@@ -363,41 +363,41 @@ namespace kisyshot::ast::syntax {
     }
 
     bool BlockStatement::hasChild() {
-        return !_children.empty();
+        return !children.empty();
     }
 
     std::size_t BlockStatement::start() {
-        return _lBraceTokenIndex;
+        return lBraceTokenIndex;
     }
 
     std::size_t BlockStatement::end() {
-        if (_rBraceTokenIndex != invalidTokenIndex)
-            return _rBraceTokenIndex;
-        if (_children.empty())
-            return _lBraceTokenIndex;
-        return _children.back()->end();
+        if (rBraceTokenIndex != invalidTokenIndex)
+            return rBraceTokenIndex;
+        if (children.empty())
+            return lBraceTokenIndex;
+        return children.back()->end();
     }
 
     BlockStatement::BlockStatement(std::size_t lBraceTokenIndex) {
-        _lBraceTokenIndex = lBraceTokenIndex;
-        _rBraceTokenIndex = invalidTokenIndex;
+        lBraceTokenIndex = lBraceTokenIndex;
+        rBraceTokenIndex = invalidTokenIndex;
     }
 
     void BlockStatement::setRBraceTokenIndex(std::size_t rBraceTokenIndex) {
-        _rBraceTokenIndex = rBraceTokenIndex;
+        rBraceTokenIndex = rBraceTokenIndex;
     }
 
     ExpressionStatement::ExpressionStatement(const std::shared_ptr<Expression> &expression) {
-        _expression = expression;
-        _semiTokenIndex = invalidTokenIndex;
+        this->expression = expression;
+        this->semiTokenIndex = invalidTokenIndex;
     }
 
     void ExpressionStatement::setSemiTokenIndex(std::size_t semiTokenIndex) {
-        _semiTokenIndex = semiTokenIndex;
+        semiTokenIndex = semiTokenIndex;
     }
 
     void ExpressionStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        syntaxWalker(_expression, true);
+        syntaxWalker(expression, true);
     }
 
     void ExpressionStatement::writeCurrentInfo(std::ostream &s) {
@@ -405,13 +405,13 @@ namespace kisyshot::ast::syntax {
             s << rang::fg::magenta << "ExpressionStatement "
               << rang::fg::yellow << "<" << this << "> "
               << rang::fg::blue << "expr: "
-              << rang::fg::green << "'" << _expression->toString() << "'"
+              << rang::fg::green << "'" << expression->toString() << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "ExpressionStatement "
               << "<" << this << "> "
               << "expr: "
-              << "'" << _expression->toString() << "'"
+              << "'" << expression->toString() << "'"
               << std::endl;
         }
     }
@@ -425,12 +425,12 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t ExpressionStatement::start() {
-        return _expression->start();
+        return expression->start();
     }
 
     std::size_t ExpressionStatement::end() {
-        if (_semiTokenIndex == invalidTokenIndex)
-            return _expression->end();
-        return _semiTokenIndex;
+        if (semiTokenIndex == invalidTokenIndex)
+            return expression->end();
+        return semiTokenIndex;
     }
 }

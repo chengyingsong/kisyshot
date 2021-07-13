@@ -41,10 +41,10 @@ namespace kisyshot::ast::syntax{
         const std::shared_ptr<Expression> &getRight() const;
 
     
-        std::shared_ptr<Expression> _left;
-        TokenType _operatorType;
-        std::size_t _opIndex;
-        std::shared_ptr<Expression> _right;
+        std::shared_ptr<Expression> left;
+        TokenType operatorType;
+        std::size_t opIndex;
+        std::shared_ptr<Expression> right;
     };
 
     class UnaryExpression: public Expression{
@@ -65,9 +65,9 @@ namespace kisyshot::ast::syntax{
         const std::shared_ptr<Expression> &getRight() const;
 
     
-        TokenType _operatorType;
-        std::size_t _opIndex;
-        std::shared_ptr<Expression> _right;
+        TokenType operatorType;
+        std::size_t opIndex;
+        std::shared_ptr<Expression> right;
     };
 
     class IdentifierExpression: public Expression{
@@ -84,7 +84,7 @@ namespace kisyshot::ast::syntax{
         std::shared_ptr<Identifier> getIdentifier();
 
     
-        std::shared_ptr<Identifier> _name;
+        std::shared_ptr<Identifier> name;
     };
 
     class ParenthesesExpression: public Expression{
@@ -100,9 +100,9 @@ namespace kisyshot::ast::syntax{
         std::string toString() override ;
 
     
-        std::size_t _leftParenIndex;
-        std::size_t _rightParenIndex;
-        std::shared_ptr<Expression> _innerExpression;
+        std::size_t leftParenIndex;
+        std::size_t rightParenIndex;
+        std::shared_ptr<Expression> innerExpression;
     };
 
     class IndexExpression:public Expression{
@@ -127,10 +127,10 @@ namespace kisyshot::ast::syntax{
         size_t getRSquareIndex() const;
 
     
-        std::shared_ptr<Expression> _indexedExpr;
-        std::shared_ptr<Expression> _index;
-        std::size_t _lSquareIndex;
-        std::size_t _rSquareIndex;
+        std::shared_ptr<Expression> indexedExpr;
+        std::shared_ptr<Expression> indexerExpr;
+        std::size_t lSquareIndex;
+        std::size_t rSquareIndex;
     };
 
     class CallExpression: public Expression, public ISyntaxList<Expression> {
@@ -157,10 +157,10 @@ namespace kisyshot::ast::syntax{
         size_t getRParenIndex() const;
 
     
-        std::shared_ptr<Identifier> _name;
-        std::vector<std::shared_ptr<Expression>> _arguments;
-        std::size_t _lParenIndex;
-        std::size_t _rParenIndex;
+        std::shared_ptr<Identifier> name;
+        std::vector<std::shared_ptr<Expression>> arguments;
+        std::size_t lParenIndex;
+        std::size_t rParenIndex;
     };
 
 
@@ -178,8 +178,8 @@ namespace kisyshot::ast::syntax{
         std::string toString() override;
 
     
-        std::size_t _numericIndex;
-        std::string_view _rawCode;
+        std::size_t tokenIndex;
+        std::string_view rawCode;
     };
     class ArrayInitializeExpression: public Expression, public ISyntaxList<Expression>{
     public:
@@ -195,7 +195,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override;
 
     
-        std::size_t _lParenIndex, _rParenIndex;
-        std::vector<std::shared_ptr<Expression>> _array;
+        std::size_t lParenIndex, rParenIndex;
+        std::vector<std::shared_ptr<Expression>> array;
     };
 }

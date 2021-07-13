@@ -15,7 +15,7 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         std::string toString() ;
 
-        std::string _identifier;
-        std::size_t _tokenId;
+        std::string identifier;
+        std::size_t tokenIndex;
     };
 }
