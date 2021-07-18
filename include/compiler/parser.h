@@ -1,14 +1,10 @@
 #pragma once
-
-#include <memory>
-#include <list>
-#include <set>
-
 #include <ast/operator.h>
 #include <ast/syntax/function.h>
 #include <ast/token.h>
 #include <ast/syntax/var_declaration.h>
 #include <diagnostics/diagnostic_stream.h>
+#include <set>
 #include "context.h"
 
 namespace kisyshot::compiler {
@@ -27,23 +23,59 @@ namespace kisyshot::compiler {
 
         void parse();
 
+        /**
+         * Parse an identifier starts from current position
+         * @return identifier parsed
+         */
         std::shared_ptr<ast::syntax::Identifier> parseIdentifier();
 
+        /**
+         * Parse a function definition like int function(int var){...statements...} starts from current position
+         * @return function parsed
+         */
         std::shared_ptr<ast::syntax::Function> parseFunction();
 
+        /**
+         * Parse an expression expression starts from current position
+         * @return expression parsed
+         */
         std::shared_ptr<ast::syntax::Expression> parseExpression(const std::set<ast::TokenType> &endTokens = {},
                                                                  ast::OperatorPrecedence parentPrecedence = ast::OperatorPrecedence::initial);
 
+        /**
+         * Parse a type definition starts from current position
+         * @return type parsed
+         */
         std::shared_ptr<ast::syntax::Type> parseType();
 
+        /**
+         * Parse a statement definition starts from current position
+         * @return statement parsed
+         */
         std::shared_ptr<ast::syntax::Statement> parseStatement();
 
+        /**
+         * Parse a variable declaration starts from current position
+         * @return variable declaration parsed
+         */
         std::shared_ptr<ast::syntax::VarDeclaration> parseVariableDeclaration();
 
+        /**
+         * Parse a block statement starts from current position
+         * @return block statement parsed
+         */
         std::shared_ptr<ast::syntax::BlockStatement> parseBlockStatement();
 
+        /**
+         * Parse a if statement starts from current position
+         * @return if statement parsed
+         */
         std::shared_ptr<ast::syntax::IfStatement> parseIfStatement();
 
+        /**
+         * Parse a while statement starts from current position
+         * @return while statement parsed
+         */
         std::shared_ptr<ast::syntax::WhileStatement> parseWhileStatement();
 
 
@@ -70,8 +102,16 @@ namespace kisyshot::compiler {
          */
         bool recoverPosition();
 
+        /**
+         * Get token type determined by '_current' position
+         * @return current token type
+         */
         ast::TokenType current();
 
+        /**
+         * Get token type determined by '_lookahead' position
+         * @return lookahead token type
+         */
         ast::TokenType lookahead();
 
         // copy of the context

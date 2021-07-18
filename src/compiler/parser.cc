@@ -110,6 +110,7 @@ namespace kisyshot::compiler {
         if (current() != ast::TokenType::r_paren) {
             // TODO
         } else {
+            function->rParenIndex = _current;
             step();
         }
         if (current() != ast::TokenType::l_brace) {

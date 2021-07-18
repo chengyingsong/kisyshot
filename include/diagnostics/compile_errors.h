@@ -7,6 +7,7 @@ namespace kisyshot::diagnostics{
         UnexpectedChars = 1000,
         StringNotClosed,
         InvalidNumericConst,
+        InvalidChars,
         InterlineCommentNotClosed,
         // KS2000-2999: parse errors
         UnexpectedToken = 2000,

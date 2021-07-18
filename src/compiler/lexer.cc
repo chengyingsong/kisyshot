@@ -1,12 +1,14 @@
 #include <compiler/lexer.h>
-
+#include <diagnostics/diagnostic_builder.h>
 using namespace kisyshot::ast;
 using namespace kisyshot::compiler;
 
 namespace kisyshot::compiler {
-    Lexer::Lexer(const std::shared_ptr<Context> &context) {
+    Lexer::Lexer(const std::shared_ptr<Context> &context,
+                 const std::shared_ptr<diagnostics::DiagnosticStream> &diagnosticStream) {
         _context = context;
         _code = context->code;
+        _diagnosticStream = diagnosticStream;
         _position = 0;
         _eof = false;
     }
@@ -91,11 +93,17 @@ namespace kisyshot::compiler {
         auto token = std::make_unique<Token>();
         token->token_type = TokenType::unknown;
         token->offset = _position;
-        while (!isSplitter())
+        do{
             _position++;
-        token->raw_code = _code.substr(_position, _position - token->offset - 1);
+        } while (!isSplitter());
+        token->raw_code = _code.substr(token->offset, _position - token->offset);
         _context->tokens.push_back(std::move(token));
-        // TODO: push error
+
+        _diagnosticStream << diagnostics::DiagnosticBuilder::
+        error(diagnostics::CompileError::InvalidChars, _context)
+                .at(_context->tokens.size() - 1)
+                .message("invalid chars")
+                .build();
         return false;
     }
 
@@ -154,7 +162,18 @@ namespace kisyshot::compiler {
                         break;
                     case '8':
                     case '9':
-                        // TODO: push invalid octal digit 8/9 error;
+                        while (!isSplitter())
+                            _position++;
+
+                        token->raw_code = _code.substr(startPos, _position - startPos);
+                        token->token_type = ast::TokenType::numeric_literal;
+                        _context->tokens.push_back(std::move(token));
+                        _diagnosticStream << diagnostics::DiagnosticBuilder::
+                                 error(diagnostics::CompileError::InvalidNumericConst, _context)
+                                .at(_context->tokens.size() - 1)
+                                .message("octal numeric const should not contain '8' or '9'")
+                                .build();
+                        return false;
                     default:
                         // just a single zero literal
                         token->raw_code = _code.substr(_position, 1);
@@ -332,7 +351,12 @@ namespace kisyshot::compiler {
         // form the result and push the error to the diagnostic
         token->raw_code = _code.substr(startPos, _position - startPos);
         _context->tokens.push_back(std::move(token));
-        // TODO: push error
+        _diagnosticStream << diagnostics::DiagnosticBuilder::
+        error(diagnostics::CompileError::InterlineCommentNotClosed, _context)
+                .at(_context->tokens.size() - 1)
+                .message("interline comment not closed")
+                .suggestion("add '*/' to the end of the comment")
+                .build();
         return false;
     }
 
