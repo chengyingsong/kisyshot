@@ -11,15 +11,12 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << "ParamDeclaration "
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::cyan << "'" << type->toString() << " " << name->toString();
-
-            s << "'"
+              << rang::fg::cyan << "'" << toString() << "'"
               << rang::fg::reset << std::endl;
         } else {
             s << "ParamDeclaration "
               << "<" << this << "> "
-              << "'" << type->toString() << " " << name->toString();
-            s << "'" << std::endl;
+              << "'" << toString() << "'" << std::endl;
         }
     }
 
@@ -37,6 +34,14 @@ namespace kisyshot::ast::syntax {
 
     std::size_t ParamDeclaration::end() {
         return name->end();
+    }
+
+    std::string ParamDeclaration::toString() const {
+        std::string s = type->toString() + " " + name->toString();
+        for (int i = 0; i < dimension; ++i) {
+            s += "[]";
+        }
+        return s;
     }
 
     void ParamList::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {

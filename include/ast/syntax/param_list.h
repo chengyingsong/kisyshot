@@ -12,6 +12,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override;
         std::size_t end() override;
+        std::string toString() const;
 
         std::size_t dimension = 0;
         std::shared_ptr<Identifier> name = nullptr;

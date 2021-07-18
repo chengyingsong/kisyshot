@@ -17,7 +17,7 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << getType()
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::green << type->toString()
+              << rang::fg::green << ((constTokenIndex == invalidTokenIndex) ? "" : "const ") << type->toString()
               << rang::fg::reset << " ";
             for (size_t i = 0; i < varDefs.size(); ++i) {
                 s << varDefs[i]->toString();
@@ -28,7 +28,7 @@ namespace kisyshot::ast::syntax {
         } else {
             s << " " << getType()
               << "<" << this << "> "
-              << type->toString() << " ";
+              << ((constTokenIndex == invalidTokenIndex) ? "" : "const ") << type->toString() << " ";
             for (size_t i = 0; i < varDefs.size(); ++i) {
                 s << varDefs[i]->toString();
                 if (i + 1 != varDefs.size())

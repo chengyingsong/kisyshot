@@ -19,7 +19,7 @@ namespace kisyshot::ast::syntax {
         if (params->hasChild()) {
             params->forEachChild([&methodData](const std::weak_ptr<SyntaxNode> &n, bool isLast) {
                 auto para = std::static_pointer_cast<ParamDeclaration>(n.lock());
-                methodData << para->name->toString()
+                methodData << para->toString()
                            << (isLast ? ")'" : ", ");
             });
         } else {
