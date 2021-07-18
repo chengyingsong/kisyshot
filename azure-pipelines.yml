@@ -1,0 +1,43 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macOS-latest'
+    windows:
+      imageName: 'windows-latest'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+# Linux
+- task: ShellScript@2
+  inputs:
+    scriptPath: build.sh
+  condition: eq( variables['Agent.OS'], 'Linux' ) 
+# macOS
+- task: ShellScript@2
+  inputs:
+    scriptPath: build.sh
+  condition: eq( variables['Agent.OS'], 'Darwin' )
+# Windows
+- task: PowerShell@2
+  inputs:
+    filePath: 'build.ps1'
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/artifacts'
+    includeRootFolder: false
+
+- task: PublishBuildArtifacts@1
