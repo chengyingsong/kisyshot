@@ -28,7 +28,7 @@ namespace kisyshot::compiler {
 
         // returns a eof Token when Lexer reaches the end of the code string_view
         if (_position >= _code.size()) {
-            auto token = std::make_unique<class Token>();
+            auto token = std::make_unique<Token>();
             token->token_type = TokenType::eof;
             token->offset = _position;
             token->raw_code = _code.substr(_position, 1);
@@ -66,7 +66,7 @@ namespace kisyshot::compiler {
 
         // lex punctuator
         if (currTokenIs(TokenType::punctuator)) {
-            auto token = std::make_unique<class Token>();
+            auto token = std::make_unique<Token>();
             token->token_type = currTokenType();
             token->raw_code = _code.substr(_position, 1);
             token->offset = _position;
@@ -88,7 +88,7 @@ namespace kisyshot::compiler {
 
         // neither of the situation is satisfied return error
 
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->token_type = TokenType::unknown;
         token->offset = _position;
         while (!isSplitter())
@@ -108,7 +108,7 @@ namespace kisyshot::compiler {
     }
 
     bool Lexer::nextNumericLiteral() {
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->token_type = TokenType::numeric_literal;
         token->offset = _position;
 
@@ -260,7 +260,7 @@ namespace kisyshot::compiler {
                 (('0' <= _code[_position + offset]) && (_code[_position + offset] <= '9')))
                 return nextIdentifier(offset + 1);
         }
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->offset = _position;
         token->raw_code = _code.substr(_position, offset);
 
@@ -278,7 +278,7 @@ namespace kisyshot::compiler {
         if (sameType(rawTokenType(std::string(_code.substr(_position, 2))), TokenType::operators)) {
             len = 2;
         }
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->offset = _position;
         token->raw_code = _code.substr(_position, len);
         token->token_type = rawTokenType(std::string(_code.substr(_position, len)));
@@ -291,7 +291,7 @@ namespace kisyshot::compiler {
         // handle with inline comments
         size_t startPos = _position;
 
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->token_type = TokenType::inline_comment;
         token->offset = startPos;
         // when we haven't met line switch before end of file
@@ -310,7 +310,7 @@ namespace kisyshot::compiler {
 
     bool Lexer::nextInterlineComment() {
         size_t startPos = _position;
-        auto token = std::make_unique<class Token>();
+        auto token = std::make_unique<Token>();
         token->token_type = TokenType::interline_comment;
         token->offset = startPos;
         _position += 2;

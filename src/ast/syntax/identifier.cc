@@ -2,12 +2,6 @@
 #include <ast/syntax/identifier.h>
 
 namespace kisyshot::ast::syntax {
-
-    Identifier::Identifier(const std::string &id, std::size_t tokId) {
-        identifier = id;
-        tokenIndex = tokId;
-    }
-
     std::string Identifier::toString() {
         return identifier;
     }

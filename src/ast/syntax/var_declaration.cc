@@ -3,13 +3,6 @@
 #include <ast/syntax/var_declaration.h>
 
 namespace kisyshot::ast::syntax {
-
-    VarDeclaration::VarDeclaration(const std::shared_ptr<Type> &type, size_t constIndex) {
-        this->constTokenIndex = constIndex;
-        this->semiTokenIndex = invalidTokenIndex;
-        this->type = type;
-    }
-
     void VarDeclaration::add(const std::shared_ptr<VarDefinition> &child) {
         varDefs.push_back(child);
     }
@@ -59,26 +52,6 @@ namespace kisyshot::ast::syntax {
 
     std::size_t VarDeclaration::end() {
         return varDefs.back()->end();
-    }
-
-    void VarDeclaration::setSemiTokenIndex(size_t semiTokenIndex) {
-        semiTokenIndex = semiTokenIndex;
-    }
-
-    const std::vector<std::shared_ptr<VarDefinition>> &VarDeclaration::getVarDefs() const {
-        return varDefs;
-    }
-
-    size_t VarDeclaration::getConstTokenIndex() const {
-        return constTokenIndex;
-    }
-
-    size_t VarDeclaration::getSemiTokenIndex() const {
-        return semiTokenIndex;
-    }
-
-    std::shared_ptr<Type> VarDeclaration::getVarType() const {
-        return type;
     }
 
     void VarDefinition::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -146,36 +119,7 @@ namespace kisyshot::ast::syntax {
         return array.back()->end();
     }
 
-    void VarDefinition::setInitialValue(const std::shared_ptr<Expression> &initialValue) {
-        this->initialValue = initialValue;
-    }
-
-    void VarDefinition::setEqualTokenIndex(size_t equalTokenIndex) {
-        equalTokenIndex = equalTokenIndex;
-    }
-
-    VarDefinition::VarDefinition(const std::shared_ptr<Identifier> &name) {
-        varName = name;
-        equalTokenIndex = invalidTokenIndex;
-    }
-
     void VarDefinition::add(const std::shared_ptr<Expression> &child) {
         array.push_back(child);
-    }
-
-    const std::shared_ptr<Identifier> &VarDefinition::getVarName() const {
-        return varName;
-    }
-
-    const std::shared_ptr<Expression> &VarDefinition::getInitialValue() const {
-        return initialValue;
-    }
-
-    const std::vector<std::shared_ptr<Expression>> &VarDefinition::getArray() const {
-        return array;
-    }
-
-    size_t VarDefinition::getEqualTokenIndex() const {
-        return equalTokenIndex;
     }
 }

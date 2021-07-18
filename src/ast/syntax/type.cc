@@ -4,10 +4,6 @@
 #include <ast/syntax/type.h>
 
 namespace kisyshot::ast::syntax{
-    Type::Type(const std::shared_ptr<Identifier> &typeName) {
-        this->typeName = typeName;
-    }
-
     void Type::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(typeName, true);
     }

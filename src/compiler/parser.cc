@@ -74,7 +74,9 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::Identifier> Parser::parseIdentifier() {
         if (current() == ast::TokenType::identifier) {
-            auto id = std::make_shared<Identifier>((std::string) _context->tokens[_current]->raw_code, _current);
+            auto id = std::make_shared<Identifier>();
+            id->identifier = (std::string) _context->tokens[_current]->raw_code;
+            id->tokenIndex = _current;
             step();
             return id;
         }
@@ -82,15 +84,17 @@ namespace kisyshot::compiler {
     }
 
     std::shared_ptr<ast::syntax::Function> Parser::parseFunction() {
-        auto type = std::make_shared<Type>(parseIdentifier());
-        auto name = parseIdentifier();
-        auto params = std::make_shared<ParamList>();
-        std::shared_ptr<Statement> body;
+
+        auto function = std::make_shared<Function>();
+        function->returnType = parseType();
+        function->name = parseIdentifier();
+        function->params = std::make_shared<ParamList>();
         // size_t lParen = _current;
         step();
         while (current() == ast::TokenType::identifier) {
-            auto paraType = std::make_shared<Type>(parseIdentifier());
-            auto paraName = parseIdentifier();
+            auto para = std::make_shared<ParamDeclaration>();
+            para->type = parseType();
+            para->name = parseIdentifier();
             size_t dim = 0;
             while (current() == ast::TokenType::l_square) {
                 while (current() != ast::TokenType::r_square && current() != ast::TokenType::r_paren)
@@ -98,7 +102,8 @@ namespace kisyshot::compiler {
                 dim++;
                 step();
             }
-            params->add(std::make_shared<ParamDeclaration>(paraType, paraName, dim));
+            para->dimension = dim;
+            function->params->add(para);
             if (current() == ast::TokenType::comma)
                 step();
         }
@@ -110,10 +115,9 @@ namespace kisyshot::compiler {
         if (current() != ast::TokenType::l_brace) {
             // TODO
         } else {
-            body = parseBlockStatement();
+            function->body = parseBlockStatement();
         }
-        return std::make_shared<Function>(type, name, params, body);
-
+        return function;
     }
 
     std::shared_ptr<ast::syntax::Expression>
@@ -124,7 +128,11 @@ namespace kisyshot::compiler {
             size_t opIndex = _current;
             step();
             left = parseExpression(endTokens, OperatorPrecedence::unary);
-            left = std::make_shared<UnaryExpression>(_context->tokens[opIndex]->token_type, opIndex, left);
+            auto unary = std::make_shared<UnaryExpression>();
+            unary->operatorType = _context->tokens[opIndex]->token_type;
+            unary->opIndex = opIndex;
+            unary->right = left;
+            left = unary;
         } else {
             switch (current()) {
                 case ast::TokenType::l_paren: {
@@ -138,11 +146,16 @@ namespace kisyshot::compiler {
                     } else {
                         step();
                     }
-                    left = std::make_shared<ParenthesesExpression>(lParenIndex, rParenIndex, left);
+                    auto parentheses = std::make_shared<ParenthesesExpression>();
+                    parentheses->leftParenIndex = lParenIndex;
+                    parentheses->rightParenIndex = rParenIndex;
+                    parentheses->innerExpression = left;
+                    left = parentheses;
                     break;
                 }
                 case ast::TokenType::l_brace: {
-                    auto array = std::make_shared<ArrayInitializeExpression>(_current);
+                    auto array = std::make_shared<ArrayInitializeExpression>();
+                    array->lBraceIndex = _current;
                     step();
                     if (current() == ast::TokenType::r_brace) {
                         step();
@@ -184,11 +197,16 @@ namespace kisyshot::compiler {
                     break;
                 }
                 case ast::TokenType::identifier: {
-                    left = std::make_shared<IdentifierExpression>(parseIdentifier());
+                    auto identifier = std::make_shared<IdentifierExpression>();
+                    identifier->name = parseIdentifier();
+                    left = identifier;
                     break;
                 }
                 case ast::TokenType::numeric_literal: {
-                    left = std::make_shared<NumericLiteralExpression>(_context->tokens[_current]->raw_code, _current);
+                    auto number = std::make_shared<NumericLiteralExpression>();
+                    number->rawCode = _context->tokens[_current]->raw_code;
+                    number->tokenIndex = _current;
+                    left = number;
                     step();
                     break;
                 }
@@ -221,14 +239,24 @@ namespace kisyshot::compiler {
                     newEndTokens.insert(TokenType::r_square);
                     auto index = parseExpression(newEndTokens);
                     if (current() == TokenType::r_square) {
-                        left = std::make_shared<IndexExpression>(left, index, lSquare, _current);
+                        auto indexed = std::make_shared<IndexExpression>();
+                        indexed->lSquareIndex = lSquare;
+                        indexed->rSquareIndex = _current;
+                        indexed->indexedExpr = left;
+                        indexed->indexerExpr = index;
+
+                        left = indexed;
                         if (lookahead() == TokenType::l_square) {
                             step();
                             goto parsePrimary;
                         }
                         step();
                     } else {
-                        left = std::make_shared<IndexExpression>(left, index, lSquare);
+                        auto indexed = std::make_shared<IndexExpression>();
+                        indexed->lSquareIndex = lSquare;
+                        indexed->indexedExpr = left;
+                        indexed->indexerExpr = index;
+                        left = indexed;
                         while (endTokens.count(current()) == 0)
                             step();
                         // TODO: push ] expected
@@ -241,9 +269,9 @@ namespace kisyshot::compiler {
                     auto newEndTokens = endTokens;
                     if (left != nullptr && left->getType() == SyntaxType::IdentifierExpression) {
                         newEndTokens.insert(TokenType::r_paren);
-                        auto callExpr = std::make_shared<CallExpression>(
-                                _current,
-                                std::dynamic_pointer_cast<IdentifierExpression>(left)->getIdentifier());
+                        auto callExpr = std::make_shared<CallExpression>();
+                        callExpr->lParenIndex = _current;
+                        callExpr->name = std::dynamic_pointer_cast<IdentifierExpression>(left)->name;
                         parseNextParam:
                         step();
                         if (current() != TokenType::r_paren) {
@@ -253,7 +281,7 @@ namespace kisyshot::compiler {
                                 case TokenType::comma:
                                     goto parseNextParam;
                                 case TokenType::r_paren:
-                                    callExpr->setRParenIndex(_current);
+                                    callExpr->rParenIndex = _current;
                                     step();
                                     break;
                                 default:
@@ -262,7 +290,7 @@ namespace kisyshot::compiler {
                                         step();
                             }
                         } else {
-                            callExpr->setRParenIndex(_current);
+                            callExpr->rParenIndex = _current;
                             step();
                         }
                         left = callExpr;
@@ -281,7 +309,12 @@ namespace kisyshot::compiler {
                 break;
             step();
             auto right = parseExpression(endTokens, precedence);
-            left = std::make_shared<BinaryExpression>(left, _context->tokens[opIndex]->token_type, opIndex, right);
+            auto binary = std::make_shared<BinaryExpression>();
+            binary->left = left;
+            binary->operatorType = _context->tokens[opIndex]->token_type;
+            binary->opIndex = opIndex;
+            binary->right = right;
+            left = binary;
         }
         return left;
     }
@@ -290,17 +323,18 @@ namespace kisyshot::compiler {
 
         switch (current()) {
             case ast::TokenType::kw_return: {
+                auto ret = std::make_shared<ReturnStatement>();
+                ret->returnTokenIndex = _current;
                 if (lookahead() == ast::TokenType::semi) {
-                    auto ret = std::make_shared<ReturnStatement>(_current, _lookahead);
+                    ret->semiTokenIndex = _lookahead;
                     step();
                     step();
                     return ret;
                 } else {
-                    auto ret = std::make_shared<ReturnStatement>(_current);
                     step();
-                    ret->setValue(parseExpression());
+                    ret->value = parseExpression();
                     if (current() == ast::TokenType::semi) {
-                        ret->setSemiTokenIndex(_current);
+                        ret->semiTokenIndex = _current;
                         step();
                     } else {
                         // TODO: semi expected
@@ -309,25 +343,25 @@ namespace kisyshot::compiler {
                 }
             }
             case ast::TokenType::kw_continue: {
-                std::shared_ptr<ContinueStatement> cont;
+                std::shared_ptr<ContinueStatement> cont = std::make_shared<ContinueStatement>();
+                cont->continueTokenIndex = _current;
                 if (lookahead() == ast::TokenType::semi) {
-                    cont = std::make_shared<ContinueStatement>(_current, _lookahead);
+                    cont->semiTokenIndex = _lookahead;
                     step();
                 } else {
                     // TODO: push ';' expected
-                    cont = std::make_shared<ContinueStatement>(_current);
                 }
                 step();
                 return cont;
             }
             case ast::TokenType::kw_break: {
-                std::shared_ptr<BreakStatement> brk;
+                std::shared_ptr<BreakStatement> brk = std::make_shared<BreakStatement>();
+                brk->breakTokenIndex = _current;
                 if (lookahead() == ast::TokenType::semi) {
-                    brk = std::make_shared<BreakStatement>(_current, _lookahead);
+                    brk->semiTokenIndex = _lookahead;
                     step();
                 } else {
                     // TODO: push ';' expected
-                    brk = std::make_shared<BreakStatement>(_current);
                 }
                 step();
                 return brk;
@@ -345,10 +379,10 @@ namespace kisyshot::compiler {
                 if (lookahead() == ast::TokenType::identifier) {
                     return parseVariableDeclaration();
                 }
-                auto expr = parseExpression({TokenType::semi});
-                auto stmt = std::make_shared<ExpressionStatement>(expr);
+                auto stmt = std::make_shared<ExpressionStatement>();
+                stmt->expression = parseExpression({TokenType::semi});
                 if (current() == ast::TokenType::semi) {
-                    stmt->setSemiTokenIndex(_current);
+                    stmt->semiTokenIndex = _current;
                     step();
                 } else {
                     // TODO: semi expected
@@ -367,7 +401,8 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::BlockStatement> Parser::parseBlockStatement() {
         if (current() == ast::TokenType::l_brace) {
-            auto block = std::make_shared<BlockStatement>(_current);
+            auto block = std::make_shared<BlockStatement>();
+            block->lBraceTokenIndex = _current;
             step();
             while (_current < _context->tokens.size() && current() != ast::TokenType::r_brace) {
                 auto stmt = parseStatement();
@@ -382,22 +417,19 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::IfStatement> Parser::parseIfStatement() {
         if (current() == ast::TokenType::kw_if && lookahead() == ast::TokenType::l_paren) {
-            size_t ifPos = _current;
+            auto stmt = std::make_shared<IfStatement>();
+            stmt->ifTokenIndex = _current;
             step();
-            size_t lParen = _current;
+            stmt->lParenIndex = _current;
             step();
-            auto condition = parseExpression({TokenType::r_paren});
-            size_t rParen = _current;
+            stmt->condition = parseExpression({TokenType::r_paren});
+            stmt->rParenIndex = _current;
             step();
-            auto ifClause = parseStatement();
-            auto stmt = std::make_shared<IfStatement>(ifPos, condition, ifClause);
-            stmt->setLParenIndex(lParen);
-            stmt->setRParenIndex(rParen);
+            stmt->ifClause = parseStatement();
             if (current() == ast::TokenType::kw_else) {
-                stmt->setElseTokenIndex(_current);
+                stmt->elseTokenIndex = _current;
                 step();
-                auto elseClause = parseStatement();
-                stmt->setElse(elseClause);
+                stmt->elseClause = parseStatement();
             }
             return stmt;
         }
@@ -406,17 +438,15 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::WhileStatement> Parser::parseWhileStatement() {
         if (current() == ast::TokenType::kw_while && lookahead() == ast::TokenType::l_paren) {
-            size_t whilePos = _current;
+            auto stmt = std::make_shared<WhileStatement>();
+            stmt->whileTokenIndex = _current;
             step();
-            size_t lParen = _current;
+            stmt->lParenIndex = _current;
             step();
-            auto condition = parseExpression({TokenType::r_paren});
-            size_t rParen = _current;
+            stmt->condition = parseExpression({TokenType::r_paren});
+            stmt->rParenIndex = _current;
             step();
-            auto body = parseStatement();
-            auto stmt = std::make_shared<WhileStatement>(whilePos, condition, body);
-            stmt->setLParenIndex(lParen);
-            stmt->setRParenIndex(rParen);
+            stmt->body = parseStatement();
             return stmt;
         }
         return nullptr;
@@ -455,10 +485,13 @@ namespace kisyshot::compiler {
         }
         if (current() == ast::TokenType::identifier && lookahead() == ast::TokenType::identifier) {
             std::shared_ptr<Identifier> varName;
-            decl = std::make_shared<VarDeclaration>(std::make_shared<Type>(parseIdentifier()), constPos);
+
+            decl = std::make_shared<VarDeclaration>();
+            decl->type = parseType();
+            decl->constTokenIndex = constPos;
             while (_current < _context->tokens.size() && current() == ast::TokenType::identifier) {
-                varName = parseIdentifier();
-                auto def = std::make_shared<VarDefinition>(varName);
+                auto def = std::make_shared<VarDefinition>();
+                def->varName = parseIdentifier();
                 bool varEnd = false;
                 do {
                     switch (current()) {
@@ -477,13 +510,12 @@ namespace kisyshot::compiler {
                             break;
                         }
                         case ast::TokenType::op_eq: {
-                            def->setEqualTokenIndex(_current);
+                            def->equalTokenIndex = _current;
                             step();
                             if (current() == ast::TokenType::semi) {
                                 // TODO: push expr expected
                             }
-                            auto init = parseExpression({TokenType::semi, TokenType::comma});
-                            def->setInitialValue(init);
+                            def->initialValue = parseExpression({TokenType::semi, TokenType::comma});
                             break;
                         }
                         case ast::TokenType::eof:
@@ -506,11 +538,17 @@ namespace kisyshot::compiler {
             if (current() != ast::TokenType::semi) {
                 // TODO:
             } else {
-                decl->setSemiTokenIndex(_current);
+                decl->semiTokenIndex = _current;
                 step();
             }
         }
 
         return decl;
+    }
+
+    std::shared_ptr<ast::syntax::Type> Parser::parseType() {
+        auto  type = std::make_shared<ast::syntax::Type>();
+        type->typeName = parseIdentifier();
+        return type;
     }
 }

@@ -34,6 +34,8 @@ namespace kisyshot::compiler {
         std::shared_ptr<ast::syntax::Expression> parseExpression(const std::set<ast::TokenType> &endTokens = {},
                                                                  ast::OperatorPrecedence parentPrecedence = ast::OperatorPrecedence::initial);
 
+        std::shared_ptr<ast::syntax::Type> parseType();
+
         std::shared_ptr<ast::syntax::Statement> parseStatement();
 
         std::shared_ptr<ast::syntax::VarDeclaration> parseVariableDeclaration();

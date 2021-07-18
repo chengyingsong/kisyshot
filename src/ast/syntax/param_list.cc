@@ -2,15 +2,6 @@
 #include <ast/syntax/param_list.h>
 
 namespace kisyshot::ast::syntax {
-
-
-    ParamDeclaration::ParamDeclaration(const std::shared_ptr<Type> &type, const std::shared_ptr<Identifier> &name,
-                                       size_t dim) {
-        this->name = name;
-        this->type = type;
-        this->dimension = dim;
-    }
-
     void ParamDeclaration::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(name, false);
         syntaxWalker(type, true);
@@ -40,28 +31,12 @@ namespace kisyshot::ast::syntax {
         return true;
     }
 
-    std::weak_ptr<Identifier> ParamDeclaration::getParamName() {
-        return name;
-    }
-
-    std::weak_ptr<Type> ParamDeclaration::getParamType() {
-        return type;
-    }
-
     std::size_t ParamDeclaration::start() {
         return type->start();
     }
 
     std::size_t ParamDeclaration::end() {
         return name->end();
-    }
-
-    size_t ParamDeclaration::getDimension() const {
-        return dimension;
-    }
-
-    const std::shared_ptr<Identifier> &ParamDeclaration::getName() const {
-        return name;
     }
 
     void ParamList::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {

@@ -6,7 +6,6 @@
 namespace kisyshot::ast::syntax{
     class Identifier:public SyntaxNode{
     public:
-        explicit Identifier(const std::string& id, std::size_t tokenId);
         void forEachChild(const std::function<void (std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
         void writeCurrentInfo(std::ostream& ostream) override;
         SyntaxType getType() override ;

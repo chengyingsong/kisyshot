@@ -4,25 +4,6 @@
 #include <ast/syntax/function.h>
 
 namespace kisyshot::ast::syntax {
-
-    Function::Function(const std::shared_ptr<Type> &returnType, const std::shared_ptr<Identifier> &name,
-                       const std::shared_ptr<ParamList> &params, const std::shared_ptr<Statement> &body) {
-        this->returnType = returnType;
-        this->name = name;
-        this->params = params;
-        this->body = body;
-        this->lParenIndex = invalidTokenIndex;
-        this->rParenIndex = invalidTokenIndex;
-    }
-
-    void Function::setLParenIndex(std::size_t lParenIndex) {
-        lParenIndex = lParenIndex;
-    }
-
-    void Function::setRParenIndex(std::size_t rParenIndex) {
-        rParenIndex = rParenIndex;
-    }
-
     void Function::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(name, false);
         syntaxWalker(returnType, false);
@@ -38,7 +19,7 @@ namespace kisyshot::ast::syntax {
         if (params->hasChild()) {
             params->forEachChild([&methodData](const std::weak_ptr<SyntaxNode> &n, bool isLast) {
                 auto para = std::static_pointer_cast<ParamDeclaration>(n.lock());
-                methodData << para->getParamType().lock()->toString()
+                methodData << para->name->toString()
                            << (isLast ? ")'" : ", ");
             });
         } else {
@@ -82,27 +63,4 @@ namespace kisyshot::ast::syntax {
         return name->end();
     }
 
-    const std::shared_ptr<Type> &Function::getReturnType() const {
-        return returnType;
-    }
-
-    const std::shared_ptr<Identifier> &Function::getName() const {
-        return name;
-    }
-
-    const std::shared_ptr<ParamList> &Function::getParams() const {
-        return params;
-    }
-
-    const std::shared_ptr<Statement> &Function::getBody() const {
-        return body;
-    }
-
-    size_t Function::getLParenIndex() const {
-        return lParenIndex;
-    }
-
-    size_t Function::getRParenIndex() const {
-        return rParenIndex;
-    }
 }

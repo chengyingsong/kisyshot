@@ -8,20 +8,6 @@ namespace kisyshot::ast::syntax {
         syntaxWalker(right, true);
     }
 
-    BinaryExpression::BinaryExpression(const std::shared_ptr<Expression> &left,
-                                       TokenType operatorType,
-                                       std::size_t opIndex,
-                                       const std::shared_ptr<Expression> &right) {
-        this->left = left;
-        this->right = right;
-        this->operatorType = operatorType;
-        this->opIndex = opIndex;
-    }
-
-    TokenType BinaryExpression::getOperatorType() {
-        return operatorType;
-    }
-
     void BinaryExpression::writeCurrentInfo(std::ostream &s) {
         Expression::writeCurrentInfo(s);
     }
@@ -52,33 +38,8 @@ namespace kisyshot::ast::syntax {
         return left->toString() + " " + getTokenSpell(operatorType) + " " + right->toString();
     }
 
-    const std::shared_ptr<Expression> &BinaryExpression::getLeft() const {
-        return left;
-    }
-
-    size_t BinaryExpression::getOpIndex() const {
-        return opIndex;
-    }
-
-    const std::shared_ptr<Expression> &BinaryExpression::getRight() const {
-        return right;
-    }
-
-
     void UnaryExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(right, true);
-    }
-
-    UnaryExpression::UnaryExpression(TokenType operatorType,
-                                     std::size_t opIndex,
-                                     const std::shared_ptr<Expression> &right) {
-        this->right = right;
-        this->opIndex = opIndex;
-        this->operatorType = operatorType;
-    }
-
-    TokenType UnaryExpression::getOperatorType() {
-        return operatorType;
     }
 
     void UnaryExpression::writeCurrentInfo(std::ostream &s) {
@@ -109,18 +70,6 @@ namespace kisyshot::ast::syntax {
 
     std::string UnaryExpression::toString() {
         return getTokenSpell(operatorType) + right->toString();
-    }
-
-    size_t UnaryExpression::getOpIndex() const {
-        return opIndex;
-    }
-
-    const std::shared_ptr<Expression> &UnaryExpression::getRight() const {
-        return right;
-    }
-
-    IdentifierExpression::IdentifierExpression(const std::shared_ptr<Identifier> &name) {
-        this->name = name;
     }
 
     void IdentifierExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -155,10 +104,6 @@ namespace kisyshot::ast::syntax {
         return name->toString();
     }
 
-    std::shared_ptr<Identifier> IdentifierExpression::getIdentifier() {
-        return name;
-    }
-
     void Expression::writeCurrentInfo(std::ostream &s) {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << getType()
@@ -170,13 +115,6 @@ namespace kisyshot::ast::syntax {
               << "<" << this << "> "
               << "'" << toString() << "' " << std::endl;
         }
-    }
-
-    ParenthesesExpression::ParenthesesExpression(std::size_t lParenIndex, std::size_t rParenIndex,
-                                                 const std::shared_ptr<Expression> &innerExpr) {
-        leftParenIndex = lParenIndex;
-        rightParenIndex = rParenIndex;
-        innerExpression = innerExpr;
     }
 
     void ParenthesesExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -213,15 +151,6 @@ namespace kisyshot::ast::syntax {
 
     std::string ParenthesesExpression::toString() {
         return "(" + innerExpression->toString() + ")";
-    }
-
-    IndexExpression::IndexExpression(const std::shared_ptr<Expression> &indexedExpr,
-                                     const std::shared_ptr<Expression> &index, std::size_t lSquareIndex,
-                                     std::size_t rSquareIndex) {
-        this->indexedExpr = indexedExpr;
-        this->indexerExpr = index;
-        this->lSquareIndex = lSquareIndex;
-        this->rSquareIndex = rSquareIndex;
     }
 
     void IndexExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -261,29 +190,6 @@ namespace kisyshot::ast::syntax {
 
     std::string IndexExpression::toString() {
         return indexedExpr->toString() + "[" + indexerExpr->toString() + "]";
-    }
-
-    const std::shared_ptr<Expression> &IndexExpression::getIndexedExpr() const {
-        return indexedExpr;
-    }
-
-    const std::shared_ptr<Expression> &IndexExpression::getIndex() const {
-        return indexerExpr;
-    }
-
-    size_t IndexExpression::getLSquareIndex() const {
-        return lSquareIndex;
-    }
-
-    size_t IndexExpression::getRSquareIndex() const {
-        return rSquareIndex;
-    }
-
-    CallExpression::CallExpression(std::size_t lParenIndex, const std::shared_ptr<Identifier> &functionName,
-                                   std::size_t rParenIndex) {
-        lParenIndex = lParenIndex;
-        name = functionName;
-        rParenIndex = rParenIndex;
     }
 
     void CallExpression::add(const std::shared_ptr<Expression> &child) {
@@ -339,31 +245,6 @@ namespace kisyshot::ast::syntax {
         return result + ")";
     }
 
-    void CallExpression::setRParenIndex(std::size_t rParenIndex) {
-        rParenIndex = rParenIndex;
-    }
-
-    const std::shared_ptr<Identifier> &CallExpression::getName() const {
-        return name;
-    }
-
-    const std::vector<std::shared_ptr<Expression>> &CallExpression::getArguments() const {
-        return arguments;
-    }
-
-    size_t CallExpression::getLParenIndex() const {
-        return lParenIndex;
-    }
-
-    size_t CallExpression::getRParenIndex() const {
-        return rParenIndex;
-    }
-
-    NumericLiteralExpression::NumericLiteralExpression(const std::string_view &rawCode, std::size_t numericIndex) {
-        this->tokenIndex = numericIndex;
-        this->rawCode = rawCode;
-    }
-
     void
     NumericLiteralExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
     }
@@ -396,10 +277,6 @@ namespace kisyshot::ast::syntax {
         return (std::string) rawCode;
     }
 
-    ArrayInitializeExpression::ArrayInitializeExpression(std::size_t lParenIndex) {
-        lParenIndex = lParenIndex;
-    }
-
     void ArrayInitializeExpression::analyseType() {
 
     }
@@ -428,12 +305,12 @@ namespace kisyshot::ast::syntax {
     }
 
     std::size_t ArrayInitializeExpression::start() {
-        return lParenIndex;
+        return lBraceIndex;
     }
 
     std::size_t ArrayInitializeExpression::end() {
-        if (rParenIndex != SyntaxNode::invalidTokenIndex)
-            return rParenIndex;
+        if (rBraceIndex != SyntaxNode::invalidTokenIndex)
+            return rBraceIndex;
 
         return array.back()->end();
     }
