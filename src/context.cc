@@ -3,9 +3,9 @@
 
 namespace kisyshot {
     Context::Context(const std::string_view &code,
-                     std::size_t syntaxID) {
+                     std::size_t contextID) {
         this->code = code;
-        this->syntaxID = syntaxID;
+        this->contextID = contextID;
         // initialize lines:
         std::size_t lastLine = 0;
         for (std::size_t i = 0; i < code.size(); ++i) {
@@ -27,7 +27,7 @@ namespace kisyshot {
     CodePosition Context::locate(const ast::Token &token) {
         auto startLineIndex = std::upper_bound(lineStartPos.begin(), lineStartPos.end(), token.offset);
         size_t id = startLineIndex - lineStartPos.begin();
-        return CodePosition{.line = id, .offset = token.offset - lineStartPos[id - 1]};
+        return CodePosition{id, token.offset - lineStartPos[id - 1]};
     }
 
     CodePosition Context::locate(std::size_t index) {
