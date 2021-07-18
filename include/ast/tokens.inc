@@ -1,13 +1,13 @@
 // Hack codes by using marcos to generate some repeated codes and prevent typos
 // This file mostly defines the special tokens in the SysY language.
-// We can add SPECIAL_TOK_CLASSIFY(params) to add new special token types.
+// We can add SPECIAL_TOK_CLASSIFY(params) to add new special Token types.
 #ifndef TOKEN
 #define TOKEN(X)
 #endif
 
 /*
  * PUNCTUATOR:
- *   punctuator is a special of token, mostly used for split purposes
+ *   punctuator is a special of Token, mostly used for split purposes
  */
 #ifndef PUNCTUATOR
 #define PUNCTUATOR(X,Y) TOKEN(X)
@@ -15,7 +15,7 @@
 
 /*
  * OPERATOR:
- *   operator is a special token, mostly used to indicate the operation
+ *   operator is a special Token, mostly used to indicate the operation
  *   of identifier elements
  */
 #ifndef OPERATOR
@@ -24,7 +24,7 @@
 
 /*
  * KEYWORD:
- *   keyword is a special token, mostly reserved to represent syntax
+ *   keyword is a special Token, mostly reserved to represent syntax
  */
 #ifndef KEYWORD
 #define KEYWORD(X) TOKEN(kw_ ## X)
@@ -32,7 +32,7 @@
 
 
 // compiler-internal tokens
-TOKEN(unknown)              // unknown token for yuuki
+TOKEN(unknown)              // unknown Token for yuuki
 TOKEN(eof)                  // end of file
 TOKEN(inline_comment)       // in-line comment
 TOKEN(interline_comment)    // inter-line comment
@@ -82,7 +82,6 @@ KEYWORD(while)
 KEYWORD(continue)
 KEYWORD(break)
 KEYWORD(return)
-KEYWORD(int)
 KEYWORD(const)
 
 

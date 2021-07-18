@@ -1,57 +1,65 @@
 #pragma once
+
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
 namespace kisyshot::ast {
     /**
-     * A enum type for defining types of token, by using hack of marcos to generate codes.
+     * A enum type for defining types of Token, by using hack of marcos to generate codes.
      */
-    enum class token_type_t: uint8_t {
+    enum class TokenType: uint8_t {
 #define TOKEN(X) X,
 #include "tokens.inc"
         punctuator ,
         operators  ,
         keywords   ,
+        comments   ,
         undefined  = 255
     };
 
-    enum class operator_type_t: uint8_t {
-#define OPERATOR(X, Y) op_ ## X = (uint8_t)token_type_t::op_ ## X,
+
+    /**
+     * A global const map which stores the relation of all the types of TOKEN and their spells.
+     */
+    const std::unordered_map<std::string,TokenType> m_raw_token = { /* NOLINT */
+#define PUNCTUATOR(X,Y) {Y,TokenType::X},
+#define KEYWORD(X) {#X,TokenType::kw_ ## X},
+#define OPERATOR(X,Y) {Y,TokenType::op_ ## X},
 #include "tokens.inc"
     };
 
     /**
      * A global const map which stores the relation of all the types of TOKEN and their spells.
      */
-    const std::unordered_map<std::string,token_type_t> m_raw_token = { /* NOLINT */
-#define PUNCTUATOR(X,Y) {Y,token_type_t::X},
-#define KEYWORD(X) {#X,token_type_t::kw_ ## X},
-#define OPERATOR(X,Y) {Y,token_type_t::op_ ## X},
-#define MODIFIER(X) {#X,token_type_t::kw_ ## X},
+    const std::unordered_map<TokenType, std::string> m_token_spell = { /* NOLINT */
+#define PUNCTUATOR(X, Y) {TokenType::X, Y},
+#define KEYWORD(X) {TokenType::kw_ ## X, #X},
+#define OPERATOR(X, Y) {TokenType::op_ ## X, Y},
 #include "tokens.inc"
     };
 
     /**
      * A global const map which stores the relation of all the types of PUNCTUATOR and their spells.
      */
-    const std::unordered_set<token_type_t> s_punctuator = { /* NOLINT */
-#define PUNCTUATOR(X,Y) token_type_t::X,
+    const std::unordered_set<TokenType> s_punctuator = { /* NOLINT */
+#define PUNCTUATOR(X,Y) TokenType::X,
 #include "tokens.inc"
     };
 
     /**
      * A global const map which stores the relation of all the types of KEYWORD and their spells.
      */
-    const std::unordered_set<token_type_t> s_keywords = { /* NOLINT */
-#define KEYWORD(X) token_type_t::kw_ ## X,
+    const std::unordered_set<TokenType> s_keywords = { /* NOLINT */
+#define KEYWORD(X) TokenType::kw_ ## X,
 #include "tokens.inc"
     };
 
     /**
      * A global const map which stores the relation of all the types of OPERATOR and their spells.
      */
-    const std::unordered_set<token_type_t> s_operators = { /* NOLINT */
-#define OPERATOR(X,Y) token_type_t::op_ ## X,
+    const std::unordered_set<TokenType> s_operators = { /* NOLINT */
+#define OPERATOR(X,Y) TokenType::op_ ## X,
 #include "tokens.inc"
     };
 
@@ -61,43 +69,49 @@ namespace kisyshot::ast {
     };
 
 
-    struct token {
+    struct Token {
         /**
-         * The type of the token.
+         * The type of the Token.
          */
-        token_type_t     token_type = token_type_t::undefined;
+        TokenType token_type = TokenType::undefined;
         /**
          * The relative position, compared to the start of the code.
          */
-        std::size_t      offset = 0;
+        std::size_t offset = 0;
         /**
-         * The raw code string_view which spilt from code by the lexer.
+         * The raw code string_view which spilt from code by the Lexer.
          */
         std::string_view raw_code;
         /**
-         * Judge if the token matches the given type.
+         * Judge if the Token matches the given type.
          * @param type: the type to be compared
          * @return true when type matches and false in other situations.
          */
-        [[nodiscard]] bool is(token_type_t type) const;
+        [[nodiscard]] bool is(TokenType type) const;
     };
 
-    inline bool same_type(token_type_t lhs, token_type_t rhs){
+    inline bool sameType(TokenType lhs, TokenType rhs){
         switch (rhs) {
-            case token_type_t::punctuator:
+            case TokenType::punctuator:
                 return s_punctuator.count(lhs) == 1;
-            case token_type_t::keywords:
+            case TokenType::keywords:
                 return s_keywords.count(lhs) == 1;
-            case token_type_t::operators:
+            case TokenType::operators:
                 return s_operators.count(lhs) == 1;
+            case TokenType::comments:
+                return lhs == TokenType::inline_comment || lhs == TokenType::interline_comment;
             default:
                 return lhs == rhs;
         }
     }
 
-    inline token_type_t raw_token_type(const std::string &raw){
+    inline TokenType rawTokenType(const std::string &raw){
         if (m_raw_token.count(raw) == 0)
-            return token_type_t::unknown;
+            return TokenType::unknown;
         return m_raw_token.at(raw);
+    }
+
+    inline std::string getTokenSpell(TokenType token){
+        return m_token_spell.at(token);
     }
 }
