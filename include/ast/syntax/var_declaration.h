@@ -16,10 +16,10 @@ namespace kisyshot::ast::syntax {
         std::size_t start() override;
         std::size_t end() override;
 
-        std::shared_ptr<Identifier> varName;
-        std::shared_ptr<Expression> initialValue;
+        std::shared_ptr<Identifier> varName = nullptr;
+        std::shared_ptr<Expression> initialValue = nullptr;
         std::vector<std::shared_ptr<Expression>> array;
-        std::size_t equalTokenIndex;
+        std::size_t equalTokenIndex = invalidTokenIndex;
     };
     class VarDeclaration:public Statement, public ISyntaxList<VarDefinition>{
 
@@ -32,9 +32,9 @@ namespace kisyshot::ast::syntax {
         std::size_t start() override;
         std::size_t end() override;
 
-        std::shared_ptr<Type> type;
-        std::vector<std::shared_ptr<VarDefinition>> varDefs;
-        std::size_t constTokenIndex;
-        std::size_t semiTokenIndex;
+        std::shared_ptr<Type> type = nullptr;
+        std::vector<std::shared_ptr<VarDefinition>> varDefs ;
+        std::size_t constTokenIndex = invalidTokenIndex;
+        std::size_t semiTokenIndex = invalidTokenIndex;
     };
 }

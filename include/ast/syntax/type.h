@@ -13,6 +13,6 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         std::string toString() ;
 
-        std::shared_ptr<Identifier> typeName;
+        std::shared_ptr<Identifier> typeName = nullptr;
     };
 }

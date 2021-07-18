@@ -29,10 +29,10 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
-        std::shared_ptr<Expression> left;
-        TokenType operatorType;
-        std::size_t opIndex;
-        std::shared_ptr<Expression> right;
+        std::shared_ptr<Expression> left = nullptr;
+        std::shared_ptr<Expression> right = nullptr;
+        TokenType operatorType = TokenType::undefined;
+        std::size_t opIndex = invalidTokenIndex;
     };
 
     class UnaryExpression: public Expression{
@@ -46,9 +46,9 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
-        TokenType operatorType;
-        std::size_t opIndex;
-        std::shared_ptr<Expression> right;
+        TokenType operatorType = TokenType::undefined;
+        std::size_t opIndex = invalidTokenIndex;
+        std::shared_ptr<Expression> right = nullptr;
     };
 
     class IdentifierExpression: public Expression{
@@ -62,7 +62,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override ;
         std::string toString() override ;
 
-        std::shared_ptr<Identifier> name;
+        std::shared_ptr<Identifier> name = nullptr;
     };
 
     class ParenthesesExpression: public Expression{
@@ -77,9 +77,9 @@ namespace kisyshot::ast::syntax{
         std::string toString() override ;
 
     
-        std::size_t leftParenIndex;
-        std::size_t rightParenIndex;
-        std::shared_ptr<Expression> innerExpression;
+        std::size_t leftParenIndex = invalidTokenIndex;
+        std::size_t rightParenIndex = invalidTokenIndex;
+        std::shared_ptr<Expression> innerExpression = nullptr;
     };
 
     class IndexExpression:public Expression{
@@ -93,10 +93,10 @@ namespace kisyshot::ast::syntax{
         void analyseType() override ;
         std::string toString() override ;
     
-        std::shared_ptr<Expression> indexedExpr;
-        std::shared_ptr<Expression> indexerExpr;
-        std::size_t lSquareIndex;
-        std::size_t rSquareIndex;
+        std::shared_ptr<Expression> indexedExpr = nullptr;
+        std::shared_ptr<Expression> indexerExpr = nullptr;
+        std::size_t lSquareIndex = invalidTokenIndex;
+        std::size_t rSquareIndex = invalidTokenIndex;
     };
 
     class CallExpression: public Expression, public ISyntaxList<Expression> {
@@ -111,10 +111,10 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
-        std::shared_ptr<Identifier> name;
+        std::shared_ptr<Identifier> name = nullptr;
         std::vector<std::shared_ptr<Expression>> arguments;
-        std::size_t lParenIndex;
-        std::size_t rParenIndex;
+        std::size_t lParenIndex = invalidTokenIndex;
+        std::size_t rParenIndex = invalidTokenIndex;
     };
 
 

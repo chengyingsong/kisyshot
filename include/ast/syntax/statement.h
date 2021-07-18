@@ -23,13 +23,13 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
     
-        std::shared_ptr<Statement> ifClause;
-        std::shared_ptr<Statement> elseClause;
-        std::shared_ptr<Expression> condition;
-        std::size_t ifTokenIndex;
-        std::size_t elseTokenIndex;
-        std::size_t lParenIndex;
-        std::size_t rParenIndex;
+        std::shared_ptr<Statement> ifClause = nullptr;
+        std::shared_ptr<Statement> elseClause = nullptr;
+        std::shared_ptr<Expression> condition = nullptr;
+        std::size_t ifTokenIndex = invalidTokenIndex;
+        std::size_t elseTokenIndex = invalidTokenIndex;
+        std::size_t lParenIndex = invalidTokenIndex;
+        std::size_t rParenIndex = invalidTokenIndex;
     };
 
 
@@ -42,11 +42,11 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
     
-        std::size_t whileTokenIndex;
-        std::size_t lParenIndex;
-        std::size_t rParenIndex;
-        std::shared_ptr<Expression> condition;
-        std::shared_ptr<Statement> body;
+        std::size_t whileTokenIndex = invalidTokenIndex;
+        std::size_t lParenIndex = invalidTokenIndex;
+        std::size_t rParenIndex = invalidTokenIndex;
+        std::shared_ptr<Expression> condition = nullptr;
+        std::shared_ptr<Statement> body = nullptr;
     };
 
 
@@ -59,7 +59,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
     
-        std::size_t tokenIndex;
+        std::size_t tokenIndex = invalidTokenIndex;
     };
 
     class BreakStatement:public Statement{
@@ -71,9 +71,8 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
-    
-        std::size_t breakTokenIndex;
-        std::size_t semiTokenIndex;
+        std::size_t breakTokenIndex = invalidTokenIndex;
+        std::size_t semiTokenIndex = invalidTokenIndex;
     };
 
     class ContinueStatement:public Statement{
@@ -85,9 +84,8 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
-    
-        std::size_t continueTokenIndex;
-        std::size_t semiTokenIndex;
+        std::size_t continueTokenIndex = invalidTokenIndex;
+        std::size_t semiTokenIndex = invalidTokenIndex;
     };
 
     class ReturnStatement:public Statement{
@@ -99,9 +97,9 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
-        std::size_t returnTokenIndex;
-        std::size_t semiTokenIndex;
-        std::shared_ptr<Expression> value;
+        std::size_t returnTokenIndex = invalidTokenIndex;
+        std::size_t semiTokenIndex = invalidTokenIndex;
+        std::shared_ptr<Expression> value = nullptr;
     };
 
     class BlockStatement: public ISyntaxList<Statement>, public Statement{
@@ -115,8 +113,8 @@ namespace kisyshot::ast::syntax{
         void add(const std::shared_ptr<Statement>& child) override ;
 
         std::vector<std::shared_ptr<Statement>> children;
-        std::size_t lBraceTokenIndex;
-        std::size_t rBraceTokenIndex;
+        std::size_t lBraceTokenIndex = invalidTokenIndex;
+        std::size_t rBraceTokenIndex = invalidTokenIndex;
     };
 
     class ExpressionStatement: public Statement{
@@ -128,7 +126,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
     
-        std::shared_ptr<Expression> expression;
-        std::size_t semiTokenIndex;
+        std::shared_ptr<Expression> expression = nullptr;
+        std::size_t semiTokenIndex = invalidTokenIndex;
     };
 }

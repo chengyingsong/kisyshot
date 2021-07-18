@@ -14,11 +14,11 @@ namespace kisyshot::ast::syntax {
         std::size_t start() override;
         std::size_t end() override;
     
-        std::shared_ptr<Type> returnType;
-        std::shared_ptr<Identifier> name;
-        std::shared_ptr<ParamList> params;
-        std::shared_ptr<Statement> body;
-        std::size_t lParenIndex;
-        std::size_t rParenIndex;
+        std::shared_ptr<Type> returnType = nullptr;
+        std::shared_ptr<Identifier> name = nullptr;
+        std::shared_ptr<ParamList> params = nullptr;
+        std::shared_ptr<Statement> body = nullptr;
+        std::size_t lParenIndex = invalidTokenIndex;
+        std::size_t rParenIndex = invalidTokenIndex;
     };
 }

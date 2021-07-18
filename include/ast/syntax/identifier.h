@@ -15,6 +15,6 @@ namespace kisyshot::ast::syntax{
         std::string toString() ;
 
         std::string identifier;
-        std::size_t tokenIndex;
+        std::size_t tokenIndex = invalidTokenIndex;
     };
 }
