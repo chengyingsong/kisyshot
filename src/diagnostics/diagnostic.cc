@@ -2,37 +2,36 @@
 #include <iostream>
 #include <diagnostics/diagnostic.h>
 
-namespace kisyshot::diagnostics{
-    ErrorAtDiagnostic::ErrorAtDiagnostic(CompileError error, std::size_t contextID, std::size_t tokenID,
+namespace kisyshot::diagnostics {
+    ErrorAtDiagnostic::ErrorAtDiagnostic(CompileError error, const std::shared_ptr<Context> &context,
+                                         std::size_t tokenID,
                                          const std::string &message, const std::string &suggestion) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
         _message = message;
         _suggestion = suggestion;
     }
 
     void
-    ErrorAtDiagnostic::writeTo(std::ostream &stream, const std::shared_ptr<ContextManager> &ctxManager) {
-        auto contextPtr = ctxManager->access(_contextID);
+    ErrorAtDiagnostic::writeTo(std::ostream &stream) {
+        size_t tokenLength = _context->tokens[_tokenID]->raw_code.length();
 
-        size_t tokenLength = contextPtr->tokens[_tokenID]->raw_code.length();
-
-        auto pos = contextPtr->locate(_tokenID);
-        std::string path = contextPtr->path;
+        auto pos = _context->locate(_tokenID);
+        std::string path = _context->path;
 
         auto isCout = stream.rdbuf() == std::cout.rdbuf();
         if (isCout) {
             // write to std::cout, we should make it colorful
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << rang::fg::red << "error: " << rang::fg::reset << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl
+                   << _context->lines[pos.line - 1] << std::endl
                    // prepare for tip mark color
-                   <<  rang::fg::green;
+                   << rang::fg::green;
         } else {
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << "error: " << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl;
+                   << _context->lines[pos.line - 1] << std::endl;
         }
 
         // get the position of the first char in the tokens
@@ -43,7 +42,7 @@ namespace kisyshot::diagnostics{
         // since tokens like interline-comments and string literals
         // can take multi lines of code, to make sure that tildes have
         // the right end position
-        size_t tildeNums = std::min(contextPtr->lines[pos.line - 1].length() - pos.offset,
+        size_t tildeNums = std::min(_context->lines[pos.line - 1].length() - pos.offset,
                                     tokenLength);
         for (std::size_t i = 1; i < tildeNums; ++i) {
             stream << "~";
@@ -57,23 +56,21 @@ namespace kisyshot::diagnostics{
         }
     }
 
-    ErrorAfterDiagnostic::ErrorAfterDiagnostic(CompileError error, std::size_t contextID, std::size_t tokenID,
+    ErrorAfterDiagnostic::ErrorAfterDiagnostic(CompileError error, const std::shared_ptr<Context> &context,
+                                               std::size_t tokenID,
                                                const std::string &message, const std::string &suggestion) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
         _message = message;
         _suggestion = suggestion;
     }
 
-    void ErrorAfterDiagnostic::writeTo(std::ostream &stream,
-                                       const std::shared_ptr<ContextManager> &ctxManager) {
-        auto contextPtr = ctxManager->access(_contextID);
+    void ErrorAfterDiagnostic::writeTo(std::ostream &stream) {
+        size_t tokenLength = _context->tokens[_tokenID]->raw_code.length();
 
-        size_t tokenLength = contextPtr->tokens[_tokenID]->raw_code.length();
-
-        auto pos = contextPtr->locate(_tokenID);
-        std::string path = contextPtr->path;
+        auto pos = _context->locate(_tokenID);
+        std::string path = _context->path;
 
         auto isCout = stream.rdbuf() == std::cout.rdbuf();
 
@@ -81,13 +78,13 @@ namespace kisyshot::diagnostics{
             // write to std::cout, we should make it colorful
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << rang::fg::red << "error: " << rang::fg::reset << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl
+                   << _context->lines[pos.line - 1] << std::endl
                    // prepare for tip mark color
-                   <<  rang::fg::green;
+                   << rang::fg::green;
         } else {
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << "error: " << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl;
+                   << _context->lines[pos.line - 1] << std::endl;
         }
 
         for (size_t sIdx = 0; sIdx < pos.offset + tokenLength; sIdx++) {
@@ -103,20 +100,19 @@ namespace kisyshot::diagnostics{
         }
     }
 
-    ErrorBeforeDiagnostic::ErrorBeforeDiagnostic(CompileError error, std::size_t contextID, std::size_t tokenID,
+    ErrorBeforeDiagnostic::ErrorBeforeDiagnostic(CompileError error, const std::shared_ptr<Context> &context,
+                                                 std::size_t tokenID,
                                                  const std::string &message, const std::string &suggestion) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
         _message = message;
         _suggestion = suggestion;
     }
 
-    void ErrorBeforeDiagnostic::writeTo(std::ostream &stream,
-                                        const std::shared_ptr<ContextManager> &ctxManager) {
-        auto contextPtr = ctxManager->access(_contextID);
-        auto pos = contextPtr->locate(_tokenID);
-        std::string path = contextPtr->path;
+    void ErrorBeforeDiagnostic::writeTo(std::ostream &stream) {
+        auto pos = _context->locate(_tokenID);
+        std::string path = _context->path;
 
         auto isCout = stream.rdbuf() == std::cout.rdbuf();
 
@@ -124,13 +120,13 @@ namespace kisyshot::diagnostics{
             // write to std::cout, we should make it colorful
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << rang::fg::red << "error: " << rang::fg::reset << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl
+                   << _context->lines[pos.line - 1] << std::endl
                    // prepare for tip mark color
-                   <<  rang::fg::green;
+                   << rang::fg::green;
         } else {
             stream << path << ":" << pos.line << ":" << pos.offset << ": "
                    << "error: " << _message << std::endl
-                   << contextPtr->lines[pos.line - 1] << std::endl;
+                   << _context->lines[pos.line - 1] << std::endl;
         }
 
         for (size_t sIdx = 0; sIdx + 1 < pos.offset; sIdx++) {

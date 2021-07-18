@@ -13,62 +13,62 @@ namespace kisyshot::diagnostics {
         return *this;
     }
 
-    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorAtBuildContext::build() {
-        return std::make_unique<ErrorAtDiagnostic>(_errorCode, _contextID, _tokenID, _message, _suggestion);
+    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorAtDiagnosticBuildContext::build() {
+        return std::make_unique<ErrorAtDiagnostic>(_errorCode, _context, _tokenID, _message, _suggestion);
     }
 
-    DiagnosticBuilder::ErrorAtBuildContext::ErrorAtBuildContext(CompileError error, std::size_t contextID,
-                                                                std::size_t tokenID) {
+    DiagnosticBuilder::ErrorAtDiagnosticBuildContext::ErrorAtDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context,
+                                                                                    std::size_t tokenID) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
     }
 
-    DiagnosticBuilder::ErrorAfterBuildContext::ErrorAfterBuildContext(CompileError error, std::size_t contextID,
-                                                                      std::size_t tokenID) {
+    DiagnosticBuilder::ErrorAfterDiagnosticBuildContext::ErrorAfterDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context,
+                                                                                          std::size_t tokenID) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
     }
 
-    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorAfterBuildContext::build() {
-        return std::make_unique<ErrorAfterDiagnostic>(_errorCode, _contextID, _tokenID, _message, _suggestion);
+    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorAfterDiagnosticBuildContext::build() {
+        return std::make_unique<ErrorAfterDiagnostic>(_errorCode, _context, _tokenID, _message, _suggestion);
     }
 
-    DiagnosticBuilder::ErrorBeforeBuildContext::ErrorBeforeBuildContext(CompileError error, std::size_t contextID,
-                                                                        std::size_t tokenID) {
+    DiagnosticBuilder::ErrorBeforeDiagnosticBuildContext::ErrorBeforeDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context,
+                                                                                            std::size_t tokenID) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
         _tokenID = tokenID;
     }
 
-    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorBeforeBuildContext::build() {
-        return std::make_unique<ErrorBeforeDiagnostic>(_errorCode, _contextID, _tokenID, _message, _suggestion);
+    std::unique_ptr<Diagnostic> DiagnosticBuilder::ErrorBeforeDiagnosticBuildContext::build() {
+        return std::make_unique<ErrorBeforeDiagnostic>(_errorCode, _context, _tokenID, _message, _suggestion);
     }
 
-    DiagnosticBuilder::ErrorBuildContextBuildContext::ErrorBuildContextBuildContext(CompileError error,
-                                                                                    std::size_t contextID) {
+    DiagnosticBuilder::ErrorBuildContextBuildContext::ErrorBuildContextBuildContext(CompileError error
+    , const std::shared_ptr<Context> &context) {
         _errorCode = error;
-        _contextID = contextID;
+        _context = context;
     }
 
-    DiagnosticBuilder::ErrorAtBuildContext DiagnosticBuilder::ErrorBuildContextBuildContext::at(std::size_t tokenID) {
-        return ErrorAtBuildContext(_errorCode, _contextID, tokenID);
+    DiagnosticBuilder::ErrorAtDiagnosticBuildContext DiagnosticBuilder::ErrorBuildContextBuildContext::at(std::size_t tokenID) {
+        return ErrorAtDiagnosticBuildContext(_errorCode, _context, tokenID);
     }
 
-    DiagnosticBuilder::ErrorAfterBuildContext
+    DiagnosticBuilder::ErrorAfterDiagnosticBuildContext
     DiagnosticBuilder::ErrorBuildContextBuildContext::after(std::size_t tokenID) {
-        return ErrorAfterBuildContext(_errorCode, _contextID, tokenID);
+        return ErrorAfterDiagnosticBuildContext(_errorCode, _context, tokenID);
     }
 
-    DiagnosticBuilder::ErrorBeforeBuildContext
+    DiagnosticBuilder::ErrorBeforeDiagnosticBuildContext
     DiagnosticBuilder::ErrorBuildContextBuildContext::before(std::size_t tokenID) {
-        return ErrorBeforeBuildContext(_errorCode, _contextID, tokenID);
+        return ErrorBeforeDiagnosticBuildContext(_errorCode, _context, tokenID);
     }
 
 
     DiagnosticBuilder::ErrorBuildContextBuildContext
-    DiagnosticBuilder::error(CompileError error, std::size_t contextID) {
-        return ErrorBuildContextBuildContext(error, contextID);
+    DiagnosticBuilder::error(CompileError error, const std::shared_ptr<Context> &context) {
+        return ErrorBuildContextBuildContext(error, context);
     }
 }

@@ -6,23 +6,46 @@
 #include <string>
 namespace kisyshot::diagnostics{
 
+    /**
+     * DiagnosticBuilder is a helper class which builds diagnostics by chain calls
+     */
     class DiagnosticBuilder{
 
     public:
+        /**
+         * DiagnosticBuildContext is a intermediate class which helps single-way specialized chain call
+         */
         class DiagnosticBuildContext{
         public:
+            /**
+             * write error message into the diagnostic
+             * @param error should be written
+             * @return diagnostic build intermediate info
+             */
             DiagnosticBuildContext& message(const std::string &message);
+            /**
+             * write suggestion message into the diagnostic
+             * @param  suggestion should be written
+             * @return diagnostic build intermediate info
+             */
             DiagnosticBuildContext& suggestion(const std::string &suggestion);
             virtual std::unique_ptr<Diagnostic> build() = 0;
         protected:
             std::string _message;
             std::string _suggestion;
-            std::size_t _contextID;
+            std::shared_ptr<Context> _context;
         };
 
-        class ErrorAtBuildContext : public DiagnosticBuildContext{
+        /**
+         * ErrorAtDiagnosticBuildContext is a intermediate class which helps single-way specialized chain call
+         */
+        class ErrorAtDiagnosticBuildContext : public DiagnosticBuildContext{
         public:
-            ErrorAtBuildContext(CompileError error, std::size_t contextID, std::size_t tokenID);
+            ErrorAtDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context, std::size_t tokenID);
+            /**
+             * Builds the diagnostic immediately
+             * @return diagnostic built by the DiagnosticBuilder
+             */
             std::unique_ptr<Diagnostic> build() override ;
 
         private:
@@ -30,40 +53,90 @@ namespace kisyshot::diagnostics{
             std::size_t _tokenID;
         };
 
-        class ErrorAfterBuildContext: public DiagnosticBuildContext{
+        /**
+         * ErrorAfterDiagnosticBuildContext is a intermediate class which helps single-way specialized chain call
+         */
+        class ErrorAfterDiagnosticBuildContext: public DiagnosticBuildContext{
         public:
-            ErrorAfterBuildContext(CompileError error,std::size_t contextID,std::size_t tokenID);
+            ErrorAfterDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context, std::size_t tokenID);
+            /**
+             * Builds the diagnostic immediately
+             * @return diagnostic built by the DiagnosticBuilder
+             */
             std::unique_ptr<Diagnostic> build() override ;
             CompileError _errorCode;
             std::size_t _tokenID;
         };
 
-        class ErrorBeforeBuildContext: public DiagnosticBuildContext{
+        /**
+         * ErrorBeforeDiagnosticBuildContext is a intermediate class which helps single-way specialized chain call
+         */
+        class ErrorBeforeDiagnosticBuildContext: public DiagnosticBuildContext{
         public:
-            ErrorBeforeBuildContext(CompileError error,std::size_t contextID,std::size_t tokenID);
+            ErrorBeforeDiagnosticBuildContext(CompileError error, const std::shared_ptr<Context> &context, std::size_t tokenID);
+            /**
+             * Builds the diagnostic immediately
+             * @return diagnostic built by the DiagnosticBuilder
+             */
             std::unique_ptr<Diagnostic> build() override ;
             CompileError _errorCode;
             std::size_t _tokenID;
         };
 
-        class ErrorRangesBuildContext: public DiagnosticBuildContext{
+        /**
+         * ErrorRangesDiagnosticBuildContext is a intermediate class which helps single-way specialized chain call
+         */
+        class ErrorRangesDiagnosticBuildContext: public DiagnosticBuildContext{
+            /**
+             * Builds the diagnostic immediately
+             * @return diagnostic built by the DiagnosticBuilder
+             */
             std::unique_ptr<Diagnostic> build() override ;
         };
 
+        /**
+         * ErrorBuildContextBuildContext is a intermediate class which helps single-way specialized chain call
+         */
         class ErrorBuildContextBuildContext{
         public:
             friend DiagnosticBuilder;
-            ErrorAtBuildContext at(std::size_t tokenID);
-            ErrorAfterBuildContext after(std::size_t tokenID);
-            ErrorBeforeBuildContext before(std::size_t tokenID);
-            ErrorRangesBuildContext ranges(std::size_t startTokID,std::size_t endTokID);
+            /**
+             * Builds a diagnostic which reminds the programmer that the error occurs AT the specified token index
+             * @param tokenID error position
+             * @return diagnostic build intermediate info
+             */
+            ErrorAtDiagnosticBuildContext at(std::size_t tokenID);
+            /**
+             * Builds a diagnostic which reminds the programmer that the error occurs AFTER the specified token index
+             * @param tokenID error position
+             * @return diagnostic build intermediate info
+             */
+            ErrorAfterDiagnosticBuildContext after(std::size_t tokenID);
+            /**
+             * Builds a diagnostic which reminds the programmer that the error occurs BEFORE the specified token index
+             * @param tokenID error position
+             * @return diagnostic build intermediate info
+             */
+            ErrorBeforeDiagnosticBuildContext before(std::size_t tokenID);
+             /**
+              * Builds a diagnostic which reminds the programmer that the error occurs between specified token indexes
+              * @param startTokID
+              * @param endTokID
+              * @return diagnostic build intermediate info
+              */
+            ErrorRangesDiagnosticBuildContext ranges(std::size_t startTokID, std::size_t endTokID);
         private:
-            ErrorBuildContextBuildContext(CompileError error, std::size_t contextID);
+            ErrorBuildContextBuildContext(CompileError error, const std::shared_ptr<Context> &context);
             CompileError _errorCode;
-            std::size_t _contextID;
+            std::shared_ptr<Context> _context;
         };
 
-        static ErrorBuildContextBuildContext error(CompileError error, std::size_t contextID);
-
+        /**
+         * Creates a builder that will build a error diagnostic
+         * @param error
+         * @param context
+         * @return
+         */
+        static ErrorBuildContextBuildContext error(CompileError error, const std::shared_ptr<Context> &context);
     };
 }

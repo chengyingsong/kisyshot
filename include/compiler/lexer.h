@@ -2,6 +2,7 @@
 
 #include <ast/token.h>
 #include <memory>
+#include <diagnostics/diagnostic_stream.h>
 #include "context.h"
 
 namespace kisyshot::compiler{
@@ -19,7 +20,8 @@ namespace kisyshot::compiler{
          * @param context:  the compile Context during lexical analyse and syntax analyse
          * @param diagnosticStream: the diagnostic info collector to report errors to
          */
-        explicit Lexer(const std::shared_ptr<Context> &context);
+        explicit Lexer(const std::shared_ptr<Context> &context,
+                       const std::shared_ptr<diagnostics::DiagnosticStream> &diagnosticStream);
 
         /**
          * Lex all tokens from given code string and store all into Context.
@@ -32,6 +34,8 @@ namespace kisyshot::compiler{
         std::string_view _code;
         // syntax Context
         std::shared_ptr<Context> _context;
+        // diagnostic strean=m
+        std::shared_ptr<diagnostics::DiagnosticStream> _diagnosticStream;
         // current relative position to the first char in the _code variable
         size_t _position;
         // marks if the Lexer had met the end of the code file

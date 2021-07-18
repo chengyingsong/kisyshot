@@ -3,16 +3,13 @@
 
 #include "ast/syntax/syntax_ostream_writer.h"
 #include "context_manager.h"
-#include "compiler/lexer.h"
-#include "compiler/parser.h"
 int main() {
-    auto sm = std::make_shared<kisyshot::ContextManager>();
 
     std::string_view code = R"(const int base = 16;
 
 int getMaxNum(int n, int arr[]){
     int ret = 0;
-    int i = 0;
+    int i = 0888;
     while (i < n){
         if (arr[i] > ret) ret = arr[i];
         i = i + 1;
@@ -117,15 +114,11 @@ int main(){
 }
 )";
 
-    auto ctx = sm->create(code);
-    auto d = std::make_shared<kisyshot::diagnostics::DiagnosticStream>(sm);
-
-    kisyshot::compiler::Lexer l(ctx);
-    kisyshot::compiler::Parser p(ctx, d);
-
-    l.lex();
-    p.parse();
+    auto sm = std::make_shared<kisyshot::ContextManager>();
+    auto ctx = sm->create(code, "/path/to/test.sy");
+    sm->lex(ctx->syntaxID);
+    sm->parse(ctx->syntaxID);
     std::cout << *(ctx->syntaxTree);
-    std::cout << *d;
+    std::cout << *(sm->diagnosticStream);
     return 0;
 }
