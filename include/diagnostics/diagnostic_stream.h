@@ -10,8 +10,7 @@ namespace kisyshot::diagnostics {
         friend std::ostream &operator<<(std::ostream &ostream, const DiagnosticStream &diagnosticStream);
         void clear();
 
-    private:
-        std::vector<std::unique_ptr<Diagnostic>> _diagnostics;
+        std::vector<std::unique_ptr<Diagnostic>> diagnostic;
     };
 
     std::shared_ptr<DiagnosticStream>

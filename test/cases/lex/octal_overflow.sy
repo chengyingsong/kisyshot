@@ -1,0 +1,2 @@
+int ErrorOctalNumber1 = 0888;
+int ErrorOctalNumber2 = 0999;

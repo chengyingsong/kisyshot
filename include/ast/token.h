@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 namespace kisyshot::ast {
+
     /**
      * A enum type for defining types of Token, by using hack of marcos to generate codes.
      */
@@ -22,51 +23,30 @@ namespace kisyshot::ast {
     /**
      * A global const map which stores the relation of all the types of TOKEN and their spells.
      */
-    const std::unordered_map<std::string,TokenType> m_raw_token = { /* NOLINT */
-#define PUNCTUATOR(X,Y) {Y,TokenType::X},
-#define KEYWORD(X) {#X,TokenType::kw_ ## X},
-#define OPERATOR(X,Y) {Y,TokenType::op_ ## X},
-#include "tokens.inc"
-    };
+    extern const std::unordered_map<std::string, TokenType> m_raw_token;
+    
 
     /**
      * A global const map which stores the relation of all the types of TOKEN and their spells.
      */
-    const std::unordered_map<TokenType, std::string> m_token_spell = { /* NOLINT */
-#define PUNCTUATOR(X, Y) {TokenType::X, Y},
-#define KEYWORD(X) {TokenType::kw_ ## X, #X},
-#define OPERATOR(X, Y) {TokenType::op_ ## X, Y},
-#include "tokens.inc"
-    };
+    extern const std::unordered_map<TokenType, std::string> m_token_spell;
 
     /**
      * A global const map which stores the relation of all the types of PUNCTUATOR and their spells.
      */
-    const std::unordered_set<TokenType> s_punctuator = { /* NOLINT */
-#define PUNCTUATOR(X,Y) TokenType::X,
-#include "tokens.inc"
-    };
+    extern const std::unordered_set<TokenType> s_punctuator;
 
     /**
      * A global const map which stores the relation of all the types of KEYWORD and their spells.
      */
-    const std::unordered_set<TokenType> s_keywords = { /* NOLINT */
-#define KEYWORD(X) TokenType::kw_ ## X,
-#include "tokens.inc"
-    };
+    extern const std::unordered_set<TokenType> s_keywords;
 
     /**
      * A global const map which stores the relation of all the types of OPERATOR and their spells.
      */
-    const std::unordered_set<TokenType> s_operators = { /* NOLINT */
-#define OPERATOR(X,Y) TokenType::op_ ## X,
-#include "tokens.inc"
-    };
+    extern const std::unordered_set<TokenType> s_operators;
 
-    const std::unordered_set<char> s_operator_heads = { /* NOLINT */
-#define OPERATOR(X,Y) Y[0],
-#include "tokens.inc"
-    };
+    extern const std::unordered_set<char> s_operator_heads;
 
 
     struct Token {

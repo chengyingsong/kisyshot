@@ -36,9 +36,9 @@ namespace kisyshot{
         /**
          * The index of the current syntax context.
          */
-        std::size_t syntaxID;
+        std::size_t contextID;
 
-        Context(const std::string_view &code, std::size_t syntaxID);
+        Context(const std::string_view &code, std::size_t contextID);
 
         /**
          * Locate the given token in the source code.
