@@ -15,7 +15,9 @@ namespace kisyshot::diagnostics{
     public:
         virtual void writeTo(std::ostream& stream) = 0;
         virtual ~Diagnostic() = default;
-        std::shared_ptr<Context> _context;
+
+        std::shared_ptr<Context> context;
+        CompileError errorCode;
     };
 
     /**
@@ -27,7 +29,6 @@ namespace kisyshot::diagnostics{
                           const std::string& message,const std::string& suggestion);
         void writeTo(std::ostream& stream) override ;
     private:
-        CompileError _errorCode;
         std::size_t _tokenID;
         std::string _message;
         std::string _suggestion;
@@ -42,7 +43,6 @@ namespace kisyshot::diagnostics{
                              const std::string& message,const std::string& suggestion);
         void writeTo(std::ostream& stream) override ;
     private:
-        CompileError _errorCode;
         std::size_t _tokenID;
         std::string _message;
         std::string _suggestion;
@@ -57,7 +57,6 @@ namespace kisyshot::diagnostics{
                              const std::string& message,const std::string& suggestion);
         void writeTo(std::ostream& stream) override ;
     private:
-        CompileError _errorCode;
         std::size_t _tokenID;
         std::string _message;
         std::string _suggestion;
