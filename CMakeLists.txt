@@ -22,9 +22,14 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/artifacts)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/artifacts)
 include_directories(include)
-
-execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/)
-
+if (WIN32)
+    message("test from message")
+    execute_process(COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/artifacts/Debug/)
+    execute_process(COMMAND cp -R ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/Debug/)
+else()
+    execute_process(COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/artifacts/)
+    execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/cases)
+endif()
 set(core
         src/ast/syntax/expression.cc
         src/ast/syntax/function.cc

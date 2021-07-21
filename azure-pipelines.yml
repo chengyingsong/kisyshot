@@ -1,0 +1,70 @@
+trigger:
+  branches:
+    include:
+      - '*'
+pr: none
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macOS-latest'
+    windows:
+      imageName: 'windows-latest'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+
+  # Build
+  ## Linux or macOS
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 'mkdir build && cd build && cmake .. && make'
+      failOnStderr: true
+    condition: or(eq( variables['Agent.OS'], 'Linux' ) , eq( variables['Agent.OS'], 'Darwin' ) )
+  ## Windows
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '-G"Visual Studio 16 2019" ..'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  - task: VSBuild@1
+    inputs:
+      solution: 'build\*.sln'
+      msbuildArchitecture: 'x64'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+
+  # Test
+  ## Linux or macOS
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: 'cd ./artifacts && ./tests'
+      failOnStderr: true
+    condition: or(eq( variables['Agent.OS'], 'Linux' ) , eq( variables['Agent.OS'], 'Darwin' ) )
+  ## Windows
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'cd artifacts\Debug ; .\tests.exe'
+      failOnStderr: true
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+  # Archive && Publish
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/artifacts'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: 'kisyshot-$(Agent.OS)-$(Build.BuildNumber).zip'
+      replaceExistingArchive: true
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'kisyshot-$(Agent.OS)-$(Build.BuildNumber).zip'
+      artifact: 'kisyshot-$(Agent.OS)-$(Build.BuildNumber)'
+      publishLocation: 'pipeline'
