@@ -34,6 +34,10 @@ namespace kisyshot{
          */
         std::shared_ptr<kisyshot::ast::syntax::SyntaxUnit> syntaxTree;
         /**
+         * The symbol table which maps the relation ship between mangled name and its variable definition node
+         */
+        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::SyntaxNode>> symbols;
+        /**
          * The index of the current syntax context.
          */
         std::size_t contextID;

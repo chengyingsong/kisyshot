@@ -15,6 +15,7 @@ namespace kisyshot::ast::syntax{
         std::string toString() ;
 
         std::string identifier;
+        std::string mangledId;
         std::size_t tokenIndex = invalidTokenIndex;
     };
 }

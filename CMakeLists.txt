@@ -25,13 +25,28 @@ include_directories(include)
 
 execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/)
 
-aux_source_directory(src ctx)
-aux_source_directory(src/ast ast)
-aux_source_directory(src/ast/syntax syntax)
-aux_source_directory(src/compiler compiler)
-aux_source_directory(src/diagnostics diagnostic)
+set(core
+        src/ast/syntax/expression.cc
+        src/ast/syntax/function.cc
+        src/ast/syntax/identifier.cc
+        src/ast/syntax/param_list.cc
+        src/ast/syntax/statement.cc
+        src/ast/syntax/syntax_node.cc
+        src/ast/syntax/syntax_ostream_writer.cc
+        src/ast/syntax/syntax_unit.cc
+        src/ast/syntax/type.cc
+        src/ast/syntax/var_declaration.cc
+        src/ast/token.cc
+        src/compiler/lexer.cc
+        src/compiler/parser.cc
+        src/diagnostics/diagnostic.cc
+        src/diagnostics/diagnostic_builder.cc
+        src/diagnostics/diagnostic_stream.cc
+        src/context.cc
+        src/context_manager.cc)
+set(unittest
+        test/main.cc
+        test/lex.cc)
 
-aux_source_directory(test testsrc)
-set(core ${ctx} ${ast} ${syntax} ${compiler} ${diagnostic})
 add_executable(kisyshot main.cc ${core})
-add_executable(tests ${testsrc} ${core})
+add_executable(tests ${unittest} ${core})

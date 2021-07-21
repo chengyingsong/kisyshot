@@ -16,6 +16,7 @@ namespace kisyshot::ast::syntax {
         std::size_t start() override;
         std::size_t end() override;
 
+        std::shared_ptr<Type> type = nullptr;
         std::shared_ptr<Identifier> varName = nullptr;
         std::shared_ptr<Expression> initialValue = nullptr;
         std::vector<std::shared_ptr<Expression>> array;
