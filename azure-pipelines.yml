@@ -19,22 +19,10 @@ pool:
   vmImage: $(imageName)
 
 steps:
-# Linux
-- task: ShellScript@2
+- task: CMake@1
   inputs:
-    scriptPath: build.sh
-  condition: eq( variables['Agent.OS'], 'Linux' ) 
-# macOS
-- task: ShellScript@2
-  inputs:
-    scriptPath: build.sh
-  condition: eq( variables['Agent.OS'], 'Darwin' )
-# Windows
-- task: PowerShell@2
-  inputs:
-    filePath: 'build.ps1'
-  condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
+    cmakeArgs: 
+  
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/artifacts'
