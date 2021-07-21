@@ -19,13 +19,30 @@ pool:
   vmImage: $(imageName)
 
 steps:
+# Linux
+- task: ShellScript@2
+  inputs:
+    scriptPath: build.sh
+  condition: eq( variables['Agent.OS'], 'Linux' ) 
+# macOS
+- task: ShellScript@2
+  inputs:
+    scriptPath: build.sh
+  condition: eq( variables['Agent.OS'], 'Darwin' )
+# Windows
 - task: CMake@1
   inputs:
-    cmakeArgs: 
-  
+    cmakeArgs: '-G"Visual Studio 16 2019" ..'
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+- task: VSBuild@1
+  inputs:
+    solution: 'build\*.sln'
+    msbuildArchitecture: 'x64'
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/artifacts'
     includeRootFolder: false
 
-- task: PublishBuildArtifacts@1
+- task: PublishBuildArtifacts@1 
