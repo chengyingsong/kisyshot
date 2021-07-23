@@ -9,42 +9,53 @@ namespace kisyshot::compiler {
         _diagnosticStream = diagStream;
         _current = 0;
         _lookahead = 0;
-        recoverPosition();
     }
 
     void Parser::parse() {
+        recover();
         _context->syntaxTree = std::make_shared<SyntaxUnit>();
         while (_current < _context->tokens.size() - 1) {
             switch (current()) {
+                // when meet a const expression
+                // we assert that it's a variable declaration here
                 case ast::TokenType::kw_const: {
                     _context->syntaxTree->add(parseVariableDeclaration());
                     break;
                 }
+                // when meet a identifier, we should look ahead to decide
+                // <identifier> <identifier> (...) ... => function
+                // <identifier> <identifier> , ...
+                // <identifier> <identifier> [..]
+                // <identifier> <identifier> = ...
+                // <identifier> <identifier> ;         => variable declaration
                 case ast::TokenType::identifier: {
-                    size_t start = _current;
-                    step();
-                    if (lookahead() == ast::TokenType::l_paren) {
-                        _current = start;
-                        recoverPosition();
-                        _context->syntaxTree->add(parseFunction());
-                    } else {
-                        _current = start;
-                        recoverPosition();
-                        _context->syntaxTree->add(parseVariableDeclaration());
-
+                    pushRecoverAndStep();
+                    switch (lookahead()) {
+                        case TokenType::l_paren:
+                            _context->syntaxTree->add(parseFunction());
+                            break;
+                        case TokenType::comma:
+                        case TokenType::semi:
+                        case TokenType::op_eq:
+                        case TokenType::l_square:
+                            _context->syntaxTree->add(parseVariableDeclaration());
+                            break;
+                        default:{
+                            break;
+                        }
                     }
                     break;
                 }
                 default: {
-                    // error recoverPosition
-                    // we choose to recoverPosition to some status like:
+                    // error prepareLookahead
+                    // we choose to prepareLookahead to some status like:
                     //    [const] type id [ = E][, ...];
                     // or type id(...){...}
                     recover_next:
                     step();
                     switch (current()) {
                         case ast::TokenType::kw_const:
-                            // we met const var decl, try recoverPosition
+                            // we met const var decl, try prepareLookahead
                             break;
                         case ast::TokenType::identifier: {
                             if (lookahead() == ast::TokenType::identifier) {
@@ -65,7 +76,7 @@ namespace kisyshot::compiler {
                         default:
                             goto recover_next;
                     }
-                    recoverPosition();
+                    prepareLookahead();
                     break;
                 }
             }
@@ -84,7 +95,7 @@ namespace kisyshot::compiler {
     }
 
     std::shared_ptr<ast::syntax::Function> Parser::parseFunction() {
-
+        recover();
         auto function = std::make_shared<Function>();
         function->returnType = parseType();
         function->name = parseIdentifier();
@@ -123,7 +134,7 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::Expression>
     Parser::parseExpression(const std::set<ast::TokenType> &endTokens, OperatorPrecedence parentPrecedence) {
-        recoverPosition();
+        prepareLookahead();
         std::shared_ptr<Expression> left;
         if (isUnaryOperator(current()) && OperatorPrecedence::unary <= parentPrecedence) {
             size_t opIndex = _current;
@@ -468,15 +479,16 @@ namespace kisyshot::compiler {
     }
 
     bool Parser::step() {
-        return move(_current) && recoverPosition();
+        return move(_current) && prepareLookahead();
     }
 
-    bool Parser::recoverPosition() {
+    bool Parser::prepareLookahead() {
         _lookahead = _current;
         return move(_lookahead);
     }
 
     std::shared_ptr<ast::syntax::VarDeclaration> Parser::parseVariableDeclaration() {
+        recover();
         size_t constPos = SyntaxNode::invalidTokenIndex;
         std::shared_ptr<Type> type;
         std::shared_ptr<VarDeclaration> decl;
@@ -551,5 +563,23 @@ namespace kisyshot::compiler {
         auto  type = std::make_shared<ast::syntax::Type>();
         type->typeName = parseIdentifier();
         return type;
+    }
+
+    void Parser::pushRecover() {
+        _recover.push(_current);
+    }
+
+    bool Parser::pushRecoverAndStep() {
+        _recover.push(_current);
+        return step();
+    }
+
+    void Parser::recover() {
+        if (!_recover.empty()) {
+            size_t pos = _recover.top();
+            _recover.pop();
+            _current = pos;
+        }
+        prepareLookahead();
     }
 }

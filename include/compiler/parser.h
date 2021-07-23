@@ -5,6 +5,7 @@
 #include <ast/syntax/var_declaration.h>
 #include <diagnostics/diagnostic_stream.h>
 #include <set>
+#include <stack>
 #include "context.h"
 
 namespace kisyshot::compiler {
@@ -89,7 +90,7 @@ namespace kisyshot::compiler {
         bool move(size_t &outPos);
 
         /**
-         * Step `current` position to next non-comment token and then recoverPosition the `lookahead` token position
+         * Step `current` position to next non-comment token and then call prepareLookahead() to prepare lookahead
          * @return true will be returned if step action finished successfully, false will be returned when there's no
          * next non-comment token.
          */
@@ -100,7 +101,25 @@ namespace kisyshot::compiler {
          * @return true will be returned if step action finished successfully, false will be returned when there's no
          * next non-comment token.
          */
-        bool recoverPosition();
+        bool prepareLookahead();
+
+        /**
+         * Push `current` position into recover token stack.
+         */
+        void pushRecover();
+
+        /**
+         * Push `current` position into recover token stack, and then step() one.
+         * @return true will be returned if step action finished successfully, false will be returned when there's no
+         * next non-comment token.
+         */
+        bool pushRecoverAndStep();
+
+        /**
+         * Set `current` position to the position popped from recover stack, and call prepareLookahead()
+         * Does nothing when no available recover
+         */
+        void recover();
 
         /**
          * Get token type determined by '_current' position
@@ -120,7 +139,9 @@ namespace kisyshot::compiler {
         std::shared_ptr<diagnostics::DiagnosticStream> _diagnosticStream;
         // the begin position of current parsing syntax
         size_t _current;
-        // the lookahead position to
+        // the lookahead position, which can help accelerate parsing
         size_t _lookahead;
+        //
+        std::stack<std::size_t> _recover;
     };
 }
