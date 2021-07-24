@@ -14,7 +14,7 @@ namespace kisyshot{
     class Context{
     public:
         /**
-         * The path of the given code, used in diagnostics.
+         * The path of the given code, used in diagnostic.
          */
         std::string path;
         /**
@@ -56,6 +56,11 @@ namespace kisyshot{
          * @return
          */
         CodePosition locate(std::size_t index);
+
+        std::size_t firstOfLine(std::size_t line);
+        std::size_t lastOfLine(std::size_t line);
+
+        const static std::size_t npos = SIZE_MAX;
 
     private:
         // used for locate tokens

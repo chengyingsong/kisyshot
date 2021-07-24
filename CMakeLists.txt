@@ -44,9 +44,8 @@ set(core
         src/ast/token.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
-        src/diagnostics/diagnostic.cc
-        src/diagnostics/diagnostic_builder.cc
-        src/diagnostics/diagnostic_stream.cc
+        src/diagnostic/diagnostic.cc
+        src/diagnostic/diagnostic_stream.cc
         src/context.cc
         src/context_manager.cc)
 set(unittest

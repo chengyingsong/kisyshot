@@ -3,7 +3,7 @@
 #include <ast/syntax/function.h>
 #include <ast/token.h>
 #include <ast/syntax/var_declaration.h>
-#include <diagnostics/diagnostic_stream.h>
+#include <diagnostic/diagnostic_stream.h>
 #include <set>
 #include <stack>
 #include "context.h"
@@ -20,7 +20,7 @@ namespace kisyshot::compiler {
          * @param diagnosticStream: the diagnostic info collector to report errors to
          */
         Parser(const std::shared_ptr<Context> &context,
-               const std::shared_ptr<diagnostics::DiagnosticStream> &diagStream);
+               const std::shared_ptr<diagnostic::DiagnosticStream> &diagStream);
 
         void parse();
 
@@ -136,7 +136,7 @@ namespace kisyshot::compiler {
         // copy of the context
         std::shared_ptr<Context> _context;
         // copy of the diagnostic info collector
-        std::shared_ptr<diagnostics::DiagnosticStream> _diagnosticStream;
+        std::shared_ptr<diagnostic::DiagnosticStream> _diagnosticStream;
         // the begin position of current parsing syntax
         size_t _current;
         // the lookahead position, which can help accelerate parsing

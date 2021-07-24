@@ -4,7 +4,7 @@ using namespace kisyshot::ast;
 using namespace kisyshot::ast::syntax;
 namespace kisyshot::compiler {
     Parser::Parser(const std::shared_ptr<Context> &context,
-                   const std::shared_ptr<diagnostics::DiagnosticStream> &diagStream) {
+                   const std::shared_ptr<diagnostic::DiagnosticStream> &diagStream) {
         _context = context;
         _diagnosticStream = diagStream;
         _current = 0;
@@ -15,70 +15,62 @@ namespace kisyshot::compiler {
         recover();
         _context->syntaxTree = std::make_shared<SyntaxUnit>();
         while (_current < _context->tokens.size() - 1) {
-            switch (current()) {
+            if (current() == ast::TokenType::kw_const){
                 // when meet a const expression
                 // we assert that it's a variable declaration here
-                case ast::TokenType::kw_const: {
-                    _context->syntaxTree->add(parseVariableDeclaration());
-                    break;
-                }
+                _context->syntaxTree->add(parseVariableDeclaration());
+            } else if (current() == ast::TokenType::identifier){
                 // when meet a identifier, we should look ahead to decide
                 // <identifier> <identifier> (...) ... => function
                 // <identifier> <identifier> , ...
                 // <identifier> <identifier> [..]
                 // <identifier> <identifier> = ...
                 // <identifier> <identifier> ;         => variable declaration
-                case ast::TokenType::identifier: {
-                    pushRecoverAndStep();
-                    switch (lookahead()) {
-                        case TokenType::l_paren:
-                            _context->syntaxTree->add(parseFunction());
-                            break;
-                        case TokenType::comma:
-                        case TokenType::semi:
-                        case TokenType::op_eq:
-                        case TokenType::l_square:
-                            _context->syntaxTree->add(parseVariableDeclaration());
-                            break;
-                        default:{
-                            break;
-                        }
+                pushRecoverAndStep();
+                switch (lookahead()) {
+                    case TokenType::l_paren:
+                        _context->syntaxTree->add(parseFunction());
+                        break;
+                    case TokenType::comma:
+                    case TokenType::semi:
+                    case TokenType::op_eq:
+                    case TokenType::l_square:
+                        _context->syntaxTree->add(parseVariableDeclaration());
+                        break;
+                    default:{
+                        break;
                     }
-                    break;
                 }
-                default: {
-                    // error prepareLookahead
-                    // we choose to prepareLookahead to some status like:
-                    //    [const] type id [ = E][, ...];
-                    // or type id(...){...}
-                    recover_next:
-                    step();
-                    switch (current()) {
-                        case ast::TokenType::kw_const:
-                            // we met const var decl, try prepareLookahead
-                            break;
-                        case ast::TokenType::identifier: {
-                            if (lookahead() == ast::TokenType::identifier) {
-                                move(_lookahead);
-                                switch (lookahead()) {
-                                    case ast::TokenType::op_eq:
-                                    case ast::TokenType::semi:
-                                    case ast::TokenType::l_paren:
-                                    case ast::TokenType::comma:
-                                        break;
-                                    default:
-                                        goto recover_next;
-                                }
+            } else {
+                recover_next:
+                pushRecoverAndStep();
+                switch (current()) {
+                    // stop parsing at eof
+                    // continue parsing at kw_const
+                    case ast::TokenType::eof:
+                    case ast::TokenType::kw_const:
+                        break;
+                    case ast::TokenType::identifier: {
+                        if (lookahead() == ast::TokenType::identifier) {
+                            move(_lookahead);
+                            switch (lookahead()) {
+                                case ast::TokenType::op_eq:
+                                case ast::TokenType::semi:
+                                case ast::TokenType::l_paren:
+                                case ast::TokenType::l_square:
+                                case ast::TokenType::comma:
+                                    break;
+                                default:
+                                    goto recover_next;
                             }
                         }
-                        case ast::TokenType::eof:
-                            return;
-                        default:
-                            goto recover_next;
                     }
-                    prepareLookahead();
-                    break;
+                    default:
+                        goto recover_next;
                 }
+                //
+                prepareLookahead();
+                break;
             }
         }
     }
