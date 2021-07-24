@@ -104,11 +104,11 @@ namespace kisyshot::compiler {
         return false;
     }
 
-    TokenType Lexer::currTokenType() {
+    ast::TokenType Lexer::currTokenType() {
         return rawTokenType(std::string{_code[_position]});
     }
 
-    bool Lexer::currTokenIs(TokenType token_type) {
+    bool Lexer::currTokenIs(ast::TokenType token_type) {
         return sameType(currTokenType(), token_type);
     }
 
@@ -280,7 +280,7 @@ namespace kisyshot::compiler {
 
         // get if the identifier have already been a keyword of yuuki language
 
-        TokenType type = rawTokenType(std::string(token->raw_code));
+        ast::TokenType type = rawTokenType(std::string(token->raw_code));
         token->token_type = type == TokenType::unknown ? TokenType::identifier : type;
         _position += offset;
         _context->tokens.push_back(std::move(token));
