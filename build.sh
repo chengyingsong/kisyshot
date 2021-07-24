@@ -4,3 +4,4 @@ mkdir build
 fi
 
 cd build && cmake .. && make
+

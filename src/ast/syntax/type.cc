@@ -41,4 +41,6 @@ namespace kisyshot::ast::syntax{
         return typeName->end();
     }
 
+    void Type::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+
 }

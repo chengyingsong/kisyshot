@@ -41,7 +41,9 @@ set(core
         src/ast/syntax/syntax_unit.cc
         src/ast/syntax/type.cc
         src/ast/syntax/var_declaration.cc
+        src/ast/tac.cc
         src/ast/token.cc
+        src/compiler/codegen.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
         src/diagnostic/diagnostic.cc

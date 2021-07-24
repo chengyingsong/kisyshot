@@ -38,6 +38,39 @@ namespace kisyshot::ast::syntax {
         return left->toString() + " " + getTokenSpell(operatorType) + " " + right->toString();
     }
 
+    void BinaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        Var* src_1;
+        Var* src_2;
+        //TODO: 提前判断子表达式的类型，如果是常数和单变量表达式可以直接输出
+        if(left->getType() == SyntaxType::IdentifierExpression){
+            src_1 = gen.name2VarMap[left->toString()];
+        } else {
+            if(left->getType() == SyntaxType::NumericLiteralExpression) {
+                  src_1 = new Var(std::stoi(left->toString()));
+            } else {
+                src_1 = gen.newTempVar();
+                left->genCode(gen, src_1);
+            }
+        }
+        if(right->getType() == SyntaxType::IdentifierExpression){
+            src_2 = gen.name2VarMap[right->toString()];
+        } else{
+            if(right->getType() == SyntaxType::NumericLiteralExpression) {
+                  src_2 = new Var(std::stoi(right->toString()));
+            } else {
+                src_2 = gen.newTempVar();
+                right->genCode(gen, src_2);
+            }
+        }
+        //两个表达式类型的子类
+        std::string opName = getTokenSpell(operatorType);
+        if(opName == "="){
+            //left是左值
+            //TODO： 检查左值是不是Global和右值是不是Global
+            gen.genAssign(src_2,src_1);
+        } else gen.genBinaryOp(opName, src_1, src_2,temp);
+    }
+
     void UnaryExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(right, true);
     }
@@ -72,6 +105,12 @@ namespace kisyshot::ast::syntax {
         return getTokenSpell(operatorType) + right->toString();
     }
 
+    void UnaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //单目运算符 -
+        //TODO: 支持单目运算符的中间代码生成
+
+    }
+
     void IdentifierExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(name, true);
     }
@@ -104,6 +143,12 @@ namespace kisyshot::ast::syntax {
         return name->toString();
     }
 
+    void IdentifierExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //单值表达式，首先查询变量表，然后返回绑定的变量
+        //if(!ifGlobal(name->toString()))
+        //gen.genAssign(gen.name2VarMap[name->toString()],temp);
+    }
+
     void Expression::writeCurrentInfo(std::ostream &s) {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << getType()
@@ -116,6 +161,7 @@ namespace kisyshot::ast::syntax {
               << "'" << toString() << "' " << std::endl;
         }
     }
+
 
     void ParenthesesExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(innerExpression, true);
@@ -151,6 +197,11 @@ namespace kisyshot::ast::syntax {
 
     std::string ParenthesesExpression::toString() {
         return "(" + innerExpression->toString() + ")";
+    }
+
+    void ParenthesesExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //直接生成内部表达式
+        innerExpression->genCode(gen,temp);
     }
 
     void IndexExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -191,6 +242,8 @@ namespace kisyshot::ast::syntax {
     std::string IndexExpression::toString() {
         return indexedExpr->toString() + "[" + indexerExpr->toString() + "]";
     }
+
+    void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 
     void CallExpression::add(const std::shared_ptr<Expression> &child) {
         arguments.push_back(child);
@@ -245,6 +298,18 @@ namespace kisyshot::ast::syntax {
         return result + ")";
     }
 
+    void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        for(int i=0;i<arguments.size();i++){
+            Var* t = gen.newTempVar();
+            arguments[i]->genCode(gen, t);  //参数声明语句
+            gen.genParam(t);
+        }
+        std::string funName = name->toString();
+        //TODO:这里有个奇怪的wronging,还要检查函数有没有返回值
+
+        gen.genCall(funName,arguments.size(),temp);
+    }
+
     void
     NumericLiteralExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
     }
@@ -276,6 +341,8 @@ namespace kisyshot::ast::syntax {
     std::string NumericLiteralExpression::toString() {
         return (std::string) rawCode;
     }
+
+    void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 
     void ArrayInitializeExpression::analyseType() {
 
@@ -326,4 +393,6 @@ namespace kisyshot::ast::syntax {
     void ArrayInitializeExpression::add(const std::shared_ptr<Expression> &child) {
         array.push_back(child);
     }
+
+    void ArrayInitializeExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 }

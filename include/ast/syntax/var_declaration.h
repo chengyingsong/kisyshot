@@ -4,6 +4,9 @@
 #include "statement.h"
 #include "type.h"
 
+
+//TODO::思考一下中间代码生成中变量声明的处理方法
+
 namespace kisyshot::ast::syntax {
     class VarDefinition:public SyntaxNode, public ISyntaxList<Expression>{
     public:
@@ -15,6 +18,7 @@ namespace kisyshot::ast::syntax {
         std::string toString();
         std::size_t start() override;
         std::size_t end() override;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
         std::shared_ptr<Type> type = nullptr;
         std::shared_ptr<Identifier> varName = nullptr;
@@ -32,6 +36,7 @@ namespace kisyshot::ast::syntax {
         bool hasChild() override;
         std::size_t start() override;
         std::size_t end() override;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
         std::shared_ptr<Type> type = nullptr;
         std::vector<std::shared_ptr<VarDefinition>> varDefs ;
