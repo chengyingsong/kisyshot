@@ -299,9 +299,9 @@ namespace kisyshot::ast::syntax {
     }
 
     void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        for(int i=0;i<arguments.size();i++){
-            Var* t = gen.newTempVar();
-            arguments[i]->genCode(gen, t);  //参数声明语句
+        for(auto& argument: arguments) {
+            Var *t = gen.newTempVar();
+            argument->genCode(gen, t);  //参数声明语句
             gen.genParam(t);
         }
         std::string funName = name->toString();

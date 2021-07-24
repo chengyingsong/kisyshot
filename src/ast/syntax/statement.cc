@@ -342,8 +342,8 @@ namespace kisyshot::ast::syntax {
 
     void BlockStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "   block statement" << std::endl;
-        for(int i=0;i<children.size();i++){
-            children[i]->genCode(gen, nullptr);
+        for (auto &child:children) {
+            child->genCode(gen, nullptr);
         }
     }
 
