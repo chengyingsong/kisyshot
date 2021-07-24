@@ -1,6 +1,7 @@
 #include <sstream>
 #include <memory>
 #include <rang/rang.h>
+#include <compiler/codegen.h>
 #include <ast/syntax/function.h>
 
 namespace kisyshot::ast::syntax {
@@ -9,6 +10,15 @@ namespace kisyshot::ast::syntax {
         syntaxWalker(returnType, false);
         syntaxWalker(params, false);
         syntaxWalker(body, true);
+    }
+
+    void Function::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
+        //gen.genFuncName(name)
+        std::string funName = "." + name->identifier + ":";
+        gen.genLabel(funName);
+        gen.genBeginFunc();
+        body->genCode(gen, nullptr); //body是Statement类型
+        gen.genEndFunc();
     }
 
     void Function::writeCurrentInfo(std::ostream &s) {

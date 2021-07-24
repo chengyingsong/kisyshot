@@ -16,6 +16,7 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override = 0;
         SyntaxType getType() override = 0;
         bool hasChild() override = 0;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
     };
 
     class BinaryExpression: public Expression {
@@ -29,6 +30,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::shared_ptr<Expression> left = nullptr;
         std::shared_ptr<Expression> right = nullptr;
         TokenType operatorType = TokenType::undefined;
@@ -46,6 +48,8 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
+
         TokenType operatorType = TokenType::undefined;
         std::size_t opIndex = invalidTokenIndex;
         std::shared_ptr<Expression> right = nullptr;
@@ -62,6 +66,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override ;
         std::string toString() override ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::shared_ptr<Identifier> name = nullptr;
     };
 
@@ -76,7 +81,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override ;
         std::string toString() override ;
 
-    
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t leftParenIndex = invalidTokenIndex;
         std::size_t rightParenIndex = invalidTokenIndex;
         std::shared_ptr<Expression> innerExpression = nullptr;
@@ -92,7 +97,8 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         void analyseType() override ;
         std::string toString() override ;
-    
+       //TODO：支持序号表达式
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::shared_ptr<Expression> indexedExpr = nullptr;
         std::shared_ptr<Expression> indexerExpr = nullptr;
         std::size_t lSquareIndex = invalidTokenIndex;
@@ -111,6 +117,7 @@ namespace kisyshot::ast::syntax{
         void analyseType() override;
         std::string toString() override;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::shared_ptr<Identifier> name = nullptr;
         std::vector<std::shared_ptr<Expression>> arguments;
         std::size_t lParenIndex = invalidTokenIndex;
@@ -129,8 +136,8 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override;
         void analyseType() override;
         std::string toString() override;
-
-    
+       //TODO: 这个是什么
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t tokenIndex;
         std::string_view rawCode;
     };
@@ -145,8 +152,8 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         SyntaxType getType() override;
         bool hasChild() override;
-
-    
+        //TODO： 支持数组初始化
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t lBraceIndex, rBraceIndex;
         std::vector<std::shared_ptr<Expression>> array;
     };

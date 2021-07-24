@@ -12,6 +12,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override = 0;
         std::size_t start() override = 0;
         std::size_t end() override = 0;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
     };
 
     class IfStatement:public Statement{
@@ -22,6 +23,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
     
         std::shared_ptr<Statement> ifClause = nullptr;
         std::shared_ptr<Statement> elseClause = nullptr;
@@ -41,6 +43,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
     
         std::size_t whileTokenIndex = invalidTokenIndex;
         std::size_t lParenIndex = invalidTokenIndex;
@@ -58,10 +61,12 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override; //不实现
     
         std::size_t tokenIndex = invalidTokenIndex;
     };
 
+    //TODO: 支持break和continue
     class BreakStatement:public Statement{
     public:
         void forEachChild(const std::function<void (std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
@@ -71,6 +76,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t breakTokenIndex = invalidTokenIndex;
         std::size_t semiTokenIndex = invalidTokenIndex;
     };
@@ -84,6 +90,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t continueTokenIndex = invalidTokenIndex;
         std::size_t semiTokenIndex = invalidTokenIndex;
     };
@@ -97,12 +104,14 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override ;
         std::size_t end() override ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t returnTokenIndex = invalidTokenIndex;
         std::size_t semiTokenIndex = invalidTokenIndex;
         std::shared_ptr<Expression> value = nullptr;
     };
 
-    class BlockStatement: public ISyntaxList<Statement>, public Statement{
+    class BlockStatement: public ISyntaxList<Statement>,
+                          public Statement{
     public:
         void forEachChild(const std::function<void (std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
         void writeCurrentInfo(std::ostream& ostream) override;
@@ -112,6 +121,7 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override ;
         void add(const std::shared_ptr<Statement>& child) override ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::vector<std::shared_ptr<Statement>> children;
         std::size_t lBraceTokenIndex = invalidTokenIndex;
         std::size_t rBraceTokenIndex = invalidTokenIndex;
@@ -125,6 +135,7 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         std::size_t start() override ;
         std::size_t end() override ;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
     
         std::shared_ptr<Expression> expression = nullptr;
         std::size_t semiTokenIndex = invalidTokenIndex;

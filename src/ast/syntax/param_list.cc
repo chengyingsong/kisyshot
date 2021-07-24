@@ -44,6 +44,8 @@ namespace kisyshot::ast::syntax {
         return s;
     }
 
+    void ParamDeclaration::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+
     void ParamList::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         for (std::size_t i = 0; i < params.size(); i++) {
             syntaxWalker(params[i], i == params.size() - 1);
@@ -84,4 +86,6 @@ namespace kisyshot::ast::syntax {
             return invalidTokenIndex;
         return params.back()->end();
     }
+
+    void ParamList::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 }

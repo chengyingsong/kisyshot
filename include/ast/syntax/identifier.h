@@ -14,6 +14,8 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         std::string toString() ;
 
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
+
         std::string identifier;
         std::size_t tokenIndex = invalidTokenIndex;
     };

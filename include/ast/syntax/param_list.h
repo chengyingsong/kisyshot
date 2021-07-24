@@ -13,6 +13,7 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override;
         std::size_t end() override;
         std::string toString() const;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
         std::size_t dimension = 0;
         std::shared_ptr<Identifier> name = nullptr;
@@ -27,6 +28,7 @@ namespace kisyshot::ast::syntax{
         void add(const std::shared_ptr<ParamDeclaration>& param) override ;
         std::size_t start() override;
         std::size_t end() override;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
         std::vector<std::shared_ptr<ParamDeclaration>> params;
     };

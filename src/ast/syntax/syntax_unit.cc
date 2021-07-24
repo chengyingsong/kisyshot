@@ -48,4 +48,11 @@ namespace kisyshot::ast::syntax {
             return invalidTokenIndex;
         return _syntax.back()->end();
     }
+
+    void SyntaxUnit::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
+        //根结点生成中间代码，直接调用子节点的方法即可
+        for(std::size_t i = 0; i < _syntax.size(); ++i) {
+            _syntax[i]->genCode(gen, nullptr);
+        }
+    }
 }
