@@ -54,6 +54,12 @@ namespace kisyshot::ast::syntax {
         return varDefs.back()->end();
     }
 
+    void VarDeclaration::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        for(int i=0;i<varDefs.size();i++){
+            varDefs[i]->genCode(gen, nullptr);
+        }
+    }
+
     void VarDefinition::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         if (array.empty()) {
             if (initialValue == nullptr) {
@@ -121,5 +127,14 @@ namespace kisyshot::ast::syntax {
 
     void VarDefinition::add(const std::shared_ptr<Expression> &child) {
         array.push_back(child);
+    }
+
+    void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //std::cout << "defination of " << varName->toString() << std::endl;
+        Var* x = new  Var(varName->toString());
+        gen.name2VarMap[varName->toString()] = x;  //把名字和Var绑定
+        if(initialValue != nullptr){
+            initialValue->genCode(gen,x);
+        }
     }
 }

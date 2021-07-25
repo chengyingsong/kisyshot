@@ -36,4 +36,6 @@ namespace kisyshot::ast::syntax {
     std::size_t Identifier::end() {
         return tokenIndex;
     }
+
+    void Identifier::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 }
