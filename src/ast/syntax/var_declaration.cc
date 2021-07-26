@@ -55,8 +55,8 @@ namespace kisyshot::ast::syntax {
     }
 
     void VarDeclaration::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        for(int i=0;i<varDefs.size();i++){
-            varDefs[i]->genCode(gen, nullptr);
+        for (auto varDef:varDefs) {
+            varDef->genCode(gen, nullptr);
         }
     }
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <string>
-#include "variable.h"
 
 
 namespace kisyshot::ast {
     class Var {
+        //TODO: 完成四种类型的变量和offset设置
         /*
         Var是表示四元式里，操作数的数据结构。操作数有临时变量类型，全局变量类型和整型
         全局变量是基址和地址偏移，临时变量是变量名和变量值，局部变量就是变量名不一样而已。
@@ -14,20 +14,27 @@ namespace kisyshot::ast {
     public:
         std::string variableName;  //变量名，可以是变量名或者变量重整名
         int value;
-        int iswhat;
+        int isWhat;
 
-        //传入一个变量名建立一个Var对象，需要判断是否是全局变量，是否是常数
+        //传入一个变量名建立一个Var对象，需要判断是否是全局变量
         Var(std::string variableName);
-
+        //传入常量
         Var(int value);
+
+        //获取全局变量或者局部变量的偏移
+        int getOffset();
+
+        int getBase();
 
 
         bool isGlobal();
 
         bool isConst();
 
-        bool isTemp();
+        bool isLocal();
 
+        bool isTemp();
+        //常数返回数值转字符串，其他类型返回名字
         std::string getName();
     };
 
@@ -168,12 +175,13 @@ namespace kisyshot::ast {
     };
 
     class BeginFunc : Instruction {
-        //int frameSize;
+        int frameSize;
     public:
         BeginFunc();
         std::string toString() override;
         InstructionType getType() override;
-        //void setFrameSize(int numBytesForLocalsAndTemps);
+        //TODO: 设置栈帧
+        void setFrameSize(int numBytesForLocalsAndTemps);
     };
 
     class EndFunc : Instruction {

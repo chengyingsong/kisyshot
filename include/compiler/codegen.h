@@ -3,7 +3,6 @@
 
 #include<list>
 #include<ast/tac.h>
-#include<ast/variable.h>
 #include<string>
 #include<unordered_map>
 

@@ -8,25 +8,37 @@ namespace kisyshot::ast {
     //检查变量是否全局变量,给iswhat赋值
     Var::Var(std::string variableName) : variableName(variableName) {
         //TODO: 根据变量名判断是否是全局变量
-        iswhat  = 2;
+        isWhat  = 2;
     }
 
 //常量赋值
-    Var::Var(int value) : value(value), iswhat(3) {}
+    Var::Var(int value) : value(value), isWhat(3) {}
 
 
-    bool Var::isGlobal() { return iswhat == 1; }
+    bool Var::isGlobal() { return isWhat == 1; }
 
-    bool Var::isTemp() { return iswhat == 2; }
+    bool Var::isTemp() { return isWhat == 2; }
 
-    bool Var::isConst() { return iswhat == 3; }
+    bool Var::isConst() { return isWhat == 3; }
 
+    bool Var::isLocal() { return isWhat == 4; }
 
     std::string Var::getName() {
         if (isConst())
             return std::to_string(value);
         else return variableName;
     }
+
+    int Var::getOffset() {
+        assert(isGlobal() || isLocal());
+        return 0;
+    }
+
+    int Var::getBase() {
+        assert(isGlobal() || isLocal());
+        return 0;
+    }
+
 
     std::string Binary_op::opName[Binary_op::NumOps] = {"+", "-", "*", "/", "%", "<", ">", "==", "!=", ">=" "<="};
 
@@ -167,6 +179,8 @@ namespace kisyshot::ast {
     InstructionType BeginFunc::getType() {
         return InstructionType::BeginFunc_;
     }
+
+    void BeginFunc::setFrameSize(int numBytesForLocalsAndTemps) {}
 
     EndFunc::EndFunc() {}
 
