@@ -38,6 +38,7 @@ namespace kisyshot::ast::syntax {
         std::size_t end() override;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
+        std::size_t offset;
         std::shared_ptr<Type> type = nullptr;
         std::vector<std::shared_ptr<VarDefinition>> varDefs ;
         std::size_t constTokenIndex = invalidTokenIndex;
