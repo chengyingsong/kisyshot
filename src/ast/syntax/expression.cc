@@ -39,29 +39,9 @@ namespace kisyshot::ast::syntax {
     }
 
     void BinaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        Var* src_1;
-        Var* src_2;
-        //TODO: 提前判断子表达式的类型，如果是常数和单变量表达式可以直接输出
-        if(left->getType() == SyntaxType::IdentifierExpression){
-            src_1 = gen.name2VarMap[left->toString()];
-        } else {
-            if(left->getType() == SyntaxType::NumericLiteralExpression) {
-                  src_1 = new Var(std::stoi(left->toString()));
-            } else {
-                src_1 = gen.newTempVar();
-                left->genCode(gen, src_1);
-            }
-        }
-        if(right->getType() == SyntaxType::IdentifierExpression){
-            src_2 = gen.name2VarMap[right->toString()];
-        } else{
-            if(right->getType() == SyntaxType::NumericLiteralExpression) {
-                  src_2 = new Var(std::stoi(right->toString()));
-            } else {
-                src_2 = gen.newTempVar();
-                right->genCode(gen, src_2);
-            }
-        }
+        Var* src_1 = getVar(gen,left);
+        Var* src_2 = getVar(gen,right);
+
         //两个表达式类型的子类
         std::string opName = getTokenSpell(operatorType);
         if(opName == "="){
@@ -162,6 +142,20 @@ namespace kisyshot::ast::syntax {
         }
     }
 
+    Var *Expression::getVar(compiler::CodeGenerator &gen, std::shared_ptr<Expression>  e) {
+        Var* t;
+        if(e->getType() == SyntaxType::IdentifierExpression){
+            t = gen.name2VarMap[e->toString()];
+        } else {
+            if(e->getType() == SyntaxType::NumericLiteralExpression) {
+                t = new Var(std::stoi(e->toString()));
+            } else {
+                t = gen.newTempVar();
+                e->genCode(gen, t);
+            }
+        }
+        return t;
+    }
 
     void ParenthesesExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(innerExpression, true);
@@ -300,13 +294,11 @@ namespace kisyshot::ast::syntax {
 
     void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         for(auto& argument: arguments) {
-            Var *t = gen.newTempVar();
+            Var *t = getVar(gen,argument);
             argument->genCode(gen, t);  //参数声明语句
             gen.genParam(t);
         }
         std::string funName = name->toString();
-        //TODO:这里有个奇怪的wronging,还要检查函数有没有返回值
-
         gen.genCall(funName,arguments.size(),temp);
     }
 

@@ -17,6 +17,7 @@ namespace kisyshot::ast::syntax{
         SyntaxType getType() override = 0;
         bool hasChild() override = 0;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
+        Var* getVar(compiler::CodeGenerator &gen,std::shared_ptr<Expression> e);
     };
 
     class BinaryExpression: public Expression {
@@ -136,7 +137,6 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override;
         void analyseType() override;
         std::string toString() override;
-       //TODO: 这个是什么
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t tokenIndex;
         std::string_view rawCode;
