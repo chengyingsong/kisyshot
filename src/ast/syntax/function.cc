@@ -14,7 +14,8 @@ namespace kisyshot::ast::syntax {
 
     void Function::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //gen.genFuncName(name)
-        std::string funName = "." + name->identifier + ":";
+        params->genCode(gen, nullptr);
+        std::string funName = "." + name->identifier;
         gen.genLabel(funName);
         gen.genBeginFunc();
         body->genCode(gen, nullptr); //body是Statement类型

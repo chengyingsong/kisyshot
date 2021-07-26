@@ -31,11 +31,27 @@ namespace kisyshot::ast {
         std::string getName();
     };
 
+    enum InstructionType{
+        Binary_op_,
+        GOTO_,
+        Label_,
+        IfZ_,
+        Assign_,
+        Load_,
+        Store_,
+        Param_,
+        Call_,
+        Return_,
+        BeginFunc_,
+        EndFunc_
+    };
+
     class Instruction {
         //一个基类，表示各种指令
         public:
             //返回指令的三地址码
             virtual std::string toString() = 0;
+            virtual InstructionType getType() = 0;
             //void generate();
 
             Var*  src_1;
@@ -54,6 +70,7 @@ namespace kisyshot::ast {
         //返回名字对应的code
         static OpCode opCodeForName(std::string &name);
         std::string toString() override;
+        InstructionType getType() override;
 
         OpCode code;   //运算符号类型
         Var *src_1,*src_2,*dst;
@@ -69,6 +86,7 @@ namespace kisyshot::ast {
         std::string label;
         GOTO(std::string &label);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
 
@@ -77,6 +95,7 @@ namespace kisyshot::ast {
     public:
         Label(std::string &label);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class IfZ :Instruction {
@@ -86,6 +105,7 @@ namespace kisyshot::ast {
         std::string trueLabel;
         IfZ(Var* condition,std::string &trueLabel);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Assign : Instruction {
@@ -95,6 +115,7 @@ namespace kisyshot::ast {
         Var*  t2;
         Assign(Var* t1,Var *t2);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
 
@@ -105,6 +126,7 @@ namespace kisyshot::ast {
         Var* dst;
         Load(Var *src,Var* dst);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
 
@@ -115,6 +137,7 @@ namespace kisyshot::ast {
         Var* dst;
         Store(Var *src,Var *dst);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Param : Instruction {
@@ -122,16 +145,18 @@ namespace kisyshot::ast {
         Var *par;
         Param(Var* par);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Call : Instruction {
     public:
         std::string funLabel;
         int n; //参数个数
-        Var* result;
+        Var* result= nullptr;
         Call(std::string &funLabel,int n);
         Call(std::string &funLabel,int n,Var* result);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Return: Instruction {
@@ -139,6 +164,7 @@ namespace kisyshot::ast {
     public:
         Return(Var * v);
         std::string toString() override;
+        InstructionType getType() override;
     };
 
     class BeginFunc : Instruction {
@@ -146,6 +172,7 @@ namespace kisyshot::ast {
     public:
         BeginFunc();
         std::string toString() override;
+        InstructionType getType() override;
         //void setFrameSize(int numBytesForLocalsAndTemps);
     };
 
@@ -153,6 +180,7 @@ namespace kisyshot::ast {
     public:
         EndFunc();
         std::string toString() override;
+        InstructionType getType() override;
     };
 
 }

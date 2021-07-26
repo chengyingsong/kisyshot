@@ -87,5 +87,10 @@ namespace kisyshot::ast::syntax {
         return params.back()->end();
     }
 
-    void ParamList::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void ParamList::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        for(auto& param:params){
+            Var* t = new Var(param->name->toString());
+            gen.name2VarMap[param->name->toString()] = t; //绑定形式参数
+        }
+    }
 }

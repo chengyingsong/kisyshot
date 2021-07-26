@@ -20,6 +20,8 @@ namespace kisyshot::compiler {
 
         CodeGenerator();
 
+        void printInstruction(ast::Instruction * p);
+
         //返回一个不重复的标号的编号
         std::string newLabel();
         //返回一个不重复的临时变量的编号
