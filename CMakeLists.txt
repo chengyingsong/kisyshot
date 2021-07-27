@@ -48,6 +48,7 @@ set(core
         src/compiler/codegen.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
+        src/compiler/armcode.cc
         src/diagnostic/diagnostic.cc
         src/diagnostic/diagnostic_stream.cc
         src/context.cc
