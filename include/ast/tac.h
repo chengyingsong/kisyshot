@@ -98,8 +98,8 @@ namespace kisyshot::ast {
 
 
     class Label :Instruction {
-        std::string label;
     public:
+        std::string label;
         Label(std::string &label);
         std::string toString() override;
         InstructionType getType() override;

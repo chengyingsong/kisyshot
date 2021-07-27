@@ -3,6 +3,8 @@
 
 #include "ast/syntax/syntax_ostream_writer.h"
 #include "context_manager.h"
+#include "ast/cfg.h"
+
 using namespace kisyshot::ast;
 
 int main() {

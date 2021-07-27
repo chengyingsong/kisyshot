@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.11)
 project(kisyshot)
 
 if (MSVC_VERSION GREATER_EQUAL "1900")
@@ -44,6 +44,7 @@ set(core
         src/ast/syntax/var_declaration.cc
         src/ast/tac.cc
         src/ast/token.cc
+        src/ast/cfg.cc
         src/compiler/codegen.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
