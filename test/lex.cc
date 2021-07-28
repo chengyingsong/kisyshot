@@ -11,10 +11,12 @@ TEST_CASE("lex_test_expected_errors") {
     auto sm = std::make_shared<kisyshot::ContextManager>();
     sm->load("cases/lex/octal_overflow.sy");
     sm->load("cases/lex/comment_not_close.sy");
+    sm->load("cases/lex/string_not_close.sy");
     sm->lex(0);
     sm->lex(1);
+    sm->lex(2);
     std::cout << *(sm->diagnosticStream);
-    REQUIRE(sm->diagnosticStream->diagnostics.size() == 3);
+    REQUIRE(sm->diagnosticStream->diagnostics.size() == 4);
 }
 
 TEST_CASE("lex_test_expected_full_success") {

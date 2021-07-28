@@ -44,6 +44,8 @@ namespace kisyshot::compiler{
         bool next();
         // continue to lex a numeric const
         bool nextNumericLiteral();
+        // continue to lex a string const
+        bool nextStringLiteral();
         // continue to lex a identifier
         bool nextIdentifier(size_t offset = 0);
         // continue to lex a operator

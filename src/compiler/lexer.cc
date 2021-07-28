@@ -51,6 +51,11 @@ namespace kisyshot::compiler {
             return nextNumericLiteral();
         }
 
+        // lex string const
+        if (_code[_position] == '\"') {
+            return nextStringLiteral();
+        }
+
         // lex comments
         if (_code[_position] == '/' && (_position + 1 < _code.size())) {
             switch (_code[_position + 1]) {
@@ -110,6 +115,77 @@ namespace kisyshot::compiler {
 
     bool Lexer::currTokenIs(ast::TokenType token_type) {
         return sameType(currTokenType(), token_type);
+    }
+
+    bool Lexer::nextStringLiteral(){
+        auto token = std::make_unique<Token>();
+        token->offset = _position;
+        token->token_type = TokenType::string_literal;
+        size_t startPos = _position;
+
+        bool escaped = false;
+        // skip the '"'
+        _position++;
+        // before we met the end of the file
+        while (_position < _code.size()){
+            // get the current char, handle it with a DFA
+            switch (_code[_position]){
+                // we met a new '"'
+                case '\"':{
+                    // if the quote mark is not escaped, marks the string ended
+                    if(!escaped){
+                        // form a token info and return
+                        token->raw_code = _code.substr(startPos + 1, _position - startPos - 1);
+                        _context->tokens.push_back(std::move(token));
+                        // skip the close '"'
+                        _position++;
+                        return true;
+                    }
+                    // if th quote mark is escaped, we treat it like other chars and continue
+                    escaped = false;
+                    break;
+                }
+                // we met the escape mark '\'
+                case '\\':{
+                    // mark the escape mode negative to itself
+                    // true: when the current char escaped, it means current '\' is a escaped char so there
+                    //       have already a char escaped, we should set it to false;
+                    // false:when the current char not escaped, it means current '\' should be treated as a
+                    //       mark of next char escaping, we should set it to true.
+                    escaped = !escaped;
+                    break;
+                }
+                // we met the new-line code
+                case '\n':{
+                    // when the new-line symbol is not escaped
+                    if(!escaped){
+                        // it means it's a end of string that didn't end
+                        // form the result and push an error
+                        token->raw_code = _code.substr(startPos, 1);
+                        _context->tokens.push_back(std::move(token));
+                        _position++;
+                        _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "string not closed")
+                            .at(_context->tokens.size() - 1);
+                        return false;
+                    }
+                    // when the new-line symbol is escaped, set escaped variable to false
+                    escaped = false;
+                    break;
+                }
+                default:{
+                    escaped = false;
+                    break;
+                }
+            }
+            _position++;
+        }
+        // we met the end of the code, but the mark ends the string still not found
+        // instantly form the token result and push an error to the diagnostic
+        token->raw_code = _code.substr(startPos, 1);
+        _context->tokens.push_back(std::move(token));
+        _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "string not closed")
+                            .at(_context->tokens.size() - 1);
+        return false;
     }
 
     bool Lexer::nextNumericLiteral() {

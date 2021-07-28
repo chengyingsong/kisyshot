@@ -141,6 +141,22 @@ namespace kisyshot::ast::syntax{
         std::size_t tokenIndex;
         std::string_view rawCode;
     };
+
+    class StringLiteralExpression:public Expression{
+    public:
+        void forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
+        void writeCurrentInfo(std::ostream &ostream) override;
+        SyntaxType getType() override;
+        std::size_t start() override;
+        std::size_t end() override;
+        bool hasChild() override;
+        void analyseType() override;
+        std::string toString() override;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
+        std::size_t tokenIndex;
+        std::string_view rawCode;
+    };
+
     class ArrayInitializeExpression: public Expression, public ISyntaxList<Expression>{
     public:
         void analyseType() override;

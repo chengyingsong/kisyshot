@@ -14,12 +14,14 @@ namespace kisyshot::compiler{
         void genSymbolTable();
         void bindSymbols();
         void traverse();
+        void traverseStatement(const std::shared_ptr<ast::syntax::Statement>& stmt);
+        void newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def);
         // copy of the context
         std::shared_ptr<Context> _context;
         // copy of the diagnostic info collector
         std::shared_ptr<diagnostic::DiagnosticStream> _diagnosticStream;
 
-        std::unordered_map<std::string, std::stack<std::shared_ptr<ast::syntax::SyntaxNode>>> _symbolDefinition;
+        std::unordered_map<std::string, std::stack<std::shared_ptr<ast::syntax::SyntaxNode>>> _variables;
         std::vector<std::string> _layerNames;
         std::size_t _blockId;
         std::size_t _layer;

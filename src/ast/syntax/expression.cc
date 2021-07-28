@@ -336,6 +336,41 @@ namespace kisyshot::ast::syntax {
 
     void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 
+
+    void
+    StringLiteralExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
+    }
+
+    void StringLiteralExpression::writeCurrentInfo(std::ostream &ostream) {
+        Expression::writeCurrentInfo(ostream);
+    }
+
+    SyntaxType StringLiteralExpression::getType() {
+        return SyntaxType::StringLiteralExpression;
+    }
+
+    std::size_t StringLiteralExpression::start() {
+        return tokenIndex;
+    }
+
+    std::size_t StringLiteralExpression::end() {
+        return tokenIndex;
+    }
+
+    bool StringLiteralExpression::hasChild() {
+        return false;
+    }
+
+    void StringLiteralExpression::analyseType() {
+
+    }
+
+    std::string StringLiteralExpression::toString() {
+        return (std::string) rawCode;
+    }
+
+    void StringLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+
     void ArrayInitializeExpression::analyseType() {
 
     }

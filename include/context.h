@@ -36,7 +36,7 @@ namespace kisyshot{
         /**
          * The symbol table which maps the relation ship between mangled name and its variable definition node
          */
-        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::VarDeclaration>> symbols;
+        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::VarDefinition>> symbols;
         /**
          * The symbol table which maps the relation ship between name and its function node
          */

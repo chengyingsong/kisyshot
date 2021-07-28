@@ -21,5 +21,6 @@ namespace kisyshot::ast::syntax {
         std::shared_ptr<Statement> body = nullptr;
         std::size_t lParenIndex = invalidTokenIndex;
         std::size_t rParenIndex = invalidTokenIndex;
+        std::size_t stackSize = 0;
     };
 }

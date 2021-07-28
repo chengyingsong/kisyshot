@@ -241,6 +241,14 @@ namespace kisyshot::compiler {
                     step();
                     break;
                 }
+                case ast::TokenType::string_literal: {
+                    auto number = std::make_shared<StringLiteralExpression>();
+                    number->rawCode = _context->tokens[_current]->raw_code;
+                    number->tokenIndex = _current;
+                    left = number;
+                    step();
+                    break;
+                }
                 default: {
                     left = nullptr;
                     if (getBinaryOperatorPrecedence(current()) == OperatorPrecedence::initial) {

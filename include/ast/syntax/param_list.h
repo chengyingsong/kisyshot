@@ -16,6 +16,7 @@ namespace kisyshot::ast::syntax{
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
 
         std::size_t dimension = 0;
+        std::size_t offset = 0;
         std::shared_ptr<Identifier> name = nullptr;
         std::shared_ptr<Type> type = nullptr;
     };
