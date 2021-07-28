@@ -1,5 +1,5 @@
 #include <compiler/parser.h>
-
+#include <cassert>
 using namespace kisyshot::ast;
 using namespace kisyshot::ast::syntax;
 namespace kisyshot::compiler {
@@ -15,11 +15,11 @@ namespace kisyshot::compiler {
         recover();
         _context->syntaxTree = std::make_shared<SyntaxUnit>();
         while (_current < _context->tokens.size() - 1) {
-            if (current() == ast::TokenType::kw_const){
+            if (current() == ast::TokenType::kw_const) {
                 // when meet a const expression
                 // we assert that it's a variable declaration here
                 _context->syntaxTree->add(parseVariableDeclaration());
-            } else if (current() == ast::TokenType::identifier){
+            } else if (current() == ast::TokenType::identifier) {
                 // when meet a identifier, we should look ahead to decide
                 // <identifier> <identifier> (...) ... => function
                 // <identifier> <identifier> , ...
@@ -37,53 +37,59 @@ namespace kisyshot::compiler {
                     case TokenType::l_square:
                         _context->syntaxTree->add(parseVariableDeclaration());
                         break;
-                    default:{
+                    default:
                         break;
-                    }
                 }
             } else {
-                recover_next:
-                pushRecoverAndStep();
-                switch (current()) {
-                    // stop parsing at eof
-                    // continue parsing at kw_const
-                    case ast::TokenType::eof:
-                    case ast::TokenType::kw_const:
-                        break;
-                    case ast::TokenType::identifier: {
-                        if (lookahead() == ast::TokenType::identifier) {
-                            move(_lookahead);
-                            switch (lookahead()) {
-                                case ast::TokenType::op_eq:
-                                case ast::TokenType::semi:
-                                case ast::TokenType::l_paren:
-                                case ast::TokenType::l_square:
-                                case ast::TokenType::comma:
-                                    break;
-                                default:
-                                    goto recover_next;
+                // let's push since we don't know what's happening here
+                _diagnosticStream <<
+                                  diagnostic::Diagnostic(diagnostic::Error, _context, "unexpected token(s)")
+                                          .at(_current);
+                bool searching = true;
+                while (searching && _current < _context->tokens.size()) {
+                    step();
+                    switch (current()) {
+                        // stop parsing at eof
+                        // continue parsing at kw_const
+                        case ast::TokenType::eof:
+                        case ast::TokenType::kw_const:
+                            searching = false;
+                            break;
+                        case ast::TokenType::identifier: {
+                            prepareLookahead();
+                            if (lookahead() == ast::TokenType::identifier) {
+                                move(_lookahead);
+                                switch (lookahead()) {
+                                    case ast::TokenType::op_eq:
+                                    case ast::TokenType::semi:
+                                    case ast::TokenType::l_paren:
+                                    case ast::TokenType::l_square:
+                                    case ast::TokenType::comma:
+                                        searching = false;
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
+                            break;
                         }
+                        default:
+                            break;
                     }
-                    default:
-                        goto recover_next;
                 }
                 //
                 prepareLookahead();
-                break;
             }
         }
     }
 
     std::shared_ptr<ast::syntax::Identifier> Parser::parseIdentifier() {
-        if (current() == ast::TokenType::identifier) {
-            auto id = std::make_shared<Identifier>();
-            id->identifier = (std::string) _context->tokens[_current]->raw_code;
-            id->tokenIndex = _current;
-            step();
-            return id;
-        }
-        return nullptr;
+        assert(current() == ast::TokenType::identifier);
+        auto id = std::make_shared<Identifier>();
+        id->identifier = (std::string) _context->tokens[_current]->raw_code;
+        id->tokenIndex = _current;
+        step();
+        return id;
     }
 
     std::shared_ptr<ast::syntax::Function> Parser::parseFunction() {
@@ -92,7 +98,9 @@ namespace kisyshot::compiler {
         function->returnType = parseType();
         function->name = parseIdentifier();
         function->params = std::make_shared<ParamList>();
-        // size_t lParen = _current;
+        // we assume that all subroutines that calls this should
+        assert(current() == ast::TokenType::l_paren);
+        function->lParenIndex = _current;
         step();
         while (current() == ast::TokenType::identifier) {
             auto para = std::make_shared<ParamDeclaration>();
@@ -111,13 +119,32 @@ namespace kisyshot::compiler {
                 step();
         }
         if (current() != ast::TokenType::r_paren) {
-            // TODO
+            _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "expected $ before token $")
+                    .at(_current)
+                    .emphasize(")")
+                    .emphasize((std::string) _context->tokens[_current]->raw_code)
+                              << diagnostic::Diagnostic(diagnostic::Note, _context, "to match the paren here")
+                                      .at(function->lParenIndex);
         } else {
             function->rParenIndex = _current;
             step();
         }
+        if (current() == ast::TokenType::semi)
+            return function;
+
         if (current() != ast::TokenType::l_brace) {
-            // TODO
+            if (current() == ast::TokenType::eof){
+                _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "$ expected after token $")
+                        .at(_current - 1)
+                        .emphasize(";")
+                        .emphasize((std::string) _context->tokens[_current - 1]->raw_code);
+            } else{
+                _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "$ expected before token $")
+                        .at(_current)
+                        .emphasize(";")
+                        .emphasize((std::string) _context->tokens[_current]->raw_code);
+            }
+            function->body = nullptr;
         } else {
             function->body = parseBlockStatement();
         }

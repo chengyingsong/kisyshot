@@ -47,13 +47,15 @@ set(core
         src/compiler/codegen.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
+        src/compiler/sema.cc
         src/diagnostic/diagnostic.cc
         src/diagnostic/diagnostic_stream.cc
         src/context.cc
         src/context_manager.cc)
 set(unittest
         test/main.cc
-        test/lex.cc)
+        test/lex.cc
+        test/parse.cc)
 
 add_executable(kisyshot main.cc ${core})
 add_executable(tests ${unittest} ${core})

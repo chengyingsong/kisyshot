@@ -31,7 +31,9 @@ namespace kisyshot::compiler {
         std::shared_ptr<ast::syntax::Identifier> parseIdentifier();
 
         /**
-         * Parse a function definition like int function(int var){...statements...} starts from current position
+         * Parse a function definition like int function(int var){...statements...} starts from current position.
+         * Note that all functions calls this should ensure that tokens from `_current` should be like:
+         *      type funcName(...
          * @return function parsed
          */
         std::shared_ptr<ast::syntax::Function> parseFunction();
@@ -141,7 +143,8 @@ namespace kisyshot::compiler {
         size_t _current;
         // the lookahead position, which can help accelerate parsing
         size_t _lookahead;
-        //
+        // the stack to save recover info
         std::stack<std::size_t> _recover;
+
     };
 }

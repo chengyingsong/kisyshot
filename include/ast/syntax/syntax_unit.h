@@ -17,7 +17,6 @@ namespace kisyshot::ast::syntax{
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t start() override;
         std::size_t end() override;
-    private:
-        std::vector<std::shared_ptr<SyntaxNode>> _syntax;
+        std::vector<std::shared_ptr<SyntaxNode>> children;
     };
 }

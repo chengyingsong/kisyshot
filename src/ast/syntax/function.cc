@@ -8,6 +8,10 @@ namespace kisyshot::ast::syntax {
     void Function::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(name, false);
         syntaxWalker(returnType, false);
+        if (body == nullptr){
+            syntaxWalker(params, true);
+            return;
+        }
         syntaxWalker(params, false);
         syntaxWalker(body, true);
     }

@@ -35,10 +35,10 @@ namespace kisyshot::diagnostic {
      */
     class Diagnostic {
         DiagnosticKind _kind;
-        mutable std::vector<DiagnosticLocation> _locations;
+        std::vector<DiagnosticLocation> _locations;
+        std::vector<std::string> _emphasize;
         std::shared_ptr<Context> _context;
         std::string _message;
-        std::string _emphasize;
     public:
         /**
          * Creates a blank diagnostic which only have kind, message and error context

@@ -13,6 +13,7 @@ TEST_CASE("lex_test_expected_errors") {
     sm->load("cases/lex/comment_not_close.sy");
     sm->lex(0);
     sm->lex(1);
+    std::cout << *(sm->diagnosticStream);
     REQUIRE(sm->diagnosticStream->diagnostics.size() == 3);
 }
 
