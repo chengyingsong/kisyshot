@@ -12,11 +12,15 @@ using namespace kisyshot::ast;
 
 typedef std::vector<Instruction *> edgeList;
 typedef std::list<Instruction *> block;
-typedef std::list<Instruction *>::iterator iterator;
 
 namespace kisyshot::ast {
     // 一个函数的控制流图类
     class ControlFlowGraph {
+    public:
+        typedef std::list<Instruction *>::iterator iterator;
+        ControlFlowGraph(iterator first, iterator last);
+        class ForwardFlow;
+        class BackwardFlow;
     private:
         iterator first, last;
         // 每条label对应的指令
@@ -31,16 +35,13 @@ namespace kisyshot::ast {
         void mapEdgesForJump(iterator cur, std::string type);
         // 为u指令和v指令间映射边
         void addEdge(Instruction * u, Instruction * v);
-    public:
-        ControlFlowGraph(iterator first, iterator last);
-        class ForwardFlow;
-        class BackwardFlow;
     };
 
     class ControlFlowGraph::ForwardFlow {
     private:
         ControlFlowGraph &cfg;
     public:
+        typedef std::list<Instruction *>::const_iterator iterator;
         ForwardFlow(ControlFlowGraph &cfg) : cfg(cfg) {}
         iterator first() {
             return iterator(cfg.first);
@@ -60,6 +61,7 @@ namespace kisyshot::ast {
     private:
         ControlFlowGraph &cfg;
     public:
+        typedef std::list<Instruction *>::const_iterator iterator;
         BackwardFlow(ControlFlowGraph &cfg) : cfg(cfg) {}
         iterator first() {
             return iterator(cfg.last);

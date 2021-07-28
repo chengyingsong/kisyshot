@@ -12,6 +12,9 @@ namespace kisyshot::compiler {
         // 控制流图列表
         std::list<ControlFlowGraph> cfgList;
         std::list<ControlFlowGraph>::iterator cfgListIterator;
+        // 活跃变量表，将每个临时变量映射到最后一次使用该变量的指令
+        std::list<std::map<Var *, Instruction *> > liveList;
+        std::list<std::map<Var *, Instruction *> >::iterator liveListIterator;
     public:
         ArmCodeGenerator(std::list<Instruction *> &tacCode);
         void generateArmCode();

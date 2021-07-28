@@ -64,7 +64,7 @@ namespace kisyshot::ast {
         Var*  src_1;
         Var*  src_2;
         Var*  dst;
-        //int numVars;
+        int numVars;
     };
 
     //统一把Dst放在最后。也就是左值一般是最后一个参数。
