@@ -47,23 +47,7 @@ namespace kisyshot::ast::syntax {
             Var* src_1 = left->getVar(gen);
             Var* src_2 = right->getVar(gen);
             //left是左值
-            //TODO： 检查左值是不是Global和右值是不是Global
-            if(src_1->isGlobal() && src_2->isGlobal()){
-                //两边都是global,src_1是左值
-                Var *t = gen.newTempVar();
-                gen.genLoad(src_2,t);
-                gen.genStore(t,src_1);
-            }else{
-                if(src_1->isGlobal()){
-                    gen.genStore(src_2,src_1);
-                }else{
-                    if(src_2->isGlobal()){
-                        gen.genLoad(src_2,src_1);
-                    }else{
-                        gen.genAssign(src_2,src_1);
-                    }
-                }
-            }
+            gen.genAssign(src_2,src_1); 
         } else if(opName == "&&"){
             // temp = src_1 && src_2
             /*  src_1
@@ -229,22 +213,7 @@ namespace kisyshot::ast::syntax {
         //单值表达式，首先查询变量表，然后返回绑定的变量
         Var* src_1  = temp;
         Var* src_2 = gen.name2VarMap[name->mangledId]; //由重整名获取变量
-        if(src_1->isGlobal() && src_2->isGlobal()){
-            //两边都是global,src_1是左值
-            Var *t = gen.newTempVar();
-            gen.genLoad(src_2,t);
-            gen.genStore(t,src_1);
-        }else{
-            if(src_1->isGlobal()){
-                gen.genStore(src_2,src_1);
-            }else{
-                if(src_2->isGlobal()){
-                    gen.genLoad(src_2,src_1);
-                }else{
-                    gen.genAssign(src_2,src_1);
-                }
-            }
-        }
+        gen.genAssign(src_2,src_1);
     }
 
     void Expression::writeCurrentInfo(std::ostream &s) {
@@ -453,11 +422,7 @@ namespace kisyshot::ast::syntax {
     }
 
     void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        if(temp->isGlobal()){
-            gen.genStore(gen.getConstVar(std::stoi(toString())),temp);
-        }else{
-            gen.genAssign((gen.getConstVar(std::stoi(toString()))),temp);
-        }
+        gen.genAssign((gen.getConstVar(std::stoi(toString()))),temp); 
     }
 
 
@@ -496,7 +461,6 @@ namespace kisyshot::ast::syntax {
     void StringLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 
     void ArrayInitializeExpression::analyseType() {
-
     }
 
     std::string ArrayInitializeExpression::toString() {

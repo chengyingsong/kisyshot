@@ -33,11 +33,11 @@ namespace kisyshot::compiler {
 
         void genLabel(std::string &label);
         //Load指令
-        void genLoad(ast::Var* src,ast::Var* dst);
+        void genLoad(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genAssign(ast::Var* src,ast::Var* dst);
 
-        void genStore(ast::Var* src,ast::Var* dst);
+        void genStore(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genBinaryOp(std::string &opName,ast::Var* op1,ast::Var* op2,ast::Var * dst);
 

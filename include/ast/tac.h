@@ -117,7 +117,7 @@ namespace kisyshot::ast {
     };
 
     class Assign : Instruction {
-        //Assign是两个非全局变量之间的赋值
+        //Assign是两个变量之间的赋值
     public:
         Var*  src_1;
         Var*  src_2;
@@ -128,22 +128,24 @@ namespace kisyshot::ast {
 
 
     class Load : Instruction {
-        //Load是将全局变量的值赋给一个局部变量，需要断言src是全局变量，dst不是全局变量
+        //Load是把数组的值取出来
     public:
-        Var* src_1;
-        Var* src_2;
-        Load(Var *src,Var* dst);
+        Var* src_1;  //数组基地址
+        Var* src_2;   //数组index
+        Var* dst;      //目的操作数
+        Load(Var *src_1,Var* src_2,Var* dst);
         std::string toString() override;
         InstructionType getType() override;
     };
 
 
     class Store : Instruction {
-        //Store是将局部变量的值赋给全局变量
+        //Store是把值存入数组中
     public:
-        Var* src_1;
-        Var* src_2;
-        Store(Var *src,Var *dst);
+        Var* src_1;  //存入值
+        Var* src_2;   //数组基地址
+        Var* dst;    //数组index
+        Store(Var *src_1,Var* src_2,Var *dst);
         std::string toString() override;
         InstructionType getType() override;
     };

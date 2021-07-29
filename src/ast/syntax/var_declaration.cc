@@ -143,22 +143,7 @@ namespace kisyshot::ast::syntax {
         if(initialValue != nullptr){
             //initialValue有可能是一个数字
             Var * src_2 = initialValue->getVar(gen);
-            if(src_1->isGlobal() && src_2->isGlobal()){
-                //两边都是global,src_1是左值
-                Var *t = gen.newTempVar();
-                gen.genLoad(src_2,t);
-                gen.genStore(t,src_1);
-            }else{
-                if(src_1->isGlobal()){
-                    gen.genStore(src_2,src_1);
-                }else{
-                    if(src_2->isGlobal()){
-                        gen.genLoad(src_2,src_1);
-                    }else{
-                        gen.genAssign(src_2,src_1);
-                    }
-                }
-            }
+           gen.genAssign(src_2,src_1);
         }
     }
 }

@@ -112,27 +112,23 @@ namespace kisyshot::ast {
         return InstructionType::Assign_;
     }
 
-    Load::Load(Var *src, Var *dst) : src_1(src), src_2(dst) {
-         numVars = 2;
+    Load::Load(Var *src_1,Var* src_2,Var *dst) : src_1(src_1), src_2(src_2), dst(dst) {
+        numVars = 3;
         assert(src_1 != nullptr && src_2 != nullptr);
-        assert(src_1->isGlobal());
-        assert(src_2->isTemp());
     }
 
-    std::string Load::toString() {return src_2->getName() + " = " + src_1->getName();}
+    std::string Load::toString() {return dst->getName() + " = " + src_1->getName()+"[" +src_2->getName() +"]";}
 
     InstructionType Load::getType() {
         return InstructionType::Load_;
     }
 
-    Store::Store(Var *src, Var *dst):src_1(src),src_2(dst) {
-        numVars = 2;
+    Store::Store(Var *src_1,Var *src_2,Var *dst):src_1(src_1),src_2(src_2),dst(dst) {
+        numVars = 3;
         assert(src_1 != nullptr && src_2 != nullptr);
-        assert(src_2->isGlobal());
-        assert(src_1->isTemp() || src_1->isConst());
     }
 
-    std::string Store::toString() {return dst->getName() + " = " + src_1->getName();}
+    std::string Store::toString() {return src_2->getName() + "[" + dst->getName() + "]" + " = " + src_1->getName();}
 
     InstructionType Store::getType() {
         return InstructionType::Store_;
