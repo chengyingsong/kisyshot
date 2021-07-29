@@ -14,7 +14,7 @@ namespace kisyshot{
     class Context{
     public:
         /**
-         * The path of the given code, used in diagnostics.
+         * The path of the given code, used in diagnostic.
          */
         std::string path;
         /**
@@ -34,6 +34,14 @@ namespace kisyshot{
          */
         std::shared_ptr<kisyshot::ast::syntax::SyntaxUnit> syntaxTree;
         /**
+         * The symbol table which maps the relation ship between mangled name and its variable definition node
+         */
+        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::VarDefinition>> symbols;
+        /**
+         * The symbol table which maps the relation ship between name and its function node
+         */
+        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::Function>> functions;
+        /**
          * The index of the current syntax context.
          */
         std::size_t contextID;
@@ -45,13 +53,18 @@ namespace kisyshot{
          * @param token
          * @return
          */
-        CodePosition locate(const ast::Token& token);
+        CodePosition locate(const ast::Token& token) const;
         /**
          * Locate the token defined by the index in the source code.
          * @param index
          * @return
          */
-        CodePosition locate(std::size_t index);
+        CodePosition locate(std::size_t index) const;
+
+        std::size_t firstOfLine(std::size_t line) const;
+        std::size_t lastOfLine(std::size_t line) const;
+
+        const static std::size_t npos = SIZE_MAX;
 
     private:
         // used for locate tokens

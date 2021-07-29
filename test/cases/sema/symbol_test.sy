@@ -1,0 +1,18 @@
+int globalVar[100];
+
+int func(int param){
+    int a = param;  // param is 'param@func'
+    {               // unnamed block
+        int b = param; // param is 'param@func'
+        int param = 1; // ok, since it's an inner block
+        b = param;     // param is 'param@b.0@func;
+                       // b is 'b@b.0@func;
+    }
+    if(a == 0){        // a is 'a@func'
+        int b = a;     // a is 'a@func'
+        int param = a; // a is 'a@func'
+        b = param;     // b is 'b@i.1@func'
+                       // param is 'param@i.1@func'
+    }
+    return 0;
+}

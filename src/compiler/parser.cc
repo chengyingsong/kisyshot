@@ -1,120 +1,148 @@
 #include <compiler/parser.h>
-
+#include <cassert>
 using namespace kisyshot::ast;
 using namespace kisyshot::ast::syntax;
 namespace kisyshot::compiler {
     Parser::Parser(const std::shared_ptr<Context> &context,
-                   const std::shared_ptr<diagnostics::DiagnosticStream> &diagStream) {
+                   const std::shared_ptr<diagnostic::DiagnosticStream> &diagStream) {
         _context = context;
         _diagnosticStream = diagStream;
         _current = 0;
         _lookahead = 0;
-        recoverPosition();
     }
 
     void Parser::parse() {
+        recover();
         _context->syntaxTree = std::make_shared<SyntaxUnit>();
         while (_current < _context->tokens.size() - 1) {
-            switch (current()) {
-                case ast::TokenType::kw_const: {
-                    _context->syntaxTree->add(parseVariableDeclaration());
-                    break;
-                }
-                case ast::TokenType::identifier: {
-                    size_t start = _current;
-                    step();
-                    if (lookahead() == ast::TokenType::l_paren) {
-                        _current = start;
-                        recoverPosition();
+            if (current() == ast::TokenType::kw_const) {
+                // when meet a const expression
+                // we assert that it's a variable declaration here
+                _context->syntaxTree->add(parseVariableDeclaration());
+            } else if (current() == ast::TokenType::identifier) {
+                // when meet a identifier, we should look ahead to decide
+                // <identifier> <identifier> (...) ... => function
+                // <identifier> <identifier> , ...
+                // <identifier> <identifier> [..]
+                // <identifier> <identifier> = ...
+                // <identifier> <identifier> ;         => variable declaration
+                pushRecoverAndStep();
+                switch (lookahead()) {
+                    case TokenType::l_paren:
                         _context->syntaxTree->add(parseFunction());
-                    } else {
-                        _current = start;
-                        recoverPosition();
+                        break;
+                    case TokenType::comma:
+                    case TokenType::semi:
+                    case TokenType::op_eq:
+                    case TokenType::l_square:
                         _context->syntaxTree->add(parseVariableDeclaration());
-
-                    }
-                    break;
+                        break;
+                    default:
+                        break;
                 }
-                default: {
-                    // error recoverPosition
-                    // we choose to recoverPosition to some status like:
-                    //    [const] type id [ = E][, ...];
-                    // or type id(...){...}
-                    recover_next:
+            } else {
+                // let's push since we don't know what's happening here
+                _diagnosticStream <<
+                                  diagnostic::Diagnostic(diagnostic::Error, _context, "unexpected token(s)")
+                                          .at(_current);
+                bool searching = true;
+                while (searching && _current < _context->tokens.size()) {
                     step();
                     switch (current()) {
+                        // stop parsing at eof
+                        // continue parsing at kw_const
+                        case ast::TokenType::eof:
                         case ast::TokenType::kw_const:
-                            // we met const var decl, try recoverPosition
+                            searching = false;
                             break;
                         case ast::TokenType::identifier: {
+                            prepareLookahead();
                             if (lookahead() == ast::TokenType::identifier) {
                                 move(_lookahead);
                                 switch (lookahead()) {
                                     case ast::TokenType::op_eq:
                                     case ast::TokenType::semi:
                                     case ast::TokenType::l_paren:
+                                    case ast::TokenType::l_square:
                                     case ast::TokenType::comma:
+                                        searching = false;
                                         break;
                                     default:
-                                        goto recover_next;
+                                        break;
                                 }
                             }
+                            break;
                         }
-                        case ast::TokenType::eof:
-                            return;
                         default:
-                            goto recover_next;
+                            break;
                     }
-                    recoverPosition();
-                    break;
                 }
+                //
+                prepareLookahead();
             }
         }
     }
 
     std::shared_ptr<ast::syntax::Identifier> Parser::parseIdentifier() {
-        if (current() == ast::TokenType::identifier) {
-            auto id = std::make_shared<Identifier>();
-            id->identifier = (std::string) _context->tokens[_current]->raw_code;
-            id->tokenIndex = _current;
-            step();
-            return id;
-        }
-        return nullptr;
+        assert(current() == ast::TokenType::identifier);
+        auto id = std::make_shared<Identifier>();
+        id->identifier = (std::string) _context->tokens[_current]->raw_code;
+        id->mangledId = id->identifier;
+        id->tokenIndex = _current;
+        step();
+        return id;
     }
 
     std::shared_ptr<ast::syntax::Function> Parser::parseFunction() {
-
+        recover();
         auto function = std::make_shared<Function>();
         function->returnType = parseType();
         function->name = parseIdentifier();
-        function->params = std::make_shared<ParamList>();
-        // size_t lParen = _current;
+        // we assume that all subroutines that calls this should
+        assert(current() == ast::TokenType::l_paren);
+        function->lParenIndex = _current;
         step();
         while (current() == ast::TokenType::identifier) {
-            auto para = std::make_shared<ParamDeclaration>();
+            auto para = std::make_shared<VarDefinition>();
             para->type = parseType();
-            para->name = parseIdentifier();
-            size_t dim = 0;
+            para->varName = parseIdentifier();
             while (current() == ast::TokenType::l_square) {
                 while (current() != ast::TokenType::r_square && current() != ast::TokenType::r_paren)
                     step();
-                dim++;
                 step();
             }
-            para->dimension = dim;
-            function->params->add(para);
+            para->array.push_back(nullptr);
+            function->params.push_back(para);
             if (current() == ast::TokenType::comma)
                 step();
         }
         if (current() != ast::TokenType::r_paren) {
-            // TODO
+            _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "expected $ before token $")
+                    .at(_current)
+                    .emphasize(")")
+                    .emphasize((std::string) _context->tokens[_current]->raw_code)
+                              << diagnostic::Diagnostic(diagnostic::Note, _context, "to match the paren here")
+                                      .at(function->lParenIndex);
         } else {
             function->rParenIndex = _current;
             step();
         }
+        if (current() == ast::TokenType::semi)
+            return function;
+
         if (current() != ast::TokenType::l_brace) {
-            // TODO
+            if (current() == ast::TokenType::eof){
+                _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "$ expected after token $")
+                        .at(_current - 1)
+                        .emphasize(";")
+                        .emphasize((std::string) _context->tokens[_current - 1]->raw_code);
+            } else{
+                _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "$ expected before token $")
+                        .at(_current)
+                        .emphasize(";")
+                        .emphasize((std::string) _context->tokens[_current]->raw_code);
+            }
+            function->body = nullptr;
         } else {
             function->body = parseBlockStatement();
         }
@@ -123,7 +151,7 @@ namespace kisyshot::compiler {
 
     std::shared_ptr<ast::syntax::Expression>
     Parser::parseExpression(const std::set<ast::TokenType> &endTokens, OperatorPrecedence parentPrecedence) {
-        recoverPosition();
+        prepareLookahead();
         std::shared_ptr<Expression> left;
         if (isUnaryOperator(current()) && OperatorPrecedence::unary <= parentPrecedence) {
             size_t opIndex = _current;
@@ -205,6 +233,14 @@ namespace kisyshot::compiler {
                 }
                 case ast::TokenType::numeric_literal: {
                     auto number = std::make_shared<NumericLiteralExpression>();
+                    number->rawCode = _context->tokens[_current]->raw_code;
+                    number->tokenIndex = _current;
+                    left = number;
+                    step();
+                    break;
+                }
+                case ast::TokenType::string_literal: {
+                    auto number = std::make_shared<StringLiteralExpression>();
                     number->rawCode = _context->tokens[_current]->raw_code;
                     number->tokenIndex = _current;
                     left = number;
@@ -468,15 +504,16 @@ namespace kisyshot::compiler {
     }
 
     bool Parser::step() {
-        return move(_current) && recoverPosition();
+        return move(_current) && prepareLookahead();
     }
 
-    bool Parser::recoverPosition() {
+    bool Parser::prepareLookahead() {
         _lookahead = _current;
         return move(_lookahead);
     }
 
     std::shared_ptr<ast::syntax::VarDeclaration> Parser::parseVariableDeclaration() {
+        recover();
         size_t constPos = SyntaxNode::invalidTokenIndex;
         std::shared_ptr<Type> type;
         std::shared_ptr<VarDeclaration> decl;
@@ -493,13 +530,14 @@ namespace kisyshot::compiler {
             while (_current < _context->tokens.size() && current() == ast::TokenType::identifier) {
                 auto def = std::make_shared<VarDefinition>();
                 def->varName = parseIdentifier();
+                def->type = decl->type;
                 bool varEnd = false;
                 do {
                     switch (current()) {
                         case ast::TokenType::l_square: {
                             step();
                             if (current() == ast::TokenType::r_square) {
-                                // TODO: push expr expected
+                                def->array.push_back(nullptr);
                                 break;
                             }
                             auto arrVal = parseExpression({TokenType::r_square, TokenType::semi});
@@ -551,5 +589,23 @@ namespace kisyshot::compiler {
         auto  type = std::make_shared<ast::syntax::Type>();
         type->typeName = parseIdentifier();
         return type;
+    }
+
+    void Parser::pushRecover() {
+        _recover.push(_current);
+    }
+
+    bool Parser::pushRecoverAndStep() {
+        _recover.push(_current);
+        return step();
+    }
+
+    void Parser::recover() {
+        if (!_recover.empty()) {
+            size_t pos = _recover.top();
+            _recover.pop();
+            _current = pos;
+        }
+        prepareLookahead();
     }
 }

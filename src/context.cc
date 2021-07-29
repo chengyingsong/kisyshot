@@ -24,13 +24,41 @@ namespace kisyshot {
         }
     }
 
-    CodePosition Context::locate(const ast::Token &token) {
+    CodePosition Context::locate(const ast::Token &token) const {
         auto startLineIndex = std::upper_bound(lineStartPos.begin(), lineStartPos.end(), token.offset);
         size_t id = startLineIndex - lineStartPos.begin();
         return CodePosition{id, token.offset - lineStartPos[id - 1]};
     }
 
-    CodePosition Context::locate(std::size_t index) {
+    CodePosition Context::locate(std::size_t index) const {
         return locate(*tokens[index]);
+    }
+
+    std::size_t Context::firstOfLine(std::size_t line) const {
+        auto cmp = std::make_unique<kisyshot::ast::Token>();
+        cmp->offset = lineStartPos[line];
+        size_t idx =
+                std::lower_bound(tokens.begin(), tokens.end(), cmp,
+                                 [](const std::unique_ptr<kisyshot::ast::Token> &t1,
+                                    const std::unique_ptr<kisyshot::ast::Token> &t2) -> bool {
+                                     return t1->offset < t2->offset;
+                                 }) - tokens.begin();
+        if (locate(idx).line - 1 != line)
+            return npos;
+        return idx;
+    }
+
+    std::size_t Context::lastOfLine(std::size_t line) const {
+        while (line < lines.size() - 1) {
+            size_t nextStart = firstOfLine(line + 1);
+            if (nextStart != npos) {
+                if (locate(nextStart - 1).line - 1== line)
+                    return nextStart - 1;
+                else
+                    return npos;
+            }
+            line++;
+        }
+        return tokens.size() - 1;
     }
 }

@@ -9,7 +9,7 @@ namespace kisyshot::ast::syntax {
     }
 
     bool SyntaxUnit::hasChild() {
-        return !_syntax.empty();
+        return !children.empty();
     }
 
     void SyntaxUnit::writeCurrentInfo(std::ostream &s) {
@@ -24,28 +24,35 @@ namespace kisyshot::ast::syntax {
     }
 
     void SyntaxUnit::add(const std::shared_ptr<VarDeclaration> &child) {
-        _syntax.push_back(child);
+        children.push_back(child);
     }
 
     void SyntaxUnit::add(const std::shared_ptr<Function> &child) {
-        _syntax.push_back(child);
+        children.push_back(child);
     }
 
     void SyntaxUnit::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        for (std::size_t i = 0; i < _syntax.size(); ++i) {
-            syntaxWalker(_syntax[i], i == _syntax.size() - 1);
+        for (std::size_t i = 0; i < children.size(); ++i) {
+            syntaxWalker(children[i], i == children.size() - 1);
         }
     }
 
     std::size_t SyntaxUnit::start() {
-        if (_syntax.empty())
+        if (children.empty())
             return invalidTokenIndex;
-        return _syntax.front()->start();
+        return children.front()->start();
     }
 
     std::size_t SyntaxUnit::end() {
-        if (_syntax.empty())
+        if (children.empty())
             return invalidTokenIndex;
-        return _syntax.back()->end();
+        return children.back()->end();
+    }
+
+    void SyntaxUnit::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
+        //根结点生成中间代码，直接调用子节点的方法即可
+        for(std::size_t i = 0; i < children.size(); ++i) {
+            children[i]->genCode(gen, nullptr);
+        }
     }
 }

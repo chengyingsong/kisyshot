@@ -7,6 +7,7 @@ if (MSVC_VERSION GREATER_EQUAL "1900")
     if (_cpp_latest_flag_supported)
         add_compile_options("/std:c++latest")
     endif()
+    add_compile_options(/utf-8)
     add_compile_definitions(NOMINMAX)
 else()
     if(MINGW)
@@ -22,16 +23,39 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/artifacts)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/artifacts)
 include_directories(include)
+if (WIN32)
+    message("test from message")
+    execute_process(COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/artifacts/Debug/)
+    execute_process(COMMAND cp -R ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/Debug/)
+else()
+    execute_process(COMMAND mkdir -p ${PROJECT_SOURCE_DIR}/artifacts/)
+    execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/cases)
+endif()
+set(core
+        src/ast/syntax/expression.cc
+        src/ast/syntax/function.cc
+        src/ast/syntax/identifier.cc
+        src/ast/syntax/statement.cc
+        src/ast/syntax/syntax_node.cc
+        src/ast/syntax/syntax_ostream_writer.cc
+        src/ast/syntax/syntax_unit.cc
+        src/ast/syntax/type.cc
+        src/ast/syntax/var_declaration.cc
+        src/ast/tac.cc
+        src/ast/token.cc
+        src/compiler/codegen.cc
+        src/compiler/lexer.cc
+        src/compiler/parser.cc
+        src/compiler/sema.cc
+        src/diagnostic/diagnostic.cc
+        src/diagnostic/diagnostic_stream.cc
+        src/context.cc
+        src/context_manager.cc)
+set(unittest
+        test/main.cc
+        test/lex.cc
+        test/parse.cc
+        test/sema.cc)
 
-execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/test/cases ${PROJECT_SOURCE_DIR}/artifacts/)
-
-aux_source_directory(src ctx)
-aux_source_directory(src/ast ast)
-aux_source_directory(src/ast/syntax syntax)
-aux_source_directory(src/compiler compiler)
-aux_source_directory(src/diagnostics diagnostic)
-
-aux_source_directory(test testsrc)
-set(core ${ctx} ${ast} ${syntax} ${compiler} ${diagnostic})
 add_executable(kisyshot main.cc ${core})
-add_executable(tests ${testsrc} ${core})
+add_executable(tests ${unittest} ${core})

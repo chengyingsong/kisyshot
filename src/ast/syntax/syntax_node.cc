@@ -62,6 +62,8 @@ namespace kisyshot::ast::syntax {
             case SyntaxType::NumericLiteralExpression:
                 s << "NumericLiteralExpression";
                 break;
+            case SyntaxType::StringLiteralExpression:
+                s << "StringLiteralExpression";
             case SyntaxType::CallExpression:
                 s << "CallExpression";
                 break;
@@ -83,4 +85,5 @@ namespace kisyshot::ast::syntax {
         }
         return s;
     }
+
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <diagnostics/diagnostic_stream.h>
+#include <diagnostic/diagnostic_stream.h>
 #include "context.h"
 namespace kisyshot {
     /**
@@ -54,9 +54,15 @@ namespace kisyshot {
         void parse(std::size_t index);
 
         /**
+         * Semantically analyse the syntax tree, do typeck && generates symbol table
+         * @param index
+         */
+        void check(std::size_t index);
+
+        /**
          * Diagnostic stream of the context manager, which provides diagnostic service for the compiler.
          */
-        std::shared_ptr<diagnostics::DiagnosticStream> diagnosticStream;
+        std::shared_ptr<diagnostic::DiagnosticStream> diagnosticStream;
     private:
         std::vector<std::shared_ptr<Context>> _contexts;
         std::unordered_map<std::size_t, std::string> _ctxCodes;

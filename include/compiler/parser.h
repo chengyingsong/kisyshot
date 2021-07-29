@@ -3,8 +3,9 @@
 #include <ast/syntax/function.h>
 #include <ast/token.h>
 #include <ast/syntax/var_declaration.h>
-#include <diagnostics/diagnostic_stream.h>
+#include <diagnostic/diagnostic_stream.h>
 #include <set>
+#include <stack>
 #include "context.h"
 
 namespace kisyshot::compiler {
@@ -19,7 +20,7 @@ namespace kisyshot::compiler {
          * @param diagnosticStream: the diagnostic info collector to report errors to
          */
         Parser(const std::shared_ptr<Context> &context,
-               const std::shared_ptr<diagnostics::DiagnosticStream> &diagStream);
+               const std::shared_ptr<diagnostic::DiagnosticStream> &diagStream);
 
         void parse();
 
@@ -30,7 +31,9 @@ namespace kisyshot::compiler {
         std::shared_ptr<ast::syntax::Identifier> parseIdentifier();
 
         /**
-         * Parse a function definition like int function(int var){...statements...} starts from current position
+         * Parse a function definition like int function(int var){...statements...} starts from current position.
+         * Note that all functions calls this should ensure that tokens from `_current` should be like:
+         *      type funcName(...
          * @return function parsed
          */
         std::shared_ptr<ast::syntax::Function> parseFunction();
@@ -89,7 +92,7 @@ namespace kisyshot::compiler {
         bool move(size_t &outPos);
 
         /**
-         * Step `current` position to next non-comment token and then recoverPosition the `lookahead` token position
+         * Step `current` position to next non-comment token and then call prepareLookahead() to prepare lookahead
          * @return true will be returned if step action finished successfully, false will be returned when there's no
          * next non-comment token.
          */
@@ -100,7 +103,25 @@ namespace kisyshot::compiler {
          * @return true will be returned if step action finished successfully, false will be returned when there's no
          * next non-comment token.
          */
-        bool recoverPosition();
+        bool prepareLookahead();
+
+        /**
+         * Push `current` position into recover token stack.
+         */
+        void pushRecover();
+
+        /**
+         * Push `current` position into recover token stack, and then step() one.
+         * @return true will be returned if step action finished successfully, false will be returned when there's no
+         * next non-comment token.
+         */
+        bool pushRecoverAndStep();
+
+        /**
+         * Set `current` position to the position popped from recover stack, and call prepareLookahead()
+         * Does nothing when no available recover
+         */
+        void recover();
 
         /**
          * Get token type determined by '_current' position
@@ -117,10 +138,13 @@ namespace kisyshot::compiler {
         // copy of the context
         std::shared_ptr<Context> _context;
         // copy of the diagnostic info collector
-        std::shared_ptr<diagnostics::DiagnosticStream> _diagnosticStream;
+        std::shared_ptr<diagnostic::DiagnosticStream> _diagnosticStream;
         // the begin position of current parsing syntax
         size_t _current;
-        // the lookahead position to
+        // the lookahead position, which can help accelerate parsing
         size_t _lookahead;
+        // the stack to save recover info
+        std::stack<std::size_t> _recover;
+
     };
 }
