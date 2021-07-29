@@ -65,8 +65,8 @@ namespace kisyshot::ast::syntax {
          * falseLabel:
          *
          * */
-        Var * t1 = gen.newTempVar();
-        condition->genCode(gen,t1);
+        //TODO: change expression genaration
+        Var* t1 = condition->getVar(gen);
         if(elseClause != nullptr) {
             std::string falseLabel = gen.newLabel();
             std::string endLabel = gen.newLabel();
@@ -133,8 +133,7 @@ namespace kisyshot::ast::syntax {
          * */
         std::string beginLabel =  gen.newLabel();
         gen.genLabel(beginLabel);
-        Var* t = gen.newTempVar();
-        condition->genCode(gen,t);
+        Var* t = condition->getVar(gen);
         std::string endLabel = gen.newLabel();
         gen.genIFZ(t,endLabel);
         body->genCode(gen, nullptr);
@@ -285,17 +284,7 @@ namespace kisyshot::ast::syntax {
 
     void ReturnStatement::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //要求得返回表达式的值，构造返回语句
-        Var * t;
-        if(value->getType() == SyntaxType::IdentifierExpression) {
-            t = gen.name2VarMap[value->toString()];
-        } else {
-            if(value->getType() == SyntaxType::NumericLiteralExpression) {
-                t = new Var(std::stoi(value->toString()));
-            } else {
-                t = gen.newTempVar();
-                value->genCode(gen,t);
-            }
-        }
+        Var * t = value->getVar(gen);
         gen.genReturn(t);
     }
 
@@ -386,7 +375,6 @@ namespace kisyshot::ast::syntax {
     }
 
     void ExpressionStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-
         expression->genCode(gen, nullptr);
     }
 

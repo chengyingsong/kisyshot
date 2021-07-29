@@ -17,7 +17,7 @@ namespace kisyshot::ast::syntax{
         SyntaxType getType() override = 0;
         bool hasChild() override = 0;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
-        Var* getVar(compiler::CodeGenerator &gen,std::shared_ptr<Expression> e);
+        Var* getVar(compiler::CodeGenerator &gen);
     };
 
     class BinaryExpression: public Expression {

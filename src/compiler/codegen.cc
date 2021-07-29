@@ -123,4 +123,12 @@ namespace kisyshot::compiler {
         }
     }
 
+    ast::Var *CodeGenerator::getConstVar(int value) {
+        if(const2Varmap.find(value) == const2Varmap.end()){
+            Var * t = new Var(value);
+            const2Varmap[value] = t;
+        }
+        return const2Varmap[value];
+    }
+
 }
