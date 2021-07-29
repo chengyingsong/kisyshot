@@ -27,6 +27,7 @@ namespace kisyshot::compiler {
         ast::Var* newTempVar();
         //绑定符号表变量和临时变量
 
+
         void genLabel(std::string &label);
         //Load指令
         void genLoad(ast::Var* src,ast::Var* dst);
@@ -49,9 +50,11 @@ namespace kisyshot::compiler {
 
         void genReturn(ast::Var* v);
 
-        void genBeginFunc();
+        void genBeginFunc(int stackSize);
 
         void genEndFunc();
+
+
     };
 }
 

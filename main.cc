@@ -7,7 +7,8 @@ using namespace kisyshot::ast;
 
 int main() {
 //TODO:  单目运算符，数组，break和continue还有字符串
-    std::string_view testCode = R"( int square(int x){
+    std::string_view testCode = R"( int x;
+    int square(int x){
         return x * x;
     }
     const int k = 4;

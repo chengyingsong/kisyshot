@@ -95,8 +95,9 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genBeginFunc() {
+    void CodeGenerator::genBeginFunc(int stackSize) {
         auto p = new BeginFunc();
+        p->setFrameSize(stackSize);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
