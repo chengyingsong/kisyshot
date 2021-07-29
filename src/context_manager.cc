@@ -22,7 +22,7 @@ namespace kisyshot{
         return nullptr;
     }
 
-    ContextManager::ContextManager(): diagnosticStream(std::make_shared<diagnostics::DiagnosticStream>()) {
+    ContextManager::ContextManager(): diagnosticStream(std::make_shared<diagnostic::DiagnosticStream>()) {
 
     }
 

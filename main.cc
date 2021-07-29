@@ -3,11 +3,10 @@
 
 #include "ast/syntax/syntax_ostream_writer.h"
 #include "context_manager.h"
-<<<<<<< HEAD
-=======
+
 
 using namespace kisyshot::ast;
->>>>>>> 7271c633f15fa86ab663499e7ee1cabc14b54561
+
 int main() {
 
     std::string_view code = R"(const int base = 16;
@@ -119,10 +118,29 @@ int main(){
 }
 )";
 
+    std::string_view testCode = R"( int main(){
+        int x = 1,k;
+        int y = 3;
+        int z = x + y * 3;
+        if( z == 0) {
+             y = x % 2;
+        }
+        int i = 0;
+        while(i < 10){
+           i = i + 1;
+         }
+         y = square(y);
+        return 0;
+})";
+
     auto sm = std::make_shared<kisyshot::ContextManager>();
-    auto ctx = sm->create(code, "/path/to/test.sy");
+    auto ctx = sm->create(testCode, "/path/to/test.sy");
+    kisyshot::compiler::CodeGenerator gen;
+
     sm->lex(ctx->contextID);
     sm->parse(ctx->contextID);
+
+    ctx->syntaxTree->genCode(gen, nullptr);
 
     std::cout << *(ctx->syntaxTree);
     std::cout << *(sm->diagnosticStream);
