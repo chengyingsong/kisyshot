@@ -12,12 +12,12 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << "Identifier "
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::green << "'" << identifier << "'"
+              << rang::fg::green << "'" << identifier << "'" << " (a.k.a '" << mangledId << "')"
               << rang::fg::reset << std::endl;
         } else {
             s << "Identifier "
               << "<" << this << "> "
-              << "'" << identifier << "'" << std::endl;
+              << "'" << identifier << "'" << " (a.k.a '" << mangledId << "')" << std::endl;
         }
     }
 

@@ -8,17 +8,20 @@ namespace kisyshot::ast::syntax {
     void Function::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         syntaxWalker(name, false);
         syntaxWalker(returnType, false);
-        if (body == nullptr){
-            syntaxWalker(params, true);
-            return;
+        for (size_t i = 0; i < params.size(); i++) {
+            syntaxWalker(params[i], (i == params.size() - 1) && body == nullptr);
         }
-        syntaxWalker(params, false);
-        syntaxWalker(body, true);
+        if (body != nullptr) {
+            syntaxWalker(body, true);
+        }
     }
 
     void Function::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //gen.genFuncName(name)
-        params->genCode(gen, nullptr);
+        for (auto &param : params) {
+            param->genCode(gen, nullptr);
+        }
+
         std::string funName = "." + name->identifier;
         gen.genLabel(funName);
         gen.genBeginFunc();
@@ -31,15 +34,13 @@ namespace kisyshot::ast::syntax {
         methodData << "'" << returnType->toString() << " " << name->toString();
 
         methodData << "(";
-        if (params->hasChild()) {
-            params->forEachChild([&methodData](const std::weak_ptr<SyntaxNode> &n, bool isLast) {
-                auto para = std::static_pointer_cast<ParamDeclaration>(n.lock());
-                methodData << para->toString()
-                           << (isLast ? ")'" : ", ");
-            });
-        } else {
-            methodData << ")'";
+        for (auto &param : params) {
+            methodData << param->type->toString() << " " << param->toString();
+            if (param != params.back()) 
+                methodData << ", ";
         }
+        methodData << ")'";
+        
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << "Function "
               << rang::fg::yellow << "<" << this << "> "
@@ -71,8 +72,8 @@ namespace kisyshot::ast::syntax {
             return body->end();
         if (rParenIndex != invalidTokenIndex)
             return rParenIndex;
-        if (params->hasChild())
-            return params->end();
+        if (!params.empty())
+            return params.back()->end();
         if (lParenIndex != invalidTokenIndex)
             return lParenIndex;
         return name->end();

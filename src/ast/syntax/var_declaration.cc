@@ -72,7 +72,9 @@ namespace kisyshot::ast::syntax {
             syntaxWalker(varName, true);
             bool init = initialValue != nullptr;
             for (size_t i = 0; i < array.size(); ++i) {
-                syntaxWalker(array[i], init & (i + 1 == array.size()));
+                if (array[i] != nullptr) {
+                    syntaxWalker(array[i], init & (i + 1 == array.size()));
+                }
             }
             if (init) {
                 syntaxWalker(initialValue, true);
@@ -84,10 +86,11 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << getType()
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::reset << toString() << std::endl;
+              << rang::fg::green << type->toString() << ' ' << toString() << rang::fg::reset << std::endl;
         } else {
             s << " " << getType()
               << "<" << this << "> "
+              << type->toString() << ' '
               << toString() << std::endl;
         }
     }
@@ -104,7 +107,11 @@ namespace kisyshot::ast::syntax {
         std::stringstream s;
         s << varName->toString();
         for (auto &arr:array) {
-            s << '[' << arr->toString() << ']';
+            s << '[';
+            if (arr != nullptr) {
+                s << arr->toString();
+            }
+            s << ']';
         }
         if (initialValue != nullptr)
             s << " = " << initialValue->toString();

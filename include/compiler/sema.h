@@ -11,9 +11,8 @@ namespace kisyshot::compiler{
              const std::shared_ptr<diagnostic::DiagnosticStream> &diagStream);
         void check();
     private:
-        void genSymbolTable();
-        void bindSymbols();
         void traverse();
+        void traverseExpression(const std::shared_ptr<ast::syntax::Expression>& expr);
         void traverseStatement(const std::shared_ptr<ast::syntax::Statement>& stmt);
         void newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def);
         // copy of the context
@@ -21,9 +20,10 @@ namespace kisyshot::compiler{
         // copy of the diagnostic info collector
         std::shared_ptr<diagnostic::DiagnosticStream> _diagnosticStream;
 
-        std::unordered_map<std::string, std::stack<std::shared_ptr<ast::syntax::SyntaxNode>>> _variables;
+        std::unordered_map<std::string, std::stack<std::shared_ptr<ast::syntax::VarDefinition>>> _variables;
         std::vector<std::string> _layerNames;
-        std::size_t _blockId;
-        std::size_t _layer;
+        std::string _blockName;
+        std::size_t _blockId = 0;
+        std::size_t _layer = 0;
     };
 }

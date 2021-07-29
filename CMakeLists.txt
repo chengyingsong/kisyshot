@@ -35,7 +35,6 @@ set(core
         src/ast/syntax/expression.cc
         src/ast/syntax/function.cc
         src/ast/syntax/identifier.cc
-        src/ast/syntax/param_list.cc
         src/ast/syntax/statement.cc
         src/ast/syntax/syntax_node.cc
         src/ast/syntax/syntax_ostream_writer.cc
@@ -55,7 +54,8 @@ set(core
 set(unittest
         test/main.cc
         test/lex.cc
-        test/parse.cc)
+        test/parse.cc
+        test/sema.cc)
 
 add_executable(kisyshot main.cc ${core})
 add_executable(tests ${unittest} ${core})

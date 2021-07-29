@@ -87,6 +87,7 @@ namespace kisyshot::compiler {
         assert(current() == ast::TokenType::identifier);
         auto id = std::make_shared<Identifier>();
         id->identifier = (std::string) _context->tokens[_current]->raw_code;
+        id->mangledId = id->identifier;
         id->tokenIndex = _current;
         step();
         return id;
@@ -97,24 +98,21 @@ namespace kisyshot::compiler {
         auto function = std::make_shared<Function>();
         function->returnType = parseType();
         function->name = parseIdentifier();
-        function->params = std::make_shared<ParamList>();
         // we assume that all subroutines that calls this should
         assert(current() == ast::TokenType::l_paren);
         function->lParenIndex = _current;
         step();
         while (current() == ast::TokenType::identifier) {
-            auto para = std::make_shared<ParamDeclaration>();
+            auto para = std::make_shared<VarDefinition>();
             para->type = parseType();
-            para->name = parseIdentifier();
-            size_t dim = 0;
+            para->varName = parseIdentifier();
             while (current() == ast::TokenType::l_square) {
                 while (current() != ast::TokenType::r_square && current() != ast::TokenType::r_paren)
                     step();
-                dim++;
                 step();
             }
-            para->dimension = dim;
-            function->params->add(para);
+            para->array.push_back(nullptr);
+            function->params.push_back(para);
             if (current() == ast::TokenType::comma)
                 step();
         }
@@ -532,13 +530,14 @@ namespace kisyshot::compiler {
             while (_current < _context->tokens.size() && current() == ast::TokenType::identifier) {
                 auto def = std::make_shared<VarDefinition>();
                 def->varName = parseIdentifier();
+                def->type = decl->type;
                 bool varEnd = false;
                 do {
                     switch (current()) {
                         case ast::TokenType::l_square: {
                             step();
                             if (current() == ast::TokenType::r_square) {
-                                // TODO: push expr expected
+                                def->array.push_back(nullptr);
                                 break;
                             }
                             auto arrVal = parseExpression({TokenType::r_square, TokenType::semi});
