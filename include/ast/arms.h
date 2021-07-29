@@ -24,11 +24,36 @@ namespace kisyshot::ast {
         // 将寄存器映射至变量
         std::map<Register, Var *> regDescriptor;
 
+        // 比较两变量是否相同
         bool varsAreSame(Var * var1, Var * var2);
+        // 找到存放var的寄存器
         int findRegForVar(Var * var);
+        // 找到一个干净的寄存器
         int findCleanReg();
+        // 随机选择一个dirty的寄存器
+        int selectRandomReg();
+        // 为var挑选一个可存放的寄存器
         int pickRegForVar(Var * var);
+        // 获得reg中存放的变量
+        Var * getRegContents(Register reg);
+        // clean寄存器reg
+        void cleanReg(Register reg);
+        // 遇到跳转指令时clean所有的通用寄存器（r0~r12，r7除外）
+        void cleanRegForBranch();
+        // 在regDescriptor中找到var对应的reg
+        std::map<Register, Var *>::iterator regDescriptorFind(Var * var);
+        // regDescriptor插入
+        void regDescriptorInsert(Var * var, Register reg);
+        // regDescriptor移除
+        void regDescriptorRemove(Var * var, Register reg);
+        // regDescriptor更新
+        void regDescriptorUpdate(Var * var);
+        // 标注reg中的变量可以被替换
         void discardVarInReg(Var * var, Register reg);
+        // 从src中读取数据放到寄存器reg中
+        void fillReg(Var * src, Register reg);
+        // 将寄存器reg中的数据存放到dst中
+        void spillReg(Var * dst, Register reg);
 
     public:
         Arms();

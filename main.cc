@@ -4,6 +4,7 @@
 #include "ast/syntax/syntax_ostream_writer.h"
 #include "context_manager.h"
 #include "ast/cfg.h"
+#include "ast/arms.h"
 #include "compiler/armcode.h"
 
 using namespace kisyshot::ast;

@@ -33,8 +33,26 @@ int Arms::findCleanReg() {
             break;
         }
     }
+    if (index == -1) {
+        index = selectRandomReg();
+        cleanReg((Register)index);
+    }
 
     return index;
+}
+
+int Arms::selectRandomReg() {
+    bool flag = false;
+    int select = 0;
+    while (!flag) {
+        select = rand() % 13;
+        if (select != r7)
+            if (regs[select].mutexLock == false)
+                if (regs[select].isDirty)
+                    flag = true;
+    }
+
+    return select;
 }
 
 int Arms::pickRegForVar(Var * var) {
@@ -44,7 +62,77 @@ int Arms::pickRegForVar(Var * var) {
         return findCleanReg();
 }
 
+Var * Arms::getRegContents(Register reg) {
+    std::map<Register, Var *>::iterator it;
+    it = regDescriptor.find(reg);
+    if (it == regDescriptor.end())
+        return (Var *)NULL;
+    else
+        return it->second;
+}
+
+void Arms::cleanReg(Register reg) {
+    Var * var = getRegContents(reg);
+    if (var == NULL)
+        return;
+    spillReg(var, reg);
+}
+
+void Arms::cleanRegForBranch() {
+    for (int i = r0; i <= r12; i++)
+        if (regs[i].isDirty == true && i != r7)
+            cleanReg((Register)i);
+}
+
+std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
+    std::map<Register, Var *>::iterator it;
+    bool flag = false;
+    for (it = regDescriptor.begin(); it != regDescriptor.end(); it++)
+        if (varsAreSame(var, it->second)) {
+            flag = true;
+            break;
+        }
+    if (flag)
+        return it;
+    else
+        return regDescriptor.end();
+}
+
+void Arms::regDescriptorInsert(Var * var, Register reg) {
+    if (findRegForVar(var) != -1) {
+        regDescriptorUpdate(var);
+        return;
+    }
+    regDescriptor.insert(std::pair<Register, Var *>(reg, var));
+    regs[reg].isDirty = true;
+}
+
+void Arms::regDescriptorRemove(Var * var, Register reg) {
+    if (findRegForVar(var) != -1) {
+        regs[reg].isDirty = false;
+        std::map<Register, Var *>::iterator it = regDescriptorFind(var);
+        regDescriptor.erase(it);
+    }
+}
+
+void Arms::regDescriptorUpdate(Var * var) {
+    std::map<Register, Var *>::iterator it = regDescriptorFind(var);
+    it->second = var;
+}
+
 void Arms::discardVarInReg(Var * var, Register reg) {
+    if (regs[reg].canDiscard) {
+        regDescriptorRemove(var, reg);
+        regs[reg].isDirty = false;
+        regs[reg].canDiscard = false;
+    }
+}
+
+void Arms::fillReg(Var * src, Register reg) {
+
+}
+
+void Arms::spillReg(Var * dst, Register reg) {
 
 }
 
