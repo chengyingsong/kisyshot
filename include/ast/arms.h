@@ -38,7 +38,7 @@ namespace kisyshot::ast {
         Var * getRegContents(Register reg);
         // clean寄存器reg
         void cleanReg(Register reg);
-        // 遇到跳转指令时clean所有的通用寄存器（r0~r12，r7除外）
+        // 遇到跳转指令或标号时clean所有的通用寄存器（r0~r12，r7除外）
         void cleanRegForBranch();
         // 在regDescriptor中找到var对应的reg
         std::map<Register, Var *>::iterator regDescriptorFind(Var * var);
@@ -59,6 +59,20 @@ namespace kisyshot::ast {
         Arms();
         std::string generate(const char * fmt, ...);
         void generateDiscardVar(Var * var);
+        void generateAssignConst(Var * dst, Var * src);
+        void generateAssign(Var * dst, Var * src);
+        void generateLoad(Var * dst, Var * src, int offset);
+        void generateStore(Var * dst, int offset, Var * src);
+        void generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * src_2);
+        void generateLabel(std::string label);
+        void generateGOTO(std::string label);
+        void generateIfZ(Var * test, std::string label);
+        void generateBeginFunc();
+        void generateEndFunc();
+        void generateReturn();
+        void generateParam(Var * arg, int num);
+        void generateCall(std::string label);
+        void generateHeaders();
     };
 }
 

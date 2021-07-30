@@ -27,7 +27,7 @@ int Arms::findRegForVar(Var * var) {
 
 int Arms::findCleanReg() {
     int index = -1;
-    for (int i = r0; i <= r12; i++) {
+    for (int i = r0; i <= r11; i++) {
         if (regs[i].isDirty == false && i != r7) {
             index = i;
             break;
@@ -79,7 +79,7 @@ void Arms::cleanReg(Register reg) {
 }
 
 void Arms::cleanRegForBranch() {
-    for (int i = r0; i <= r12; i++)
+    for (int i = r0; i <= r11; i++)
         if (regs[i].isDirty == true && i != r7)
             cleanReg((Register)i);
 }
@@ -129,11 +129,29 @@ void Arms::discardVarInReg(Var * var, Register reg) {
 }
 
 void Arms::fillReg(Var * src, Register reg) {
+    Register preReg = (Register)findRegForVar(src);
+    if (src->isGlobal()) {
+        if ((int)preReg == -1)
+            generate("ldr %s, %s", regs[reg].name, src->getName());
+        else if (reg != preReg)
+            generate("mov %s, %s", regs[reg].name, regs[preReg].name);
+    }
+    if (src->isLocal()) {
+        if ((int)preReg == -1)
+            generate("ldr %s, [r7, #%d]", regs[reg].name, src->getOffset());
+        else if (reg != preReg)
+            generate("mov %s, %s", regs[reg].name, regs[preReg].name);
+    }
+    if (src->isConst())
+        generate("mov %s, #%s", regs[reg].name, src->getName());
 
 }
 
 void Arms::spillReg(Var * dst, Register reg) {
-
+    if (dst->isGlobal())
+        generate("str %s, %s", regs[reg].name, dst->getName());
+    if (dst->isLocal())
+        generate("str %s, [r7, #%d]", regs[reg].name, dst->getOffset());
 }
 
 Arms::Arms() {
@@ -173,4 +191,104 @@ std::string Arms::generate(const char * fmt, ...) {
 void Arms::generateDiscardVar(Var * var) {
     rd = (Register)pickRegForVar(var);
     regs[rd].canDiscard = true;
+}
+
+void Arms::generateAssignConst(Var * dst, Var * src) {
+    rd = (Register)pickRegForVar(dst);
+    regs[rd].mutexLock = true;
+    generate("mov %s, #%s", regs[rd].name, src->getName());
+    regDescriptorInsert(dst, rd);
+    regs[rd].mutexLock = false;
+}
+
+void Arms::generateAssign(Var * dst, Var * src) {
+    if (src->isConst()) {
+        generateAssignConst(dst, src);
+        return;
+    }
+    if (src->isGlobal()) {
+        rd = (Register)pickRegForVar(dst);
+        regs[rd].mutexLock = true;
+        generate("ldr %s, %s", regs[rd].name, src->getName());
+        regDescriptorInsert(dst, rd);
+        regs[rd].mutexLock = false;
+        return;
+    }
+    rs = (Register)pickRegForVar(src);
+    regs[rs].mutexLock = true;
+    fillReg(src, rs);
+    regDescriptorInsert(src, rs);
+    if (regs[rs].canDiscard)
+        discardVarInReg(src, rs);
+    rd = (Register)pickRegForVar(dst);
+    regs[rd].mutexLock = true;
+    generate("mov %s, %s", regs[rd].name, regs[rs].name);
+    regDescriptorInsert(dst, rd);
+    regs[rs].mutexLock = false;
+    regs[rd].mutexLock = false;
+}
+
+void Arms::generateLoad(Var * dst, Var * src, int offset) {
+
+}
+
+void Arms::generateStore(Var * dst, int offset, Var * src) {
+
+}
+
+void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * src_2) {
+
+}
+
+void Arms::generateLabel(std::string label) {
+    cleanRegForBranch();
+    generate("%s:", label);
+}
+
+void Arms::generateGOTO(std::string label) {
+    cleanRegForBranch();
+    generate("b %s", label);
+}
+
+void Arms::generateIfZ(Var * test, std::string label) {
+    fillReg(test, r12);
+    cleanRegForBranch();
+    generate("cmp %s", regs[r12].name);
+    generate("beq %s", label);
+}
+
+void Arms::generateBeginFunc() {
+
+}
+
+void Arms::generateEndFunc() {
+
+}
+
+void Arms::generateReturn() {
+
+}
+
+void Arms::generateParam(Var * arg, int num) {
+    cleanRegForBranch();
+    fillReg(arg, (Register)(num - 1));
+}
+
+void Arms::generateCall(std::string label) {
+    generate("bl %s", label);
+}
+
+void Arms::generateHeaders() {
+    generate(".arch armv7-a");
+	generate(".eabi_attribute 28, 1");
+	generate(".eabi_attribute 20, 1");
+	generate(".eabi_attribute 21, 1");
+	generate(".eabi_attribute 23, 3");
+	generate(".eabi_attribute 24, 1");
+	generate(".eabi_attribute 25, 1");
+	generate(".eabi_attribute 26, 2");
+	generate(".eabi_attribute 30, 6");
+	generate(".eabi_attribute 34, 1");
+	generate(".eabi_attribute 18, 4");
+    generate(".text");
 }
