@@ -13,6 +13,10 @@ namespace kisyshot::ast::syntax{
         std::size_t start() override = 0;
         std::size_t end() override = 0;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
+        std::string endLabel;  //While循环中的结尾
+        std::string beginLabel;  //While循环中的开始
+        bool inTheWhile = false;
+
     };
 
     class IfStatement:public Statement{
