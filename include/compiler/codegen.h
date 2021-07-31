@@ -5,17 +5,16 @@
 #include<ast/tac.h>
 #include<string>
 #include<unordered_map>
+//#include "context.h"
 
 namespace kisyshot::compiler {
     //一个中间代码生成类
     class CodeGenerator {
-        //TODO: 定义一个输出所有代码的方法
-        //TODO: call语句和表达式语句在生成中间代码的同时应该返回一个临时变量来保存返回值
     public:
         std:: list < ast::Instruction * > code;
         //在变量声明时加入
         std::unordered_map<std::string,ast::Var* > name2VarMap;
-        std::unordered_map<int,ast::Var*> const2Varmap;
+        std::unordered_map<int,ast::Var*> const2VarMap;
         bool printOrNot = 1;
 
         CodeGenerator();

@@ -139,7 +139,8 @@ namespace kisyshot::ast::syntax {
     void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "defination of " << varName->toString() << std::endl;
         Var* src_1 = new  Var(varName->toString());
-        gen.name2VarMap[varName->toString()] = src_1;  //把名字和Var绑定
+        gen.name2VarMap[varName->mangledId] = src_1;  //把名字和Var绑定
+        gen.name2VarMap[varName->toString()] = src_1;
         if(initialValue != nullptr){
             //initialValue有可能是一个数字
             Var * src_2 = initialValue->getVar(gen);

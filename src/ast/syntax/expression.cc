@@ -232,7 +232,8 @@ namespace kisyshot::ast::syntax {
     Var *Expression::getVar(compiler::CodeGenerator &gen) {
         Var* t;
         if(getType() == SyntaxType::IdentifierExpression){
-            t = gen.name2VarMap[toString()];
+            t = gen.name2VarMap[((IdentifierExpression*)this)->name->mangledId];
+           // t = gen.name2VarMap[toString()];
         } else {
             if(getType() == SyntaxType::NumericLiteralExpression) {
                 t = gen.getConstVar(std::stoi(toString()));
