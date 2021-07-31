@@ -132,26 +132,26 @@ void Arms::fillReg(Var * src, Register reg) {
     Register preReg = (Register)findRegForVar(src);
     if (src->isGlobal()) {
         if ((int)preReg == -1)
-            generate("ldr %s, %s", regs[reg].name, src->getName());
+            printf("\tldr %s, %s\n", regs[reg].name.c_str(), src->getName().c_str());
         else if (reg != preReg)
-            generate("mov %s, %s", regs[reg].name, regs[preReg].name);
+            printf("\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->isLocal()) {
         if ((int)preReg == -1)
-            generate("ldr %s, [r7, #%d]", regs[reg].name, src->getOffset());
+            printf("\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), src->getOffset());
         else if (reg != preReg)
-            generate("mov %s, %s", regs[reg].name, regs[preReg].name);
+            printf("\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->isConst())
-        generate("mov %s, #%s", regs[reg].name, src->getName());
+        printf("\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
 
 }
 
 void Arms::spillReg(Var * dst, Register reg) {
     if (dst->isGlobal())
-        generate("str %s, %s", regs[reg].name, dst->getName());
+        printf("\tstr %s, %s\n", regs[reg].name.c_str(), dst->getName().c_str());
     if (dst->isLocal())
-        generate("str %s, [r7, #%d]", regs[reg].name, dst->getOffset());
+        printf("\tstr %s, [r7, #%d]\n", regs[reg].name.c_str(), dst->getOffset());
 }
 
 Arms::Arms() {
@@ -173,21 +173,6 @@ Arms::Arms() {
     regs[pc] = (RegContents){NULL, "pc", false, false, false};
 }
 
-std::string Arms::generate(const char * fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    char buf[1024];
-    vsprintf(buf, fmt, args);
-    va_end(args);
-    std::string code = "";
-    if (buf[strlen(buf) - 1] != ':')
-        code += "\t";
-    code += std::string(buf);
-    code += "\n";
-
-    return code;
-}
-
 void Arms::generateDiscardVar(Var * var) {
     rd = (Register)pickRegForVar(var);
     regs[rd].canDiscard = true;
@@ -196,7 +181,7 @@ void Arms::generateDiscardVar(Var * var) {
 void Arms::generateAssignConst(Var * dst, Var * src) {
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
-    generate("mov %s, #%s", regs[rd].name, src->getName());
+    printf("\tmov %s, #%s\n", regs[rd].name.c_str(), src->getName().c_str());
     regDescriptorInsert(dst, rd);
     regs[rd].mutexLock = false;
 }
@@ -209,7 +194,7 @@ void Arms::generateAssign(Var * dst, Var * src) {
     if (src->isGlobal()) {
         rd = (Register)pickRegForVar(dst);
         regs[rd].mutexLock = true;
-        generate("ldr %s, %s", regs[rd].name, src->getName());
+        printf("\tldr %s, %s\n", regs[rd].name.c_str(), src->getName().c_str());
         regDescriptorInsert(dst, rd);
         regs[rd].mutexLock = false;
         return;
@@ -222,7 +207,7 @@ void Arms::generateAssign(Var * dst, Var * src) {
         discardVarInReg(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
-    generate("mov %s, %s", regs[rd].name, regs[rs].name);
+    printf("\tmov %s, %s\n", regs[rd].name.c_str(), regs[rs].name.c_str());
     regDescriptorInsert(dst, rd);
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
@@ -242,19 +227,19 @@ void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * 
 
 void Arms::generateLabel(std::string label) {
     cleanRegForBranch();
-    generate("%s:", label);
+    printf("%s:\n", label.c_str());
 }
 
 void Arms::generateGOTO(std::string label) {
     cleanRegForBranch();
-    generate("b %s", label);
+    printf("\tb %s\n", label.c_str());
 }
 
 void Arms::generateIfZ(Var * test, std::string label) {
     fillReg(test, r12);
     cleanRegForBranch();
-    generate("cmp %s", regs[r12].name);
-    generate("beq %s", label);
+    printf("\tcmp %s\n", regs[r12].name.c_str());
+    printf("\tbeq %s\n", label.c_str());
 }
 
 void Arms::generateBeginFunc() {
@@ -274,21 +259,26 @@ void Arms::generateParam(Var * arg, int num) {
     fillReg(arg, (Register)(num - 1));
 }
 
-void Arms::generateCall(std::string label) {
-    generate("bl %s", label);
+void Arms::generateCall(int numVars, std::string label, Var * result) {
+    if (numVars == 1) {
+        printf("\tbl %s\n", label.c_str());
+        regDescriptorInsert(result, r0);
+    }
+    else
+        printf("\tbl %s\n", label.c_str());
 }
 
 void Arms::generateHeaders() {
-    generate(".arch armv7-a");
-	generate(".eabi_attribute 28, 1");
-	generate(".eabi_attribute 20, 1");
-	generate(".eabi_attribute 21, 1");
-	generate(".eabi_attribute 23, 3");
-	generate(".eabi_attribute 24, 1");
-	generate(".eabi_attribute 25, 1");
-	generate(".eabi_attribute 26, 2");
-	generate(".eabi_attribute 30, 6");
-	generate(".eabi_attribute 34, 1");
-	generate(".eabi_attribute 18, 4");
-    generate(".text");
+    printf("\t.arch armv7-a\n");
+	printf("\t.eabi_attribute 28, 1\n");
+	printf("\t.eabi_attribute 20, 1\n");
+	printf("\t.eabi_attribute 21, 1\n");
+	printf("\t.eabi_attribute 23, 3\n");
+	printf("\t.eabi_attribute 24, 1\n");
+	printf("\t.eabi_attribute 25, 1\n");
+	printf("\t.eabi_attribute 26, 2\n");
+	printf("\t.eabi_attribute 30, 6\n");
+	printf("\t.eabi_attribute 34, 1\n");
+	printf("\t.eabi_attribute 18, 4\n");
+    printf("\t.text");
 }

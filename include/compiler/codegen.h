@@ -15,9 +15,12 @@ namespace kisyshot::compiler {
         std:: list < ast::Instruction * > code;
         //在变量声明时加入
         std::unordered_map<std::string,ast::Var* > name2VarMap;
+        std::unordered_map<int,ast::Var*> const2Varmap;
         bool printOrNot = 1;
 
         CodeGenerator();
+
+        ast::Var* getConstVar(int value);
 
         void printInstruction(ast::Instruction * p);
 
@@ -27,13 +30,14 @@ namespace kisyshot::compiler {
         ast::Var* newTempVar();
         //绑定符号表变量和临时变量
 
+
         void genLabel(std::string &label);
         //Load指令
-        void genLoad(ast::Var* src,ast::Var* dst);
+        void genLoad(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genAssign(ast::Var* src,ast::Var* dst);
 
-        void genStore(ast::Var* src,ast::Var* dst);
+        void genStore(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genBinaryOp(std::string &opName,ast::Var* op1,ast::Var* op2,ast::Var * dst);
 
@@ -49,9 +53,11 @@ namespace kisyshot::compiler {
 
         void genReturn(ast::Var* v);
 
-        void genBeginFunc();
+        void genBeginFunc(int stackSize);
 
         void genEndFunc();
+
+
     };
 }
 

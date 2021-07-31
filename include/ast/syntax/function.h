@@ -1,6 +1,6 @@
 #pragma once
 
-#include "param_list.h"
+#include "var_declaration.h"
 #include "statement.h"
 #include "type.h"
 
@@ -17,9 +17,10 @@ namespace kisyshot::ast::syntax {
 
         std::shared_ptr<Type> returnType = nullptr;
         std::shared_ptr<Identifier> name = nullptr;
-        std::shared_ptr<ParamList> params = nullptr;
         std::shared_ptr<Statement> body = nullptr;
+        std::vector<std::shared_ptr<VarDefinition>> params;
         std::size_t lParenIndex = invalidTokenIndex;
         std::size_t rParenIndex = invalidTokenIndex;
+        std::size_t stackSize = 0;
     };
 }

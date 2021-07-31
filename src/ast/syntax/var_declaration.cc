@@ -72,7 +72,9 @@ namespace kisyshot::ast::syntax {
             syntaxWalker(varName, true);
             bool init = initialValue != nullptr;
             for (size_t i = 0; i < array.size(); ++i) {
-                syntaxWalker(array[i], init & (i + 1 == array.size()));
+                if (array[i] != nullptr) {
+                    syntaxWalker(array[i], init & (i + 1 == array.size()));
+                }
             }
             if (init) {
                 syntaxWalker(initialValue, true);
@@ -84,10 +86,11 @@ namespace kisyshot::ast::syntax {
         if (s.rdbuf() == std::cout.rdbuf()) {
             s << rang::fg::gray << getType()
               << rang::fg::yellow << "<" << this << "> "
-              << rang::fg::reset << toString() << std::endl;
+              << rang::fg::green << type->toString() << ' ' << toString() << rang::fg::reset << std::endl;
         } else {
             s << " " << getType()
               << "<" << this << "> "
+              << type->toString() << ' '
               << toString() << std::endl;
         }
     }
@@ -104,7 +107,11 @@ namespace kisyshot::ast::syntax {
         std::stringstream s;
         s << varName->toString();
         for (auto &arr:array) {
-            s << '[' << arr->toString() << ']';
+            s << '[';
+            if (arr != nullptr) {
+                s << arr->toString();
+            }
+            s << ']';
         }
         if (initialValue != nullptr)
             s << " = " << initialValue->toString();
@@ -131,10 +138,12 @@ namespace kisyshot::ast::syntax {
 
     void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "defination of " << varName->toString() << std::endl;
-        Var* x = new  Var(varName->toString());
-        gen.name2VarMap[varName->toString()] = x;  //把名字和Var绑定
+        Var* src_1 = new  Var(varName->toString());
+        gen.name2VarMap[varName->toString()] = src_1;  //把名字和Var绑定
         if(initialValue != nullptr){
-            initialValue->genCode(gen,x);
+            //initialValue有可能是一个数字
+            Var * src_2 = initialValue->getVar(gen);
+           gen.genAssign(src_2,src_1);
         }
     }
 }

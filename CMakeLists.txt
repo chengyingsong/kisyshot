@@ -35,7 +35,6 @@ set(core
         src/ast/syntax/expression.cc
         src/ast/syntax/function.cc
         src/ast/syntax/identifier.cc
-        src/ast/syntax/param_list.cc
         src/ast/syntax/statement.cc
         src/ast/syntax/syntax_node.cc
         src/ast/syntax/syntax_ostream_writer.cc
@@ -50,13 +49,16 @@ set(core
         src/compiler/lexer.cc
         src/compiler/parser.cc
         src/compiler/armcode.cc
+        src/compiler/sema.cc
         src/diagnostic/diagnostic.cc
         src/diagnostic/diagnostic_stream.cc
         src/context.cc
         src/context_manager.cc)
 set(unittest
         test/main.cc
-        test/lex.cc)
+        test/lex.cc
+        test/parse.cc
+        test/sema.cc)
 
 add_executable(kisyshot main.cc ${core})
-add_executable(tests ${unittest} ${core})
+# add_executable(tests ${unittest} ${core})

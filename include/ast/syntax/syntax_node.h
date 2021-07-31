@@ -34,6 +34,7 @@ namespace kisyshot::ast::syntax{
         UnaryExpression,
         IdentifierExpression,
         NumericLiteralExpression,
+        StringLiteralExpression,
         CallExpression,
         IndexExpression,
         ParenthesesExpression,

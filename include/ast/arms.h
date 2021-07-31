@@ -57,7 +57,6 @@ namespace kisyshot::ast {
 
     public:
         Arms();
-        std::string generate(const char * fmt, ...);
         void generateDiscardVar(Var * var);
         void generateAssignConst(Var * dst, Var * src);
         void generateAssign(Var * dst, Var * src);
@@ -71,7 +70,7 @@ namespace kisyshot::ast {
         void generateEndFunc();
         void generateReturn();
         void generateParam(Var * arg, int num);
-        void generateCall(std::string label);
+        void generateCall(int numVars, std::string label, Var * result);
         void generateHeaders();
     };
 }

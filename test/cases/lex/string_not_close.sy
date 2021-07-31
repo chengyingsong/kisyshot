@@ -1,0 +1,7 @@
+int main(){
+    string a = "this is a valid string";
+    string b = "this is also a valid string\
+                because i can close here";
+    string c = "but this is not a valid string 
+                // since it doesn't close at the end of a line
+}

@@ -36,7 +36,7 @@ namespace kisyshot{
         /**
          * The symbol table which maps the relation ship between mangled name and its variable definition node
          */
-        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::VarDeclaration>> symbols;
+        std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::VarDefinition>> symbols;
         /**
          * The symbol table which maps the relation ship between name and its function node
          */
@@ -53,16 +53,16 @@ namespace kisyshot{
          * @param token
          * @return
          */
-        CodePosition locate(const ast::Token& token);
+        CodePosition locate(const ast::Token& token) const;
         /**
          * Locate the token defined by the index in the source code.
          * @param index
          * @return
          */
-        CodePosition locate(std::size_t index);
+        CodePosition locate(std::size_t index) const;
 
-        std::size_t firstOfLine(std::size_t line);
-        std::size_t lastOfLine(std::size_t line);
+        std::size_t firstOfLine(std::size_t line) const;
+        std::size_t lastOfLine(std::size_t line) const;
 
         const static std::size_t npos = SIZE_MAX;
 

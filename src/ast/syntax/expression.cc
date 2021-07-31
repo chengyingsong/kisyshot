@@ -39,16 +39,80 @@ namespace kisyshot::ast::syntax {
     }
 
     void BinaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        Var* src_1 = getVar(gen,left);
-        Var* src_2 = getVar(gen,right);
 
         //两个表达式类型的子类
+        //TODO: 支持逻辑表达式
         std::string opName = getTokenSpell(operatorType);
         if(opName == "="){
+            Var* src_1 = left->getVar(gen);
+            Var* src_2 = right->getVar(gen);
             //left是左值
-            //TODO： 检查左值是不是Global和右值是不是Global
-            gen.genAssign(src_2,src_1);
-        } else gen.genBinaryOp(opName, src_1, src_2,temp);
+            gen.genAssign(src_2,src_1); 
+        } else if(opName == "&&"){
+            // temp = src_1 && src_2
+            /*  src_1
+             * ifZ src_1 GOTO falseLabel
+             *  src_2
+             *  IfZ src_2 GOTO falseLabel
+             *  temp = 1
+             *  Goto endLabel
+             *  falseLabel:
+             *  temp = 0
+             *  endLabel:
+             * */
+            Var * t0 =  gen.getConstVar(0);
+            Var * t1 =  gen.getConstVar(1);
+            std::string  falseLabel = gen.newLabel();
+            std::string  endLabel = gen.newLabel();
+            Var* src_1 = left->getVar(gen);
+            gen.genIFZ(src_1,falseLabel);
+            Var* src_2 = right->getVar(gen);
+            gen.genIFZ(src_2,falseLabel);
+            gen.genAssign(t1,temp);
+            gen.genGOTO(endLabel);
+            gen.genLabel(falseLabel);
+            gen.genAssign(t0,temp);
+            gen.genLabel(endLabel);
+        } else if(opName == "||"){
+            /* temp = src_1 || src_2
+             * src_1
+             * ifZ src_1 GOTO next
+             * GOTO trueLabel
+             * next:
+             * src_2
+             * ifZ src_2 GOTO falseLabel
+             * trueLabel:
+             * temp = 1
+             * GOTO endLabel
+             * falseLabel:
+             * temp = 0
+             * endLabel
+             * */
+
+            Var * t0 =  gen.getConstVar(0);
+            Var * t1 =  gen.getConstVar(1);
+            std::string next = gen.newLabel();
+            std::string trueLabel = gen.newLabel();
+            std::string falseLabel = gen.newLabel();
+            std::string endLabel = gen.newLabel();
+            Var* src_1 = left->getVar(gen);
+            gen.genIFZ(src_1,next);
+            gen.genGOTO(trueLabel);
+            gen.genLabel(next);
+            Var* src_2 = right->getVar(gen);
+            gen.genIFZ(src_2,falseLabel);
+            gen.genLabel(trueLabel);
+            gen.genAssign(t1,temp);
+            gen.genGOTO(endLabel);
+            gen.genLabel(falseLabel);
+            gen.genAssign(t0,temp);
+            gen.genLabel(endLabel);
+        }
+        else{
+            Var* src_1 = left->getVar(gen);
+            Var* src_2 = right->getVar(gen);
+            gen.genBinaryOp(opName, src_1, src_2,temp);
+        }
     }
 
     void UnaryExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -87,7 +151,29 @@ namespace kisyshot::ast::syntax {
 
     void UnaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //单目运算符 -
-        //TODO: 支持单目运算符的中间代码生成
+        Var* t = right->getVar(gen);
+        //TODO: 支持！ 逻辑运算
+        if(operatorType == TokenType::op_exclaim){
+           /*ifZ t GOTO temp0
+            * temp = 0
+            * GOTO end
+            * temp0:
+            * temp = `
+            * end
+            * */
+            std::string label0 = gen.newLabel();
+            std::string endLabel = gen.newLabel();
+            gen.genIFZ(t,label0);
+            gen.genAssign(gen.getConstVar(0),temp);
+            gen.genGOTO(endLabel);
+            gen.genLabel(label0);
+            gen.genAssign(gen.getConstVar(1),temp);
+            gen.genLabel(endLabel);
+        }else{  //负号
+            Var* t0 = gen.getConstVar(0);
+            std::string opName = "-";
+            gen.genBinaryOp(opName,t0,t,temp);
+        }
 
     }
 
@@ -125,8 +211,9 @@ namespace kisyshot::ast::syntax {
 
     void IdentifierExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //单值表达式，首先查询变量表，然后返回绑定的变量
-        //if(!ifGlobal(name->toString()))
-        //gen.genAssign(gen.name2VarMap[name->toString()],temp);
+        Var* src_1  = temp;
+        Var* src_2 = gen.name2VarMap[name->mangledId]; //由重整名获取变量
+        gen.genAssign(src_2,src_1);
     }
 
     void Expression::writeCurrentInfo(std::ostream &s) {
@@ -142,16 +229,16 @@ namespace kisyshot::ast::syntax {
         }
     }
 
-    Var *Expression::getVar(compiler::CodeGenerator &gen, std::shared_ptr<Expression>  e) {
+    Var *Expression::getVar(compiler::CodeGenerator &gen) {
         Var* t;
-        if(e->getType() == SyntaxType::IdentifierExpression){
-            t = gen.name2VarMap[e->toString()];
+        if(getType() == SyntaxType::IdentifierExpression){
+            t = gen.name2VarMap[toString()];
         } else {
-            if(e->getType() == SyntaxType::NumericLiteralExpression) {
-                t = new Var(std::stoi(e->toString()));
+            if(getType() == SyntaxType::NumericLiteralExpression) {
+                t = gen.getConstVar(std::stoi(toString()));
             } else {
                 t = gen.newTempVar();
-                e->genCode(gen, t);
+                genCode(gen, t);
             }
         }
         return t;
@@ -294,8 +381,8 @@ namespace kisyshot::ast::syntax {
 
     void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         for(auto& argument: arguments) {
-            Var *t = getVar(gen,argument);
-            argument->genCode(gen, t);  //参数声明语句
+            Var *t = argument->getVar(gen);
+           // argument->genCode(gen, t);  //参数声明语句
             gen.genParam(t);
         }
         std::string funName = name->toString();
@@ -334,10 +421,46 @@ namespace kisyshot::ast::syntax {
         return (std::string) rawCode;
     }
 
-    void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        gen.genAssign((gen.getConstVar(std::stoi(toString()))),temp); 
+    }
+
+
+    void
+    StringLiteralExpression::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
+    }
+
+    void StringLiteralExpression::writeCurrentInfo(std::ostream &ostream) {
+        Expression::writeCurrentInfo(ostream);
+    }
+
+    SyntaxType StringLiteralExpression::getType() {
+        return SyntaxType::StringLiteralExpression;
+    }
+
+    std::size_t StringLiteralExpression::start() {
+        return tokenIndex;
+    }
+
+    std::size_t StringLiteralExpression::end() {
+        return tokenIndex;
+    }
+
+    bool StringLiteralExpression::hasChild() {
+        return false;
+    }
+
+    void StringLiteralExpression::analyseType() {
+
+    }
+
+    std::string StringLiteralExpression::toString() {
+        return (std::string) rawCode;
+    }
+
+    void StringLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
 
     void ArrayInitializeExpression::analyseType() {
-
     }
 
     std::string ArrayInitializeExpression::toString() {

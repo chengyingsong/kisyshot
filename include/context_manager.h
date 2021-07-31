@@ -54,6 +54,12 @@ namespace kisyshot {
         void parse(std::size_t index);
 
         /**
+         * Semantically analyse the syntax tree, do typeck && generates symbol table
+         * @param index
+         */
+        void check(std::size_t index);
+
+        /**
          * Diagnostic stream of the context manager, which provides diagnostic service for the compiler.
          */
         std::shared_ptr<diagnostic::DiagnosticStream> diagnosticStream;

@@ -35,8 +35,8 @@ namespace kisyshot::compiler {
 
 
     //Load指令
-    void CodeGenerator::genLoad(Var *src,Var *dst) {
-        Load *p = new Load(src, dst);
+    void CodeGenerator::genLoad(Var *src_1,Var* src_2,Var *dst) {
+        Load *p = new Load(src_1, src_2,dst);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -47,8 +47,8 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genStore(Var *src, Var *dst) {
-        auto p = new Store(src, dst);
+    void CodeGenerator::genStore(Var *src_1, Var* src_2,Var *dst) {
+        auto p = new Store(src_1,src_2,dst);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -95,8 +95,9 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genBeginFunc() {
+    void CodeGenerator::genBeginFunc(int stackSize) {
         auto p = new BeginFunc();
+        p->setFrameSize(stackSize);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -120,6 +121,14 @@ namespace kisyshot::compiler {
                 }
             }
         }
+    }
+
+    ast::Var *CodeGenerator::getConstVar(int value) {
+        if(const2Varmap.find(value) == const2Varmap.end()){
+            Var * t = new Var(value);
+            const2Varmap[value] = t;
+        }
+        return const2Varmap[value];
     }
 
 }

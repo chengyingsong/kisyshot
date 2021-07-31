@@ -18,6 +18,7 @@ namespace kisyshot::ast {
 
         //传入一个变量名建立一个Var对象，需要判断是否是全局变量
         Var(std::string variableName);
+
         //传入常量
         Var(int value);
 
@@ -108,7 +109,7 @@ namespace kisyshot::ast {
     class IfZ :Instruction {
     public:
         //如果conditon的值为0则跳转到label处
-        Var * condition;
+        Var * src_1;
         std::string trueLabel;
         IfZ(Var* condition,std::string &trueLabel);
         std::string toString() override;
@@ -116,10 +117,10 @@ namespace kisyshot::ast {
     };
 
     class Assign : Instruction {
-        //Assign是两个非全局变量之间的赋值
+        //Assign是两个变量之间的赋值
     public:
-        Var*  t1;
-        Var*  t2;
+        Var*  src_1;
+        Var*  src_2;
         Assign(Var* t1,Var *t2);
         std::string toString() override;
         InstructionType getType() override;
@@ -127,29 +128,31 @@ namespace kisyshot::ast {
 
 
     class Load : Instruction {
-        //Load是将全局变量的值赋给一个局部变量，需要断言src是全局变量，dst不是全局变量
+        //Load是把数组的值取出来
     public:
-        Var* src;
-        Var* dst;
-        Load(Var *src,Var* dst);
+        Var* src_1;  //数组基地址
+        Var* src_2;   //数组index
+        Var* dst;      //目的操作数
+        Load(Var *src_1,Var* src_2,Var* dst);
         std::string toString() override;
         InstructionType getType() override;
     };
 
 
     class Store : Instruction {
-        //Store是将局部变量的值赋给全局变量
+        //Store是把值存入数组中
     public:
-        Var* src;
-        Var* dst;
-        Store(Var *src,Var *dst);
+        Var* src_1;  //存入值
+        Var* src_2;   //数组基地址
+        Var* dst;    //数组index
+        Store(Var *src_1,Var* src_2,Var *dst);
         std::string toString() override;
         InstructionType getType() override;
     };
 
     class Param : Instruction {
     public:
-        Var *par;
+        Var *src_1;
         Param(Var* par);
         std::string toString() override;
         InstructionType getType() override;
@@ -159,7 +162,7 @@ namespace kisyshot::ast {
     public:
         std::string funLabel;
         int n; //参数个数
-        Var* result= nullptr;
+        Var* src_1;
         Call(std::string &funLabel,int n);
         Call(std::string &funLabel,int n,Var* result);
         std::string toString() override;
@@ -167,8 +170,8 @@ namespace kisyshot::ast {
     };
 
     class Return: Instruction {
-        Var *v;
     public:
+        Var *src_1;
         Return(Var * v);
         std::string toString() override;
         InstructionType getType() override;

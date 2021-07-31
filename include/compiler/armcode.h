@@ -2,6 +2,7 @@
 #define ARMCODE_H
 
 #include "../ast/cfg.h"
+#include "../ast/arms.h"
 
 // arm汇编代码生成类
 namespace kisyshot::compiler {
