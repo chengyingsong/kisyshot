@@ -230,16 +230,22 @@ namespace kisyshot::ast::syntax {
     }
 
     Var *Expression::getVar(compiler::CodeGenerator &gen) {
-        Var* t;
-        if(getType() == SyntaxType::IdentifierExpression){
-            t = gen.name2VarMap[((IdentifierExpression*)this)->name->mangledId];
-           // t = gen.name2VarMap[toString()];
+        Var *t;
+        if (getType() == SyntaxType::IdentifierExpression) {
+            t = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
+            // t = gen.name2VarMap[toString()];
         } else {
-            if(getType() == SyntaxType::NumericLiteralExpression) {
+            if (getType() == SyntaxType::NumericLiteralExpression) {
                 t = gen.getConstVar(std::stoi(toString()));
             } else {
-                t = gen.newTempVar();
-                genCode(gen, t);
+                if (getType() == SyntaxType::StringLiteralExpression) {
+                    t = new Var();
+                    t->type = VarType::StringVar;
+                    t->s =  toString();
+                } else {
+                    t = gen.newTempVar();
+                    genCode(gen, t);
+                }
             }
         }
         return t;
@@ -387,7 +393,10 @@ namespace kisyshot::ast::syntax {
             gen.genParam(t);
         }
         std::string funName = name->toString();
-        gen.genCall(funName,arguments.size(),temp);
+        if(temp!= nullptr)
+            gen.genCall(funName,arguments.size(),temp);
+        else
+            gen.genCallNoReturn(funName,arguments.size());
     }
 
     void

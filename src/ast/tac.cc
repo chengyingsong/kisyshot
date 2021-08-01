@@ -7,11 +7,11 @@ namespace kisyshot::ast {
     Var::Var(std::string variableName) : variableName(variableName) {
         //TODO: 根据传入的重整变量名判断全局变量，临时变量还是局部变量
         //如果重整名没有@就是全局变量,如果前面是_temp_就是临时变量
-        type = VarType::GlobalVar;
-
-        type = VarType::LocalVar;
-
-        type = VarType::TempVar;
+        if(variableName.find("@") != variableName.npos)
+            type = VarType::LocalVar;
+        else if(variableName.find("_temp_") != variableName.npos)
+            type = VarType::TempVar;
+        else type = VarType::GlobalVar;
     }
 
    //常量赋值
@@ -19,6 +19,7 @@ namespace kisyshot::ast {
         type = VarType::ConstVar;
     }
 
+    Var::Var() {}
 
     std::string Var::getName() {
         if (type == VarType::ConstVar)
@@ -34,7 +35,7 @@ namespace kisyshot::ast {
 
     //TODO: 把 = 号从二元式中分离出来
     Binary_op::Binary_op(OpCode c, Var *src_1, Var *src_2, Var *Dst) :
-            code(c),Instruction(src_1,src_2,Dst) {
+            Instruction(src_1,src_2,Dst),code(c) {
         numVars = 3;
         assert( src_1 != nullptr && src_2 != nullptr);
         assert(code >= 0 && code < NumOps);
@@ -79,7 +80,7 @@ namespace kisyshot::ast {
         return InstructionType::Label_;
     }
 
-    IfZ::IfZ(Var *condition, std::string &trueLabel) : trueLabel(trueLabel),Instruction(condition) {
+    IfZ::IfZ(Var *condition, std::string &trueLabel) : Instruction(condition),trueLabel(trueLabel) {
         numVars = 1;
         assert(condition != nullptr );
     }
@@ -142,13 +143,13 @@ namespace kisyshot::ast {
     Call::Call(std::string &funLabel, int n):funLabel(funLabel),n(n) {
         numVars = 0;
         //assert(funLabel != nullptr);
-        assert(n > 0);
+        assert(n >= 0);
     }
 
 
-    Call::Call(std::string &funLabel, int n, Var *result):funLabel(funLabel),n(n), Instruction(result) {
+    Call::Call(std::string &funLabel, int n, Var *result): Instruction(result),funLabel(funLabel),n(n) {
         numVars = 1;
-        assert(n > 0);
+        assert(n >= 0);
     }
     std::string Call::toString() {
         if(numVars == 1)
