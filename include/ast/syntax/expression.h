@@ -103,7 +103,7 @@ namespace kisyshot::ast::syntax{
         std::shared_ptr<Identifier> arrayName = nullptr;
         std::shared_ptr<Expression> indexedExpr = nullptr;
         std::shared_ptr<Expression> indexerExpr = nullptr;
-        std::size_t layer = 0;
+        std::size_t layer = 1;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };
