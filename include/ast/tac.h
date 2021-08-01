@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "token.h"
 
 
 namespace kisyshot::ast {
@@ -60,7 +61,8 @@ namespace kisyshot::ast {
         Call_,
         Return_,
         BeginFunc_,
-        EndFunc_
+        EndFunc_,
+        CMP_
     };
 
     class Instruction {
@@ -81,7 +83,17 @@ namespace kisyshot::ast {
         Instruction(Var* src_1,Var* src_2,Var* dst);
     };
 
+
     //统一把Dst放在最后。也就是左值一般是最后一个参数。
+
+    class CMP :Instruction {
+    public:
+        TokenType opType;
+        std::string label;
+        std::string toString() override;
+        InstructionType getType() override;
+        CMP(TokenType opType,Var* src_1,Var* src_2,std::string &label);
+    };
 
     class Binary_op : Instruction{
     public:

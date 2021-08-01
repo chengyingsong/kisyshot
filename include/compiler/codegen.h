@@ -48,6 +48,8 @@ namespace kisyshot::compiler {
 
         void genIFZ(ast::Var* condition,std::string &label);
 
+        void genCMP(ast::TokenType opType,ast::Var* src_1,ast::Var* src_2, std::string &label);
+
         void genGOTO(std::string &label);
 
         void genReturn(ast::Var* v);
