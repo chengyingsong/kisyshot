@@ -11,6 +11,9 @@ int main() {
        return x * x;
     }
 
+    void fun(){
+    }
+
     int main(){
         int x = 1,y = 3;
         int z = 0;
@@ -25,6 +28,8 @@ int main() {
         }
 
         z =  y + square(x);
+        fun();
+        put("string test");
         return 0;
     })";
     auto sm = std::make_shared<kisyshot::ContextManager>();

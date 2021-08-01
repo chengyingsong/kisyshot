@@ -7,7 +7,14 @@ using namespace kisyshot::compiler;
 
 namespace kisyshot::compiler {
 
-    CodeGenerator::CodeGenerator(){}
+
+    CodeGenerator::CodeGenerator() {}
+
+
+/*    CodeGenerator::CodeGenerator(const std::shared_ptr<Context> &context){
+        Symbol = context->symbols;
+        Function = context->functions;
+    }*/
 
     //返回一个不重复的标号
     std::string CodeGenerator::newLabel() {
@@ -124,11 +131,13 @@ namespace kisyshot::compiler {
     }
 
     ast::Var *CodeGenerator::getConstVar(int value) {
-        if(const2Varmap.find(value) == const2Varmap.end()){
+        if(const2VarMap.find(value) == const2VarMap.end()){
             Var * t = new Var(value);
-            const2Varmap[value] = t;
+            const2VarMap[value] = t;
         }
-        return const2Varmap[value];
+        return const2VarMap[value];
     }
+
+
 
 }

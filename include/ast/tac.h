@@ -4,17 +4,34 @@
 
 
 namespace kisyshot::ast {
+    enum VarType{
+        ConstVar,
+        GlobalVar,
+        LocalVar,
+        TempVar,
+        StringVar,
+    };
+
     class Var {
         //TODO: 完成四种类型的变量和offset设置
         /*
         Var是表示四元式里，操作数的数据结构。操作数有临时变量类型，全局变量类型和整型
-        全局变量是基址和地址偏移，临时变量是变量名和变量值，局部变量就是变量名不一样而已。
-         变量有重整名
+         变量有重整名,字符串是当作字符串常量处理。
+        关于全局变量和局部变量的问题，在Var中判断类型后，可以使用getname方法得到重整名
+         ，然后在context中map[key]得到符号表项，一般来说是VarDefination节点，其中有属性
+         offset和width，都是公开的。
+         例子：
+        if(v->type == VarType::LocalVar){
+            ctx->symbols[v->getName()]->offset  (建议可以在你的文件中写一个这个方法
+
+         }
         */
     public:
         std::string variableName;  //变量名，可以是变量名或者变量重整名
         int value;
-        int isWhat;
+        std::string  s;
+        VarType type;
+        bool isArray = false;  //如果是数组，在初始化类Var的时候设置isArray为true。
 
         //传入一个变量名建立一个Var对象，需要判断是否是全局变量
         Var(std::string variableName);
@@ -22,19 +39,9 @@ namespace kisyshot::ast {
         //传入常量
         Var(int value);
 
-        //获取全局变量或者局部变量的偏移
-        int getOffset();
 
-        int getBase();
+        Var();
 
-
-        bool isGlobal();
-
-        bool isConst();
-
-        bool isLocal();
-
-        bool isTemp();
         //常数返回数值转字符串，其他类型返回名字
         std::string getName();
     };
@@ -66,6 +73,10 @@ namespace kisyshot::ast {
         Var*  src_2;
         Var*  dst;
         int numVars;
+        Instruction();
+        Instruction(Var* src_1);
+        Instruction(Var* src_1,Var* src_2);
+        Instruction(Var* src_1,Var* src_2,Var* dst);
     };
 
     //统一把Dst放在最后。也就是左值一般是最后一个参数。
@@ -81,7 +92,7 @@ namespace kisyshot::ast {
         InstructionType getType() override;
 
         OpCode code;   //运算符号类型
-        Var *src_1,*src_2,*dst;
+        //Var *src_1,*src_2,*dst;
         //一个构造器
         Binary_op(OpCode c,Var *src_1,Var *src_2,Var *Dst);
     };
@@ -109,7 +120,6 @@ namespace kisyshot::ast {
     class IfZ :Instruction {
     public:
         //如果conditon的值为0则跳转到label处
-        Var * src_1;
         std::string trueLabel;
         IfZ(Var* condition,std::string &trueLabel);
         std::string toString() override;
@@ -119,8 +129,6 @@ namespace kisyshot::ast {
     class Assign : Instruction {
         //Assign是两个变量之间的赋值
     public:
-        Var*  src_1;
-        Var*  src_2;
         Assign(Var* t1,Var *t2);
         std::string toString() override;
         InstructionType getType() override;
@@ -130,9 +138,6 @@ namespace kisyshot::ast {
     class Load : Instruction {
         //Load是把数组的值取出来
     public:
-        Var* src_1;  //数组基地址
-        Var* src_2;   //数组index
-        Var* dst;      //目的操作数
         Load(Var *src_1,Var* src_2,Var* dst);
         std::string toString() override;
         InstructionType getType() override;
@@ -142,9 +147,6 @@ namespace kisyshot::ast {
     class Store : Instruction {
         //Store是把值存入数组中
     public:
-        Var* src_1;  //存入值
-        Var* src_2;   //数组基地址
-        Var* dst;    //数组index
         Store(Var *src_1,Var* src_2,Var *dst);
         std::string toString() override;
         InstructionType getType() override;
@@ -152,7 +154,6 @@ namespace kisyshot::ast {
 
     class Param : Instruction {
     public:
-        Var *src_1;
         Param(Var* par);
         std::string toString() override;
         InstructionType getType() override;
@@ -162,7 +163,6 @@ namespace kisyshot::ast {
     public:
         std::string funLabel;
         int n; //参数个数
-        Var* src_1;
         Call(std::string &funLabel,int n);
         Call(std::string &funLabel,int n,Var* result);
         std::string toString() override;
@@ -171,7 +171,6 @@ namespace kisyshot::ast {
 
     class Return: Instruction {
     public:
-        Var *src_1;
         Return(Var * v);
         std::string toString() override;
         InstructionType getType() override;

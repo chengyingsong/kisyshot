@@ -5,37 +5,29 @@ namespace kisyshot::ast {
 
     //检查变量是否全局变量,给iswhat赋值
     Var::Var(std::string variableName) : variableName(variableName) {
-        //TODO: 根据变量名判断是否是全局变量
-
-        isWhat  = 2;
+        //TODO: 根据传入的重整变量名判断全局变量，临时变量还是局部变量
+        //如果重整名没有@就是全局变量,如果前面是_temp_就是临时变量
+        if(variableName.find("@") != variableName.npos)
+            type = VarType::LocalVar;
+        else if(variableName.find("_temp_") != variableName.npos)
+            type = VarType::TempVar;
+        else type = VarType::GlobalVar;
     }
 
-//常量赋值
-    Var::Var(int value) : value(value), isWhat(3) {}
+   //常量赋值
+    Var::Var(int value) : value(value) {
+        type = VarType::ConstVar;
+    }
 
-
-    bool Var::isGlobal() { return isWhat == 1; }
-
-    bool Var::isTemp() { return isWhat == 2; }
-
-    bool Var::isConst() { return isWhat == 3; }
-
-    bool Var::isLocal() { return isWhat == 4; }
+    Var::Var() {}
 
     std::string Var::getName() {
-        if (isConst())
+        if (type == VarType::ConstVar)
             return std::to_string(value);
-        else return variableName;
-    }
-
-    int Var::getOffset() {
-        assert(isGlobal() || isLocal());
-        return 0;
-    }
-
-    int Var::getBase() {
-        assert(isGlobal() || isLocal());
-        return 0;
+        else if (type == VarType::StringVar)
+            return s;
+        else
+            return variableName;
     }
 
 
@@ -43,11 +35,11 @@ namespace kisyshot::ast {
 
     //TODO: 把 = 号从二元式中分离出来
     Binary_op::Binary_op(OpCode c, Var *src_1, Var *src_2, Var *Dst) :
-            code(c), src_1(src_1), src_2(src_2), dst(Dst) {
+            Instruction(src_1,src_2,Dst),code(c) {
         numVars = 3;
         assert( src_1 != nullptr && src_2 != nullptr);
         assert(code >= 0 && code < NumOps);
-        assert(!dst->isConst());
+        assert(Dst->type != VarType::ConstVar || Dst->type != VarType::ConstVar);
     }
 
     std::string Binary_op::toString() {
@@ -88,7 +80,7 @@ namespace kisyshot::ast {
         return InstructionType::Label_;
     }
 
-    IfZ::IfZ(Var *condition, std::string &trueLabel) : src_1(condition), trueLabel(trueLabel) {
+    IfZ::IfZ(Var *condition, std::string &trueLabel) : Instruction(condition),trueLabel(trueLabel) {
         numVars = 1;
         assert(condition != nullptr );
     }
@@ -99,11 +91,11 @@ namespace kisyshot::ast {
         return InstructionType::IfZ_;
     }
 
-    Assign::Assign(Var *t1, Var *t2) : src_1(t1), src_2(t2) {
+    Assign::Assign(Var *t1, Var *t2) : Instruction(t1,t2) {
         numVars = 2;
-        assert(src_1 != nullptr && src_2 != nullptr);
-        assert(!src_1->isGlobal());  //愿操作数不是全局变量
-        assert(!src_2->isGlobal());   //目的操作数是临时变量
+        assert(t1 != nullptr && t2 != nullptr);
+        assert(t1->type != VarType::GlobalVar);  //愿操作数不是全局变量
+        assert(t1->type != VarType::GlobalVar);   //目的操作数是临时变量
     }
 
     std::string Assign::toString() { return src_2->getName() + " = " + src_1->getName(); }
@@ -112,9 +104,11 @@ namespace kisyshot::ast {
         return InstructionType::Assign_;
     }
 
-    Load::Load(Var *src_1,Var* src_2,Var *dst) : src_1(src_1), src_2(src_2), dst(dst) {
+    Load::Load(Var *src_1,Var* src_2,Var *dst) : Instruction(src_1,src_2,dst) {
         numVars = 3;
-        assert(src_1 != nullptr && src_2 != nullptr);
+        assert(src_1 != nullptr && src_2 != nullptr && dst != nullptr);
+        assert(src_1->isArray);  //第一个是数组Base
+
     }
 
     std::string Load::toString() {return dst->getName() + " = " + src_1->getName()+"[" +src_2->getName() +"]";}
@@ -123,9 +117,10 @@ namespace kisyshot::ast {
         return InstructionType::Load_;
     }
 
-    Store::Store(Var *src_1,Var *src_2,Var *dst):src_1(src_1),src_2(src_2),dst(dst) {
+    Store::Store(Var *src_1,Var *src_2,Var *dst): Instruction(src_1,src_2,dst) {
         numVars = 3;
-        assert(src_1 != nullptr && src_2 != nullptr);
+        assert(src_1 != nullptr && src_2 != nullptr && dst != nullptr);
+        assert(src_2->isArray);
     }
 
     std::string Store::toString() {return src_2->getName() + "[" + dst->getName() + "]" + " = " + src_1->getName();}
@@ -134,7 +129,7 @@ namespace kisyshot::ast {
         return InstructionType::Store_;
     }
 
-    Param::Param(Var *par) :src_1(par){
+    Param::Param(Var *par) : Instruction(par){
         numVars = 1;
         assert(par != nullptr);
     }
@@ -148,13 +143,13 @@ namespace kisyshot::ast {
     Call::Call(std::string &funLabel, int n):funLabel(funLabel),n(n) {
         numVars = 0;
         //assert(funLabel != nullptr);
-        assert(n > 0);
+        assert(n >= 0);
     }
 
 
-    Call::Call(std::string &funLabel, int n, Var *result):funLabel(funLabel),n(n),src_1(result) {
+    Call::Call(std::string &funLabel, int n, Var *result): Instruction(result),funLabel(funLabel),n(n) {
         numVars = 1;
-        assert(n > 0);
+        assert(n >= 0);
     }
     std::string Call::toString() {
         if(numVars == 1)
@@ -167,9 +162,9 @@ namespace kisyshot::ast {
         return InstructionType::Call_;
     }
 
-    Return::Return(Var *v) :src_1(v){
+    Return::Return(Var *v): Instruction(v) {
         numVars = 1;
-        assert(src_1 != nullptr);
+        assert(v != nullptr);
     }
 
     std::string Return::toString() {return "Return "+ src_1->getName();}
@@ -195,5 +190,14 @@ namespace kisyshot::ast {
     InstructionType EndFunc::getType() {
         return InstructionType::EndFunc_;
     }
+
+    Instruction::Instruction() {}
+
+    Instruction::Instruction(Var *src_1, Var *src_2):src_1(src_1),src_2(src_2) {}
+
+    Instruction::Instruction(Var *src_1, Var *src_2, Var *dst):src_1(src_1),src_2(src_2),dst(dst) {}
+
+    Instruction::Instruction(Var* src_1):src_1(src_1) {}
+
 
 }
