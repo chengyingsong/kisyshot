@@ -24,6 +24,7 @@ namespace kisyshot::ast::syntax {
         std::shared_ptr<Identifier> varName = nullptr;
         std::shared_ptr<Expression> initialValue = nullptr;
         std::vector<std::shared_ptr<Expression>> array;   //这里保存维度信息
+        std::vector<std::shared_ptr<Expression>> srcArray;
         std::size_t equalTokenIndex = invalidTokenIndex;
         std::size_t offset;
         std::size_t width;
