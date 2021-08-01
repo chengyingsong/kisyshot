@@ -5,7 +5,7 @@ namespace kisyshot::ast {
 
     //检查变量是否全局变量,给iswhat赋值
     Var::Var(std::string variableName) : variableName(variableName) {
-        //TODO: 根据传入的重整变量名判断是否是全局变量
+        //TODO: 根据传入的重整变量名判断全局变量，临时变量还是局部变量
         //如果重整名没有@就是全局变量,如果前面是_temp_就是临时变量
         type = VarType::GlobalVar;
 
@@ -105,7 +105,9 @@ namespace kisyshot::ast {
 
     Load::Load(Var *src_1,Var* src_2,Var *dst) : Instruction(src_1,src_2,dst) {
         numVars = 3;
-        assert(src_1 != nullptr && src_2 != nullptr);
+        assert(src_1 != nullptr && src_2 != nullptr && dst != nullptr);
+        assert(src_1->isArray);  //第一个是数组Base
+
     }
 
     std::string Load::toString() {return dst->getName() + " = " + src_1->getName()+"[" +src_2->getName() +"]";}
@@ -116,7 +118,8 @@ namespace kisyshot::ast {
 
     Store::Store(Var *src_1,Var *src_2,Var *dst): Instruction(src_1,src_2,dst) {
         numVars = 3;
-        assert(src_1 != nullptr && src_2 != nullptr);
+        assert(src_1 != nullptr && src_2 != nullptr && dst != nullptr);
+        assert(src_2->isArray);
     }
 
     std::string Store::toString() {return src_2->getName() + "[" + dst->getName() + "]" + " = " + src_1->getName();}
