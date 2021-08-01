@@ -8,8 +8,12 @@ ArmCodeGenerator::ArmCodeGenerator(std::list<Instruction *> &tacCode, const std:
 }
 
 void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
-    if (tac->getType() == InstructionType::Assign_)
+    if (tac->getType() == InstructionType::Assign_) {
+        std::cout << tac->src_1->getName() << " " << tac->src_1->type << std::endl;
+        std::cout << tac->src_2->getName() << " " << tac->src_2->type << std::endl;
         arms.generateAssign(tac->src_2, tac->src_1);
+    }
+
     if (tac->getType() == InstructionType::Binary_op_)
         arms.generateBinaryOP(((Binary_op *)tac)->code, tac->dst, tac->src_1, tac->src_2);
     if (tac->getType() == InstructionType::Call_)
@@ -29,9 +33,9 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
     if (tac->getType() == InstructionType::BeginFunc_)
         arms.generateBeginFunc(curFucLabel, frameSize);
     if (tac->getType() == InstructionType::Return_)
-        printf("Return\n");
+        arms.generateReturn(tac->src_1);
     if (tac->getType() == InstructionType::EndFunc_)
-        printf("EndFunc\n");
+        arms.generateEndFunc(curFucLabel, frameSize);
 }
 
 void ArmCodeGenerator::generateArmCode() {

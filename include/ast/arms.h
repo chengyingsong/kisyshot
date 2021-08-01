@@ -75,7 +75,7 @@ namespace kisyshot::ast {
         void generateIfZ(Var * test, std::string label);
         void generateBeginFunc(std::string curFunc, int frameSize);
         void generateEndFunc(std::string curFunc, int frameSize);
-        void generateReturn();
+        void generateReturn(Var * result);
         void generateParam(Var * arg, int num);
         void generateCall(int numVars, std::string label, Var * result);
         void generateHeaders();

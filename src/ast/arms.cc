@@ -10,7 +10,7 @@ bool Arms::varsAreSame(Var * var1, Var * var2) {
 }
 
 std::string Arms::getBase(Var * var) {
-    return 0;
+    return (std::string)"temp";
 }
 
 int Arms::getOffset(Var * var) {
@@ -310,7 +310,8 @@ void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * 
 }
 
 void Arms::generateLabel(std::string label) {
-    cleanRegForBranch();
+    if (label[0] != '.')
+        cleanRegForBranch();
     printf("%s:\n", label.c_str());
 }
 
@@ -335,13 +336,15 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
     printf("\tadd sp, sp, #%d\n", frameSize);
     printf("\tmov sp, r7\n");
-    printf("\t pop {r7, lr}\n");
+    printf("\tpop {r7, lr}\n");
     printf("\tbx lr\n");
     printf("\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
 }
 
-void Arms::generateReturn() {
-    printf("\tThere is return\n");
+void Arms::generateReturn(Var * result) {
+    rs = (Register)pickRegForVar(result);
+    fillReg(result, rs);
+    printf("\tmov r0, %s\n", regs[rs].name.c_str());
 }
 
 void Arms::generateParam(Var * arg, int num) {
