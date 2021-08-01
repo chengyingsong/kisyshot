@@ -8,12 +8,8 @@ ArmCodeGenerator::ArmCodeGenerator(std::list<Instruction *> &tacCode, const std:
 }
 
 void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
-    if (tac->getType() == InstructionType::Assign_) {
-        std::cout << tac->src_1->getName() << " " << tac->src_1->type << std::endl;
-        std::cout << tac->src_2->getName() << " " << tac->src_2->type << std::endl;
+    if (tac->getType() == InstructionType::Assign_)
         arms.generateAssign(tac->src_2, tac->src_1);
-    }
-
     if (tac->getType() == InstructionType::Binary_op_)
         arms.generateBinaryOP(((Binary_op *)tac)->code, tac->dst, tac->src_1, tac->src_2);
     if (tac->getType() == InstructionType::Call_)
@@ -72,7 +68,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->src_1);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->src_1->getName()).find("_temp_") != (*cfgIterator)->src_1->getName().npos) {
+                if (((*cfgIterator)->src_1->getName().find("_temp_") != (*cfgIterator)->src_1->getName().npos)) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->src_1, (*cfgIterator)));
                 } 
             } 
@@ -80,7 +76,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->src_2);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->src_2->getName()).find("_temp_") != (*cfgIterator)->src_1->getName().npos) {
+                if (((*cfgIterator)->src_2->getName().find("_temp_") != (*cfgIterator)->src_2->getName().npos)) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->src_2, (*cfgIterator)));
                 }
             }
@@ -88,7 +84,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->dst);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->dst->getName()).find("_temp_") != (*cfgIterator)->src_1->getName().npos) {
+                if (((*cfgIterator)->dst->getName().find("_temp_") != (*cfgIterator)->dst->getName().npos)) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->dst, (*cfgIterator)));
                 }
             } 
@@ -117,6 +113,10 @@ void ArmCodeGenerator::generateArmCode() {
             else
                 liveListIterator++;
             for (p = beginBlock; p != endBlock; p++) {
+                if ((*p)->getType() == InstructionType::Param_)
+                    paramNum++;
+                else
+                    paramNum = 0;
                 generateSpecial(*p, arms);
                 for (varListIterator = (*liveListIterator).begin(); varListIterator != (*liveListIterator).end(); varListIterator++)
                     if ((*p) == (*varListIterator).second)
@@ -126,10 +126,6 @@ void ArmCodeGenerator::generateArmCode() {
         }
         if ((*p)->getType() == InstructionType::Label_)
             curFucLabel = ((Label *)(*p))->label;
-        if ((*p)->getType() == InstructionType::Param_)
-            paramNum++;
-        else
-            paramNum = 0;
         generateSpecial(*p, arms);
         p++;
     }
