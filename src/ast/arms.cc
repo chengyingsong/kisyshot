@@ -138,7 +138,7 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->isLocal()) {
         if ((int)preReg == -1)
-            printf("\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), src->getOffset());
+            printf("\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), context->symbols[src->getName()]->offset);
         else if (reg != preReg)
             printf("\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
