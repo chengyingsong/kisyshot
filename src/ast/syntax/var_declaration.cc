@@ -147,9 +147,9 @@ namespace kisyshot::ast::syntax {
             if(initialValue->getType() ==SyntaxType::ArrayInitializeExpression) {
                 //数组初始化,先设置数组属性
                 src_1->isArray = true;
-                initialValue->genCode(gen,src_1); //这里传入的是base
+                initialValue->genCode(gen,src_1);
             }else{
-                //initialValue有可能是一个数字，或者数组引用
+                //initialValue有可能是一个数字
                 Var * src_2 = initialValue->getVar(gen);
                 gen.genAssign(src_2,src_1);
             }
