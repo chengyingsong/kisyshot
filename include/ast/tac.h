@@ -44,6 +44,8 @@ namespace kisyshot::ast {
 
         //常数返回数值转字符串，其他类型返回名字
         std::string getName();
+
+        std::string getBase();
     };
 
     enum InstructionType{

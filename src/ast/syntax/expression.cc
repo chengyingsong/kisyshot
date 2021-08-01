@@ -344,8 +344,7 @@ namespace kisyshot::ast::syntax {
         //递归计算 a[i][j] = a[i] + j = a + i* dim1 + j
         //TODO: 获取数组名和数组每一维的维度信息，计算offset，
         //Var * offset = indexerExpr->getVar(gen);  //计算当前 offset
-
-       // gen.genLoad(base,offset,temp);
+        // gen.genLoad(base,offset,temp);
     }
 
     void CallExpression::add(const std::shared_ptr<Expression> &child) {

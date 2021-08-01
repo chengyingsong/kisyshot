@@ -30,6 +30,15 @@ namespace kisyshot::ast {
             return variableName;
     }
 
+    std::string Var::getBase() {
+        assert(type = VarType::LocalVar);
+        size_t index = -1;
+        while(variableName.find("@",index+1) != variableName.npos){
+            index = variableName.find("@",index+1);
+        }
+        return variableName.substr(index+1,variableName.npos-index);
+    }
+
 
     std::string Binary_op::opName[Binary_op::NumOps] = {"+", "-", "*", "/", "%", "<", ">", "==", "!=", ">=" "<="};
 
