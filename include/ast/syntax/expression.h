@@ -100,8 +100,8 @@ namespace kisyshot::ast::syntax{
         std::string toString() override ;
        //TODO：支持序号表达式，递归计算Offset
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
-        std::shared_ptr<Expression> indexedExpr = nullptr;
-        std::shared_ptr<Expression> indexerExpr = nullptr;
+        std::shared_ptr<Expression> indexedExpr = nullptr;  //被索引的base
+        std::shared_ptr<Expression> indexerExpr = nullptr;  //offset
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };
@@ -158,7 +158,6 @@ namespace kisyshot::ast::syntax{
     };
 
 
-    //TODO：转化成一系列的Store指令
     class ArrayInitializeExpression: public Expression, public ISyntaxList<Expression>{
     public:
         void analyseType() override;
@@ -170,7 +169,6 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         SyntaxType getType() override;
         bool hasChild() override;
-        //TODO： 支持数组初始化
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t lBraceIndex, rBraceIndex;
         std::vector<std::shared_ptr<Expression>> array;
