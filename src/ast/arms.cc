@@ -166,6 +166,7 @@ void Arms::spillReg(Var * dst, Register reg) {
         printf("\tstr %s, %s\n", regs[reg].name.c_str(), dst->getName().c_str());
     if (dst->type == VarType::LocalVar)
         printf("\tstr %s, [r7, #%d]\n", regs[reg].name.c_str(), getOffset(dst));
+    printf("\t# %s %s\n", regs[reg].name.c_str(), dst->getName().c_str());
 }
 
 Arms::Arms(const std::shared_ptr<Context> &context) {
@@ -251,11 +252,10 @@ void Arms::generateAssign(Var * dst, Var * src) {
 }
 
 void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
-    int off = stoi(offset->getName()) * 4;
     if (src->type == VarType::GlobalVar) {
         rd = (Register)pickRegForVar(dst);
         regs[rd].mutexLock = true;
-        printf("\tldr %s, [%s, #%d]\n", regs[rd].name.c_str(), src->getName().c_str(), off);
+        printf("\tldr %s, [%s, #%s]\n", regs[rd].name.c_str(), src->getName().c_str(), offset->getName().c_str());
         regDescriptorInsert(dst, rd);
         regs[rd].mutexLock = false;
         if (regs[rd].canDiscard)
@@ -269,7 +269,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
     regDescriptorInsert(dst, rd);
-    printf("\tldr %s, [%s, #%d]\n", regs[rd].name.c_str(), regs[rs].name.c_str(), off);
+    printf("\tldr %s, [%s, #%s]\n", regs[rd].name.c_str(), regs[rs].name.c_str(), offset->getName().c_str());
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
     if (regs[rs].canDiscard)
@@ -280,13 +280,12 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
 }
 
 void Arms::generateStore(Var * dst, Var * offset, Var * src) {
-    int off = stoi(offset->getName()) * 4;
     if (dst->type == VarType::GlobalVar) {
         rs = (Register)pickRegForVar(src);
         regs[rs].mutexLock = true;
         fillReg(src, rs);
         regDescriptorInsert(src, rs);
-        printf("\tstr %s, [%s, #%d]\n", regs[rs].name.c_str(), dst->getName().c_str(), off);
+        printf("\tstr %s, [%s, #%s]\n", regs[rs].name.c_str(), dst->getName().c_str(), offset->getName().c_str());
         regs[rs].mutexLock = false;
         if (regs[rs].canDiscard)
             discardVarInReg(src, rs);
@@ -300,7 +299,7 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     regs[rd].mutexLock = true;
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
-    printf("\tstr %s, [%s, #%d]\n", regs[rs].name.c_str(), regs[rd].name.c_str(), off);
+    printf("\tstr %s, [%s, #%s]\n", regs[rs].name.c_str(), regs[rd].name.c_str(), offset->getName().c_str());
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
     if (regs[rs].canDiscard)
@@ -356,8 +355,7 @@ void Arms::generateIfZ(Var * test, std::string label) {
 void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     printf("\tpush {r7, lr}\n");
     printf("\tsub sp, sp, #%d\n", frameSize);
-//    int parNum = ctx->functions[curFunc]->params.size();
-    int parNum = 4;
+    int parNum = ctx->functions[curFunc.substr(1)]->params.size();
     for (int i = 0; i < parNum; i++)
         printf("\tstr r%d, [r7, #%d]\n", i, i * 4);
 }
