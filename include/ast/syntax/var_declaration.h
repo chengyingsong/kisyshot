@@ -26,6 +26,7 @@ namespace kisyshot::ast::syntax {
         std::vector<std::shared_ptr<Expression>> array;
         std::size_t equalTokenIndex = invalidTokenIndex;
         std::size_t offset;
+        std::size_t width;
     };
     class VarDeclaration:public Statement, public ISyntaxList<VarDefinition>{
 

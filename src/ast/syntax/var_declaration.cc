@@ -69,15 +69,18 @@ namespace kisyshot::ast::syntax {
                 syntaxWalker(initialValue, true);
             }
         } else {
-            syntaxWalker(varName, true);
-            bool init = initialValue != nullptr;
-            for (size_t i = 0; i < array.size(); ++i) {
-                if (array[i] != nullptr) {
-                    syntaxWalker(array[i], init & (i + 1 == array.size()));
+            std::vector<std::shared_ptr<SyntaxNode>> nodes;
+            for (auto & i : array) {
+                if (i != nullptr) {
+                    nodes.push_back(i);
                 }
             }
-            if (init) {
-                syntaxWalker(initialValue, true);
+            if (initialValue != nullptr)
+                nodes.push_back(initialValue);
+
+            syntaxWalker(varName, nodes.empty());
+            for (auto & n:nodes) {
+                syntaxWalker(n, n == nodes.back());
             }
         }
     }

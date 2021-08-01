@@ -188,7 +188,7 @@ namespace kisyshot::compiler {
     void
     Sema::newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def) {
         if (_variables.count(def->varName->identifier) == 1 &&
-            _variables[def->varName->identifier].size() == _layer) {
+            _variables[def->varName->identifier].size() == _layerNames.size()) {
             // TODO error
             return;
         }
