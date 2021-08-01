@@ -8,6 +8,10 @@
 namespace kisyshot::compiler {
     class ArmCodeGenerator {
     private:
+        std::string curFucLabel;
+        int frameSize;
+        int paramNum;
+        std::shared_ptr<Context> ctx;
         // 三地址码指令序列
         std::list<Instruction *> code;
         // 控制流图列表
@@ -17,7 +21,8 @@ namespace kisyshot::compiler {
         std::list<std::map<Var *, Instruction *> > liveList;
         std::list<std::map<Var *, Instruction *> >::iterator liveListIterator;
     public:
-        ArmCodeGenerator(std::list<Instruction *> &tacCode);
+        ArmCodeGenerator(std::list<Instruction *> &tacCode, const std::shared_ptr<Context> &context);
+        void generateSpecial(Instruction * tac, Arms &arms);
         void generateArmCode();
     };
 }

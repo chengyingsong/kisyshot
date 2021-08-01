@@ -3,6 +3,7 @@
 
 #include "tac.h"
 #include "cfg.h"
+#include "../context.h"
 
 namespace kisyshot::ast {
     class Arms {
@@ -23,7 +24,13 @@ namespace kisyshot::ast {
         Register rs, rt, rd;
         // 将寄存器映射至变量
         std::map<Register, Var *> regDescriptor;
+        // 符号表
+        std::shared_ptr<Context> ctx;
 
+        // 获得基址
+        std::string getBase(Var * var);
+        // 获得偏移值
+        int getOffset(Var * var);
         // 比较两变量是否相同
         bool varsAreSame(Var * var1, Var * var2);
         // 找到存放var的寄存器
@@ -56,22 +63,23 @@ namespace kisyshot::ast {
         void spillReg(Var * dst, Register reg);
 
     public:
-        Arms();
+        Arms(const std::shared_ptr<Context> &context);
         void generateDiscardVar(Var * var);
         void generateAssignConst(Var * dst, Var * src);
         void generateAssign(Var * dst, Var * src);
-        void generateLoad(Var * dst, Var * src, int offset);
-        void generateStore(Var * dst, int offset, Var * src);
+        void generateLoad(Var * dst, Var * src, Var * offset);
+        void generateStore(Var * dst, Var * offset, Var * src);
         void generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * src_2);
         void generateLabel(std::string label);
         void generateGOTO(std::string label);
         void generateIfZ(Var * test, std::string label);
-        void generateBeginFunc();
-        void generateEndFunc();
+        void generateBeginFunc(std::string curFunc, int frameSize);
+        void generateEndFunc(std::string curFunc, int frameSize);
         void generateReturn();
         void generateParam(Var * arg, int num);
         void generateCall(int numVars, std::string label, Var * result);
         void generateHeaders();
+        void generateGlobal();
     };
 }
 

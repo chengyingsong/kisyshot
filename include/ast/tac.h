@@ -175,8 +175,8 @@ namespace kisyshot::ast {
     };
 
     class BeginFunc : Instruction {
-        int frameSize;
     public:
+        int frameSize;
         BeginFunc();
         std::string toString() override;
         InstructionType getType() override;

@@ -42,7 +42,7 @@ int main() {
     std::cout << *(sm->diagnosticStream);
     ctx->syntaxTree->genCode(gen, nullptr);
 
-    kisyshot::compiler::ArmCodeGenerator armgen(gen.code);
+    kisyshot::compiler::ArmCodeGenerator armgen(gen.code, ctx);
     armgen.generateArmCode();
 
     return 0;
