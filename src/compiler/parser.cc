@@ -269,8 +269,15 @@ namespace kisyshot::compiler {
                     auto newEndTokens = endTokens;
                     newEndTokens.insert(TokenType::r_square);
                     auto index = parseExpression(newEndTokens);
+                    auto indexed = std::make_shared<IndexExpression>();
+                    if (left->getType() == ast::syntax::SyntaxType::IndexExpression){
+                        auto indexExpr = std::dynamic_pointer_cast<ast::syntax::IndexExpression>(left);
+                        indexed->arrayName = indexExpr->arrayName;
+                        indexed->layer = indexExpr->layer + 1;
+                    } else {
+                        indexed->arrayName = std::dynamic_pointer_cast<ast::syntax::IdentifierExpression>(left)->name;
+                    }
                     if (current() == TokenType::r_square) {
-                        auto indexed = std::make_shared<IndexExpression>();
                         indexed->lSquareIndex = lSquare;
                         indexed->rSquareIndex = _current;
                         indexed->indexedExpr = left;
@@ -283,7 +290,6 @@ namespace kisyshot::compiler {
                         }
                         step();
                     } else {
-                        auto indexed = std::make_shared<IndexExpression>();
                         indexed->lSquareIndex = lSquare;
                         indexed->indexedExpr = left;
                         indexed->indexerExpr = index;

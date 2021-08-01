@@ -98,10 +98,12 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         void analyseType() override ;
         std::string toString() override ;
-       //TODO：支持序号表达式，递归计算Offset
+        //TODO：支持序号表达式，递归计算Offset
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
-        std::shared_ptr<Expression> indexedExpr = nullptr;  //被索引的base
-        std::shared_ptr<Expression> indexerExpr = nullptr;  //offset
+        std::shared_ptr<Identifier> arrayName = nullptr;
+        std::shared_ptr<Expression> indexedExpr = nullptr;
+        std::shared_ptr<Expression> indexerExpr = nullptr;
+        std::size_t layer = 0;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };
