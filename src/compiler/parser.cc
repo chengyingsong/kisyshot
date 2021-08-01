@@ -273,7 +273,6 @@ namespace kisyshot::compiler {
                     if (left->getType() == ast::syntax::SyntaxType::IndexExpression){
                         auto indexExpr = std::dynamic_pointer_cast<ast::syntax::IndexExpression>(left);
                         indexed->arrayName = indexExpr->arrayName;
-                        indexed->layer = indexExpr->layer + 1;
                     } else {
                         indexed->arrayName = std::dynamic_pointer_cast<ast::syntax::IdentifierExpression>(left)->name;
                     }
