@@ -48,16 +48,9 @@ namespace kisyshot::compiler {
         for (auto& [_, func] : _context->functions) {
             // push function layer name
             _layerNames.push_back(func->name->identifier);
-            auto& params = func->params;
-            for (size_t i = 0; i < params.size(); i++) {
-                if (i < 4) {
-                    // reserve 4 param for register-based parameters.
-                    params[i]->offset = 0;
-                } else {
-                    params[i]->offset = func->stackSize;
-                    func->stackSize += 4;
-                }
-                newVariable(params[i]);
+            for (auto& param: func->params) {
+                param->offset = func->stackSize;
+                func->stackSize += 4;
             }
             _layerNames.pop_back();
             _blockName = func->name->identifier;
@@ -139,14 +132,16 @@ namespace kisyshot::compiler {
                     newVariable(def);
                     if (def->initialValue != nullptr) {
                         traverseExpression(def->initialValue);
+                    }
 
-                        def->offset = _currFunc->stackSize;
-                        if (!def->array.empty()) {
+                    def->offset = _currFunc->stackSize;
+                    if (!def->array.empty()) {
+                        if (def->initialValue != nullptr) {
                             flattenInit(def, def->initialValue, 1);
-                            _currFunc->stackSize += def->srcArray.size() * 4;
-                        } else {
-                            _currFunc->stackSize += 4;
                         }
+                        _currFunc->stackSize += def->srcArray.size() * 4;
+                    } else {
+                        _currFunc->stackSize += 4;
                     }
                 }
                 break;
