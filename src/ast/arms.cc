@@ -166,7 +166,6 @@ void Arms::spillReg(Var * dst, Register reg) {
         printf("\tstr %s, %s\n", regs[reg].name.c_str(), dst->getName().c_str());
     if (dst->type == VarType::LocalVar)
         printf("\tstr %s, [r7, #%d]\n", regs[reg].name.c_str(), getOffset(dst));
-    printf("\t# %s %s\n", regs[reg].name.c_str(), dst->getName().c_str());
 }
 
 Arms::Arms(const std::shared_ptr<Context> &context) {
