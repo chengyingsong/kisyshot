@@ -10,7 +10,7 @@
 using namespace kisyshot::ast;
 
 int main() {
-//TODO:  数组还有字符串
+//TODO:  数组还有字符串，变量名有下划线开头的，把temp改成@temp。
     std::string_view testCode = R"(int square(int x){
        return x * x;
     }
@@ -19,6 +19,7 @@ int main() {
     }
 
     int main(){
+        int  a[2][3] = {1,2,3,4,5,6};
         int x = 1,y = 3;
         int z = 0;
         if(1) {

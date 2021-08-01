@@ -69,15 +69,18 @@ namespace kisyshot::ast::syntax {
                 syntaxWalker(initialValue, true);
             }
         } else {
-            syntaxWalker(varName, true);
-            bool init = initialValue != nullptr;
-            for (size_t i = 0; i < array.size(); ++i) {
-                if (array[i] != nullptr) {
-                    syntaxWalker(array[i], init & (i + 1 == array.size()));
+            std::vector<std::shared_ptr<SyntaxNode>> nodes;
+            for (auto & i : array) {
+                if (i != nullptr) {
+                    nodes.push_back(i);
                 }
             }
-            if (init) {
-                syntaxWalker(initialValue, true);
+            if (initialValue != nullptr)
+                nodes.push_back(initialValue);
+
+            syntaxWalker(varName, nodes.empty());
+            for (auto & n:nodes) {
+                syntaxWalker(n, n == nodes.back());
             }
         }
     }
@@ -138,13 +141,19 @@ namespace kisyshot::ast::syntax {
 
     void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "defination of " << varName->toString() << std::endl;
-        Var* src_1 = new  Var(varName->toString());
+        Var* src_1 = new  Var(varName->mangledId);
         gen.name2VarMap[varName->mangledId] = src_1;  //把名字和Var绑定
-        gen.name2VarMap[varName->toString()] = src_1;
-        if(initialValue != nullptr){
-            //initialValue有可能是一个数字
-            Var * src_2 = initialValue->getVar(gen);
-           gen.genAssign(src_2,src_1);
+        if(initialValue != nullptr){  //代表有初始化语句
+            if(initialValue->getType() ==SyntaxType::ArrayInitializeExpression) {
+                //数组初始化,先设置数组属性
+                src_1->isArray = true;
+                initialValue->genCode(gen,src_1); //这里传入的是base
+            }else{
+                //initialValue有可能是一个数字，或者数组引用
+                Var * src_2 = initialValue->getVar(gen);
+                gen.genAssign(src_2,src_1);
+            }
+
         }
     }
 }

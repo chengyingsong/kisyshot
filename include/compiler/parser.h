@@ -63,6 +63,8 @@ namespace kisyshot::compiler {
          */
         std::shared_ptr<ast::syntax::VarDeclaration> parseVariableDeclaration();
 
+        std::shared_ptr<ast::syntax::VarDefinition> parseVariableDefinition();
+
         /**
          * Parse a block statement starts from current position
          * @return block statement parsed

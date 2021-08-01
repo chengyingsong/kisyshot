@@ -230,23 +230,32 @@ namespace kisyshot::ast::syntax {
     }
 
     Var *Expression::getVar(compiler::CodeGenerator &gen) {
-        Var *t;
-        if (getType() == SyntaxType::IdentifierExpression) {
-            t = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
-            // t = gen.name2VarMap[toString()];
-        } else {
-            if (getType() == SyntaxType::NumericLiteralExpression) {
+        Var *t = nullptr;
+        switch(getType()){
+            case SyntaxType::IdentifierExpression :
+                t = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
+                break;
+            case SyntaxType::NumericLiteralExpression:
                 t = gen.getConstVar(std::stoi(toString()));
-            } else {
-                if (getType() == SyntaxType::StringLiteralExpression) {
-                    t = new Var();
-                    t->type = VarType::StringVar;
-                    t->s =  toString();
-                } else {
-                    t = gen.newTempVar();
-                    genCode(gen, t);
-                }
+                break;
+            case SyntaxType::StringLiteralExpression: {
+                t = new Var();
+                t->type = VarType::StringVar;
+                t->s = toString();
             }
+                break;
+            case SyntaxType::IndexExpression:{
+                //TODO:数组引用的最外层,base是Index节点的数组名,在indexExpression中计算offset
+                Var* t = gen.newTempVar();
+                Var* base = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
+                Var* offset = gen.newTempVar();  //计算offset
+                genCode(gen, offset);
+                gen.genLoad(base,offset,t);
+            }
+                break;
+            default :
+                t = gen.newTempVar();
+                genCode(gen, t);
         }
         return t;
     }
@@ -331,7 +340,13 @@ namespace kisyshot::ast::syntax {
         return indexedExpr->toString() + "[" + indexerExpr->toString() + "]";
     }
 
-    void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //递归计算 a[i][j] = a[i] + j = a + i* dim1 + j
+        //TODO: 获取数组名和数组每一维的维度信息，计算offset，
+        //Var * offset = indexerExpr->getVar(gen);  //计算当前 offset
+
+       // gen.genLoad(base,offset,temp);
+    }
 
     void CallExpression::add(const std::shared_ptr<Expression> &child) {
         arguments.push_back(child);
@@ -519,5 +534,13 @@ namespace kisyshot::ast::syntax {
         array.push_back(child);
     }
 
-    void ArrayInitializeExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void ArrayInitializeExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //转换成一系列的Store指令，temp就是数组名
+        for(size_t i=0;i<array.size();i++){
+            //temp[i] = t;
+            Var* t = array[i]->getVar(gen);
+            Var* offset = gen.getConstVar(i);
+            gen.genStore(t,temp,offset);
+        }
+    }
 }

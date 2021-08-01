@@ -103,15 +103,9 @@ namespace kisyshot::compiler {
         function->lParenIndex = _current;
         step();
         while (current() == ast::TokenType::identifier) {
-            auto para = std::make_shared<VarDefinition>();
-            para->type = parseType();
-            para->varName = parseIdentifier();
-            while (current() == ast::TokenType::l_square) {
-                while (current() != ast::TokenType::r_square && current() != ast::TokenType::r_paren)
-                    step();
-                step();
-            }
-            para->array.push_back(nullptr);
+            auto type = parseType();
+            auto para = parseVariableDefinition();
+            para->type = type;
             function->params.push_back(para);
             if (current() == ast::TokenType::comma)
                 step();
@@ -275,8 +269,15 @@ namespace kisyshot::compiler {
                     auto newEndTokens = endTokens;
                     newEndTokens.insert(TokenType::r_square);
                     auto index = parseExpression(newEndTokens);
+                    auto indexed = std::make_shared<IndexExpression>();
+                    if (left->getType() == ast::syntax::SyntaxType::IndexExpression){
+                        auto indexExpr = std::dynamic_pointer_cast<ast::syntax::IndexExpression>(left);
+                        indexed->arrayName = indexExpr->arrayName;
+                        indexed->layer = indexExpr->layer + 1;
+                    } else {
+                        indexed->arrayName = std::dynamic_pointer_cast<ast::syntax::IdentifierExpression>(left)->name;
+                    }
                     if (current() == TokenType::r_square) {
-                        auto indexed = std::make_shared<IndexExpression>();
                         indexed->lSquareIndex = lSquare;
                         indexed->rSquareIndex = _current;
                         indexed->indexedExpr = left;
@@ -289,7 +290,6 @@ namespace kisyshot::compiler {
                         }
                         step();
                     } else {
-                        auto indexed = std::make_shared<IndexExpression>();
                         indexed->lSquareIndex = lSquare;
                         indexed->indexedExpr = left;
                         indexed->indexerExpr = index;
@@ -528,47 +528,8 @@ namespace kisyshot::compiler {
             decl->type = parseType();
             decl->constTokenIndex = constPos;
             while (_current < _context->tokens.size() && current() == ast::TokenType::identifier) {
-                auto def = std::make_shared<VarDefinition>();
-                def->varName = parseIdentifier();
+                auto def = parseVariableDefinition();
                 def->type = decl->type;
-                bool varEnd = false;
-                do {
-                    switch (current()) {
-                        case ast::TokenType::l_square: {
-                            step();
-                            if (current() == ast::TokenType::r_square) {
-                                def->array.push_back(nullptr);
-                                break;
-                            }
-                            auto arrVal = parseExpression({TokenType::r_square, TokenType::semi});
-                            def->add(arrVal);
-                            if (current() != ast::TokenType::r_square) {
-                                // TODO: push ']' expected
-                            }
-                            step();
-                            break;
-                        }
-                        case ast::TokenType::op_eq: {
-                            def->equalTokenIndex = _current;
-                            step();
-                            if (current() == ast::TokenType::semi) {
-                                // TODO: push expr expected
-                            }
-                            def->initialValue = parseExpression({TokenType::semi, TokenType::comma});
-                            break;
-                        }
-                        case ast::TokenType::eof:
-                        case ast::TokenType::comma:
-                        case ast::TokenType::semi: {
-                            varEnd = true;
-                            break;
-                        }
-                        default: {
-                            // TODO: push identifier expected and try to move to ',' or ';'
-                            break;
-                        }
-                    }
-                } while (!varEnd);
                 decl->add(def);
                 if (current() == ast::TokenType::comma) {
                     step();
@@ -583,6 +544,53 @@ namespace kisyshot::compiler {
         }
 
         return decl;
+    }
+
+
+    std::shared_ptr<ast::syntax::VarDefinition> Parser::parseVariableDefinition() {
+        auto def = std::make_shared<VarDefinition>();
+        def->varName = parseIdentifier();
+        bool varEnd = false;
+        do {
+            switch (current()) {
+                case ast::TokenType::l_square: {
+                    step();
+                    if (current() == ast::TokenType::r_square) {
+                        step();
+                        def->array.push_back(nullptr);
+                        break;
+                    }
+                    auto arrVal = parseExpression({TokenType::r_square, TokenType::semi});
+                    def->add(arrVal);
+                    if (current() != ast::TokenType::r_square) {
+                        // TODO: push ']' expected
+                    }
+                    step();
+                    break;
+                }
+                case ast::TokenType::op_eq: {
+                    def->equalTokenIndex = _current;
+                    step();
+                    if (current() == ast::TokenType::semi) {
+                        // TODO: push expr expected
+                    }
+                    def->initialValue = parseExpression({TokenType::semi, TokenType::comma});
+                    break;
+                }
+                case ast::TokenType::r_paren:
+                case ast::TokenType::eof:
+                case ast::TokenType::comma:
+                case ast::TokenType::semi: {
+                    varEnd = true;
+                    break;
+                }
+                default: {
+                    // TODO: push identifier expected and try to move to ',' or ';'
+                    break;
+                }
+            }
+        } while (!varEnd);
+        return def;
     }
 
     std::shared_ptr<ast::syntax::Type> Parser::parseType() {

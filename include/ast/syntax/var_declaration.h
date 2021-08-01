@@ -23,9 +23,10 @@ namespace kisyshot::ast::syntax {
         std::shared_ptr<Type> type = nullptr;
         std::shared_ptr<Identifier> varName = nullptr;
         std::shared_ptr<Expression> initialValue = nullptr;
-        std::vector<std::shared_ptr<Expression>> array;
+        std::vector<std::shared_ptr<Expression>> array;   //这里保存维度信息
         std::size_t equalTokenIndex = invalidTokenIndex;
         std::size_t offset;
+        std::size_t width;
     };
     class VarDeclaration:public Statement, public ISyntaxList<VarDefinition>{
 
