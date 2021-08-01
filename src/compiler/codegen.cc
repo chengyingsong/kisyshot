@@ -139,5 +139,11 @@ namespace kisyshot::compiler {
     }
 
 
+    void CodeGenerator::genCMP(ast::TokenType opType,ast::Var* src_1,ast::Var* src_2, std::string &label){
+        auto p = new CMP(opType,src_1,src_2,label);
+        code.push_back((Instruction *)p);
+        printInstruction((Instruction *)p);
+    }
+
 
 }
