@@ -61,6 +61,7 @@ namespace kisyshot::compiler {
             }
             _layerNames.pop_back();
             _blockName = func->name->identifier;
+            _currFunc = func;
             traverseStatement(func->body);
         }
     }
@@ -85,8 +86,19 @@ namespace kisyshot::compiler {
             }
             case ast::syntax::SyntaxType::IndexExpression :{
                 auto &&e = std::dynamic_pointer_cast<ast::syntax::IndexExpression>(expr);
+
+                _arrLayer++;
+
                 traverseExpression(e->indexedExpr);
                 traverseExpression(e->indexerExpr);
+                if (_arrLayer != 1) {
+                    auto def = _context->symbols[e->arrayName->mangledId];
+                    e->layer = std::stoi((std::string) std::dynamic_pointer_cast<ast::syntax::NumericLiteralExpression>(
+                            def->array[def->array.size() - _arrLayer + 1])
+                            ->rawCode);
+                }
+
+                _arrLayer--;
                 break;
             }
             case ast::syntax::SyntaxType::ArrayInitializeExpression :{
@@ -127,6 +139,14 @@ namespace kisyshot::compiler {
                     newVariable(def);
                     if (def->initialValue != nullptr) {
                         traverseExpression(def->initialValue);
+
+                        def->offset = _currFunc->stackSize;
+                        if (!def->array.empty()) {
+                            flattenInit(def, def->initialValue, 1);
+                            _currFunc->stackSize += def->srcArray.size() * 4;
+                        } else {
+                            _currFunc->stackSize += 4;
+                        }
                     }
                 }
                 break;
@@ -202,4 +222,36 @@ namespace kisyshot::compiler {
         _variables[def->varName->identifier].push(def);
     }
 
+    void Sema::flattenInit(const std::shared_ptr<ast::syntax::VarDefinition>& dst,const std::shared_ptr<ast::syntax::Expression> &srcExp, size_t dim) {
+        size_t currNum = 0;
+        if (dim > dst->array.size()) {
+            //diagnostic output
+            return;
+        }
+        for (std::shared_ptr<ast::syntax::Expression> &Exp : std::dynamic_pointer_cast<ast::syntax::ArrayInitializeExpression>(
+                srcExp)->array) {
+            if (Exp->getType() == ast::syntax::SyntaxType::ArrayInitializeExpression) {
+                flattenInit(dst, Exp, dim + 1);
+                currNum++;
+            } else if (Exp->getType() == ast::syntax::SyntaxType::NumericLiteralExpression) {
+                if (++currNum < dst->array[dim - 1]->start()) {
+                    dst->srcArray.push_back(Exp);
+                } else {
+                    // diagnostic output
+                    return;
+                }
+            }
+        }
+        if (dst->array.size() == dim) {
+            for (; ++currNum < dst->array[dim - 1]->start();) {
+                auto e = std::make_shared<ast::syntax::NumericLiteralExpression>();
+                e->rawCode = "0";
+                dst->srcArray.push_back(e);
+            }
+        } else {
+            for (; ++currNum < dst->array[dim - 1]->start();) {
+                flattenInit(dst, std::make_shared<ast::syntax::ArrayInitializeExpression>(), dim + 1);
+            }
+        }
+    }
 } // namespace kisyshot::compiler
