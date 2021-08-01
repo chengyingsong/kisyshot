@@ -17,7 +17,7 @@ int main() {
     int main(){
         int  a[2][3] = {1,2,3,4,5,6};
         int x = 1,y = 3;
-        int z = a[1][1];
+        int z = 0;
         if(1) {
              y = x % 2;
         }

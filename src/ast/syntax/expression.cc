@@ -230,7 +230,7 @@ namespace kisyshot::ast::syntax {
     }
 
     Var *Expression::getVar(compiler::CodeGenerator &gen) {
-        Var *t;
+        Var *t = nullptr;
         switch(getType()){
             case SyntaxType::IdentifierExpression :
                 t = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
@@ -238,20 +238,22 @@ namespace kisyshot::ast::syntax {
             case SyntaxType::NumericLiteralExpression:
                 t = gen.getConstVar(std::stoi(toString()));
                 break;
-            case SyntaxType::StringLiteralExpression:
+            case SyntaxType::StringLiteralExpression: {
                 t = new Var();
                 t->type = VarType::StringVar;
-                t->s =  toString();
+                t->s = toString();
+            }
                 break;
-            case SyntaxType::IndexExpression:
+            case SyntaxType::IndexExpression:{
                 //TODO:数组引用的最外层,base是Index节点的数组名,在indexExpression中计算offset
+                Var* t = gen.newTempVar();
                 Var* base = gen.name2VarMap[((IdentifierExpression *) this)->name->mangledId];
                 Var* offset = gen.newTempVar();  //计算offset
-                Var* t = gen.newTempVar();
                 genCode(gen, offset);
                 gen.genLoad(base,offset,t);
+            }
                 break;
-            default:
+            default :
                 t = gen.newTempVar();
                 genCode(gen, t);
         }
@@ -341,7 +343,7 @@ namespace kisyshot::ast::syntax {
     void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //递归计算 a[i][j] = a[i] + j = a + i* dim1 + j
         //TODO: 获取数组名和数组每一维的维度信息，计算offset，
-        Var * offset = indexerExpr->getVar(gen);  //计算当前 offset
+        //Var * offset = indexerExpr->getVar(gen);  //计算当前 offset
 
        // gen.genLoad(base,offset,temp);
     }
