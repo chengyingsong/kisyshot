@@ -27,11 +27,11 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
     if (tac->getType() == InstructionType::Param_)
         arms.generateParam(tac->src_1, paramNum);
     if (tac->getType() == InstructionType::BeginFunc_)
-        arms.generateBeginFunc(curFucLabel, frameSize);
+        arms.generateBeginFunc(curFucLabel, ctx->functions[curFucLabel.substr(1)]->stackSize);
     if (tac->getType() == InstructionType::Return_)
         arms.generateReturn(tac->src_1);
     if (tac->getType() == InstructionType::EndFunc_)
-        arms.generateEndFunc(curFucLabel, frameSize);
+        arms.generateEndFunc(curFucLabel, ctx->functions[curFucLabel.substr(1)]->stackSize);
 }
 
 void ArmCodeGenerator::generateArmCode() {
