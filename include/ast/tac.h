@@ -40,6 +40,8 @@ namespace kisyshot::ast {
         Var(int value);
 
 
+        Var();
+
         //常数返回数值转字符串，其他类型返回名字
         std::string getName();
     };
