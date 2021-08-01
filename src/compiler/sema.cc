@@ -51,6 +51,7 @@ namespace kisyshot::compiler {
             for (auto& param: func->params) {
                 param->offset = func->stackSize;
                 func->stackSize += 4;
+                newVariable(param);
             }
             _layerNames.pop_back();
             _blockName = func->name->identifier;
