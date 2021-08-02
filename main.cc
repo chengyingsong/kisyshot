@@ -13,6 +13,8 @@ int main() {
 
     void fun(){
     }
+    int arr[2][test] = {1,2,3};
+    const int test = 2;
 
     int main(){
         int  a[1][2][3] = {1,2,3,4,5,6};

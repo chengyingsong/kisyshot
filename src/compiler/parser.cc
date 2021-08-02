@@ -529,6 +529,9 @@ namespace kisyshot::compiler {
             while (_current < _context->tokens.size() && current() == ast::TokenType::identifier) {
                 auto def = parseVariableDefinition();
                 def->type = decl->type;
+                if(constPos != SyntaxNode::invalidTokenIndex){
+                    def->isConst = true;
+                }
                 decl->add(def);
                 if (current() == ast::TokenType::comma) {
                     step();
