@@ -24,7 +24,6 @@ namespace kisyshot::compiler{
         std::shared_ptr<diagnostic::DiagnosticStream> _diagnosticStream;
 
         std::unordered_map<std::string, std::stack<std::shared_ptr<ast::syntax::VarDefinition>>> _variables;
-        std::vector<std::shared_ptr<ast::syntax::VarDefinition>> _globals;
         std::shared_ptr<ast::syntax::Function> _currFunc;
         std::vector<std::string> _layerNames;
         std::string _blockName;

@@ -1,4 +1,5 @@
 #include <compiler/sema.h>
+#include <cassert>
 
 namespace kisyshot::compiler {
 
@@ -21,7 +22,7 @@ namespace kisyshot::compiler {
                         node);
                 for (auto& def : decl->varDefs) {
                     newVariable(def);
-                    _globals.push_back(def);
+                    _context->globals.push_back(def);
                 }
             }
             if (node->getType() == ast::syntax::SyntaxType::Function) {
@@ -73,34 +74,32 @@ namespace kisyshot::compiler {
         // check & compute global consts
         int value;
         bool ok;
-        for (auto& def : _globals) {
+        for (auto& def : _context->globals) {
             if (def->dimensionDef.empty()) {
                 std::tie(value, ok) =
-                    checkCompileTimeConstExpr(def->initialValue);
+                        checkCompileTimeConstExpr(def->initialValue);
                 def->values.emplace_back(ok ? value : 0);
             } else {
                 // check dimension and get const compile-time value
-                for (auto& dimExpr : def->dimensionDef) {
-                    int value;
-                    bool ok;
+                for (auto &dimExpr : def->dimensionDef) {
                     std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
                     if (!ok) {
                         value = 0;
                     }
-                    def->values.push_back(value);
+                    def->dimension.push_back(value);
                 }
                 size_t s = 1;
-                for (auto&& i : def->dimension) {
+                for (auto &&i : def->dimension) {
                     // TODO : push error
                     assert(i > 0);
                     s *= i;
                 }
                 flattenArray(def,
                              std::dynamic_pointer_cast<
-                                 ast::syntax::ArrayInitializeExpression>(
-                                 def->initialValue),
+                                     ast::syntax::ArrayInitializeExpression>(
+                                     def->initialValue),
                              s);
-                for (auto& expr : def->srcArray) {
+                for (auto &expr : def->srcArray) {
 
                     std::tie(value, ok) = checkCompileTimeConstExpr(expr);
                     def->values.emplace_back(ok ? value : 0);

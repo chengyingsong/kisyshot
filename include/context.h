@@ -42,6 +42,10 @@ namespace kisyshot{
          */
         std::unordered_map<std::string, std::shared_ptr<kisyshot::ast::syntax::Function>> functions;
         /**
+         * The gloabal var definitions
+         */
+        std::vector<std::shared_ptr<ast::syntax::VarDefinition>> globals;
+        /**
          * The index of the current syntax context.
          */
         std::size_t contextID;
