@@ -61,7 +61,7 @@ namespace kisyshot::ast::syntax {
     }
 
     void VarDefinition::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        if (array.empty()) {
+        if (dimensionDef.empty()) {
             if (initialValue == nullptr) {
                 syntaxWalker(varName, true);
             } else {
@@ -70,7 +70,7 @@ namespace kisyshot::ast::syntax {
             }
         } else {
             std::vector<std::shared_ptr<SyntaxNode>> nodes;
-            for (auto & i : array) {
+            for (auto & i : dimensionDef) {
                 if (i != nullptr) {
                     nodes.push_back(i);
                 }
@@ -109,7 +109,7 @@ namespace kisyshot::ast::syntax {
     std::string VarDefinition::toString() {
         std::stringstream s;
         s << varName->toString();
-        for (auto &arr:array) {
+        for (auto &arr:dimensionDef) {
             s << '[';
             if (arr != nullptr) {
                 s << arr->toString();
@@ -130,13 +130,13 @@ namespace kisyshot::ast::syntax {
             return initialValue->end();
         if (equalTokenIndex != invalidTokenIndex)
             return equalTokenIndex;
-        if (array.empty())
+        if (dimensionDef.empty())
             return varName->end();
-        return array.back()->end();
+        return dimensionDef.back()->end();
     }
 
     void VarDefinition::add(const std::shared_ptr<Expression> &child) {
-        array.push_back(child);
+        dimensionDef.push_back(child);
     }
 
     void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
