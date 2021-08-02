@@ -23,7 +23,7 @@ namespace kisyshot::ast::syntax {
             param->genCode(gen, nullptr);
         }
 
-        std::string funName = "." + name->identifier;
+        std::string funName = name->identifier;
         gen.genLabel(funName);
         gen.genBeginFunc(stackSize);  //设置栈帧写在beginFunc中
         body->genCode(gen, nullptr); //body是Statement类型

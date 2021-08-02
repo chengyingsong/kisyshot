@@ -20,7 +20,7 @@ namespace kisyshot::compiler {
     std::string CodeGenerator::newLabel() {
         static int labelId = 0;
         labelId++;
-        return "_label_" + std::to_string(labelId);
+        return ".L" + std::to_string(labelId);
     }
 
 

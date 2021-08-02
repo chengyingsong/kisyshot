@@ -13,7 +13,7 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
     if (tac->getType() == InstructionType::Binary_op_)
         arms.generateBinaryOP(((Binary_op *)tac)->code, tac->dst, tac->src_1, tac->src_2);
     if (tac->getType() == InstructionType::Call_)
-        arms.generateCall(tac->numVars, ((Call *)tac)->funLabel, tac->src_1);
+        arms.generateCall(tac->numVars, ((Call *)tac)->funLabel, tac->src_1, ((Call *)tac)->n);
     if (tac->getType() == InstructionType::GOTO_)
         arms.generateGOTO(((Label *)tac)->label);
     if (tac->getType() == InstructionType::IfZ_)
@@ -27,11 +27,11 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
     if (tac->getType() == InstructionType::Param_)
         arms.generateParam(tac->src_1, paramNum);
     if (tac->getType() == InstructionType::BeginFunc_)
-        arms.generateBeginFunc(curFucLabel, ctx->functions[curFucLabel.substr(1)]->stackSize);
+        arms.generateBeginFunc(curFucLabel, ctx->functions[curFucLabel]->stackSize);
     if (tac->getType() == InstructionType::Return_)
         arms.generateReturn(tac->src_1);
     if (tac->getType() == InstructionType::EndFunc_)
-        arms.generateEndFunc(curFucLabel, ctx->functions[curFucLabel.substr(1)]->stackSize);
+        arms.generateEndFunc(curFucLabel, ctx->functions[curFucLabel]->stackSize);
 }
 
 void ArmCodeGenerator::generateArmCode() {
