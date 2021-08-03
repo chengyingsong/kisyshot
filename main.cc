@@ -33,7 +33,6 @@ int getNumPos(int num, int pos){
     return num % base;
 }
 
-<<<<<<< HEAD
     int main(){
         int a[1][2][3] = {1,2,3,4,5,6};
         int t = a[1];
@@ -42,22 +41,6 @@ int getNumPos(int num, int pos){
         z = a[x][y][z];
         if(1) {
              y = x % 2;
-=======
-void radixSort(int bitround, int a[], int l, int r){
-    int head[base] = {};
-    int tail[base] = {};
-    int cnt[base] = {};
-
-    if (bitround == -1 || l + 1 >= r) return;
-
-    {
-        int i = l;
-
-        while (i < r){
-            cnt[getNumPos(a[i], bitround)]
-                = cnt[getNumPos(a[i], bitround)] + 1;
-            i = i + 1;
->>>>>>> dev_parser
         }
         head[0] = l;
         tail[0] = l + cnt[0];
@@ -131,7 +114,11 @@ int main(){
 }
 )";
 
-    std::string_view testCode = R"( int main(){
+    std::string_view testCode = R"(
+    int square(int x) {
+        return x * x;
+    }
+    int main() {
         int x = 1,k;
         int y = 3;
         int z = x + y * 3;
@@ -152,12 +139,9 @@ int main(){
 
     sm->lex(ctx->contextID);
     sm->parse(ctx->contextID);
-
     ctx->syntaxTree->genCode(gen, nullptr);
-
-    std::cout << *(ctx->syntaxTree);
-    std::cout << *(sm->diagnosticStream);
-    ctx->syntaxTree->genCode(gen, nullptr);
+    for (auto it = ctx->functions.begin(); it != ctx->functions.end(); it++)
+        std::cout << it->first << " " << it->second->stackSize << std::endl;
 
     kisyshot::compiler::ArmCodeGenerator armgen(gen.code, ctx);
     armgen.generateArmCode();
