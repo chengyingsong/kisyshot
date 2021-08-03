@@ -54,6 +54,9 @@ namespace kisyshot::ast::syntax {
         for(std::size_t i = 0; i < children.size(); ++i) {
             if(children[i]->getType() == SyntaxType::Function)
                 children[i]->genCode(gen, nullptr);
+            else{
+                children[i]->genCode(gen,gen.getConstVar(0));
+            }
         }
     }
 }
