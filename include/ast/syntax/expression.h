@@ -104,6 +104,7 @@ namespace kisyshot::ast::syntax{
         std::shared_ptr<Expression> indexerExpr = nullptr;
         Var* offset;
         bool isStore= false;
+        bool isOutSideLayer = false;
         std::size_t layer = 1;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;

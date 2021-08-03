@@ -48,6 +48,7 @@ namespace kisyshot::ast::syntax {
                     Var *src_2 = right->getVar(gen);
                     //TODO: Store指令
                     (std::dynamic_pointer_cast<IndexExpression>(left))->isStore = true;
+                    (std::dynamic_pointer_cast<IndexExpression>(left))->isOutSideLayer = true;
                     left->genCode(gen,src_2);
                 }else {
                 Var *src_1 = left->getVar(gen);
@@ -304,6 +305,7 @@ Var *Expression::getVar(compiler::CodeGenerator &gen) {
             break;
         case SyntaxType::IndexExpression: {
             t = gen.newTempVar();
+            ((IndexExpression*)this)->isOutSideLayer = true;
             genCode(gen, t);
         }
             break;
@@ -408,19 +410,18 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
     std::string time = "*";
     std::string add = "+";
     Var *current_offset = indexerExpr->getVar(gen);  //计算当前 offset
-    if (layer == 0) {
+    if (isOutSideLayer) {
         //最外层，设置offset为当前offset
         //计算内层的offset，如果一维则返回是数组名，不用管
         Var *t;
         if (indexedExpr->getType() == SyntaxType::IndexExpression) {
-            // Var* t = gen.newTempVar();
             t = gen.newTempVar();
+            //std::cout << t->getName() << std::endl;
             indexedExpr->genCode(gen, t);  //计算内层的offset
             gen.genBinaryOp(add, t, current_offset, t);  //offset = offset + k
         } else {  //一维数组
             t = current_offset;
         }
-        //TOOD: 改造一下：？
         Var *base = gen.name2VarMap[arrayName->mangledId];
         if(isStore)
             gen.genStore(temp,base,t);
