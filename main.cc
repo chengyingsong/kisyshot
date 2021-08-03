@@ -157,13 +157,10 @@ int main(){
 
     std::cout << *(ctx->syntaxTree);
     std::cout << *(sm->diagnosticStream);
-<<<<<<< HEAD
     ctx->syntaxTree->genCode(gen, nullptr);
 
     kisyshot::compiler::ArmCodeGenerator armgen(gen.code, ctx);
     armgen.generateArmCode();
 
-=======
->>>>>>> dev_parser
     return 0;
 }
