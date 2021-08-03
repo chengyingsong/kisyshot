@@ -65,20 +65,29 @@ namespace kisyshot::ast::syntax {
          * falseLabel:
          *
          * */
-        Var * t1 = gen.newTempVar();
-        condition->genCode(gen,t1);
+        //TODO: Statement的继承属性直接写在前面
+        Var* t1 = condition->getVar(gen);
         if(elseClause != nullptr) {
             std::string falseLabel = gen.newLabel();
             std::string endLabel = gen.newLabel();
             gen.genIFZ(t1, falseLabel);
+            ifClause->inTheWhile = inTheWhile;
+            ifClause->beginLabel = beginLabel;
+            ifClause->endLabel = endLabel;
             ifClause->genCode(gen, nullptr);
             gen.genGOTO(endLabel);
             gen.genLabel(falseLabel);
+            elseClause->inTheWhile = inTheWhile;
+            elseClause->beginLabel = beginLabel;
+            elseClause->endLabel = endLabel;
             elseClause->genCode(gen, nullptr);
             gen.genLabel(endLabel);
         } else{
             std::string falseLabel = gen.newLabel();
             gen.genIFZ(t1,falseLabel);
+            ifClause->inTheWhile = inTheWhile;
+            ifClause->beginLabel = beginLabel;
+            ifClause->endLabel = endLabel;
             ifClause->genCode(gen, nullptr);
             gen.genLabel(falseLabel);
         }
@@ -133,13 +142,16 @@ namespace kisyshot::ast::syntax {
          * */
         std::string beginLabel =  gen.newLabel();
         gen.genLabel(beginLabel);
-        Var* t = gen.newTempVar();
-        condition->genCode(gen,t);
+        Var* t = condition->getVar(gen);
         std::string endLabel = gen.newLabel();
         gen.genIFZ(t,endLabel);
+        body->inTheWhile = true;
+        body->beginLabel = beginLabel;
+        body->endLabel = endLabel;
         body->genCode(gen, nullptr);
         gen.genGOTO(beginLabel);
         gen.genLabel(endLabel);
+
     }
 
     void NopStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
@@ -206,7 +218,10 @@ namespace kisyshot::ast::syntax {
         return semiTokenIndex == invalidTokenIndex ? breakTokenIndex : semiTokenIndex;
     }
 
-    void BreakStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void BreakStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        //TODO: break语句，
+        gen.genGOTO(endLabel); //跳出循环
+    }
 
     void ContinueStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
 
@@ -240,7 +255,9 @@ namespace kisyshot::ast::syntax {
         return semiTokenIndex == invalidTokenIndex ? continueTokenIndex : semiTokenIndex;
     }
 
-    void ContinueStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}
+    void ContinueStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        gen.genGOTO(beginLabel); //跳转到下一轮循环开始
+    }
 
     void ReturnStatement::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
         if (value != nullptr)
@@ -285,17 +302,7 @@ namespace kisyshot::ast::syntax {
 
     void ReturnStatement::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //要求得返回表达式的值，构造返回语句
-        Var * t;
-        if(value->getType() == SyntaxType::IdentifierExpression) {
-            t = gen.name2VarMap[value->toString()];
-        } else {
-            if(value->getType() == SyntaxType::NumericLiteralExpression) {
-                t = new Var(std::stoi(value->toString()));
-            } else {
-                t = gen.newTempVar();
-                value->genCode(gen,t);
-            }
-        }
+        Var * t = value->getVar(gen);
         gen.genReturn(t);
     }
 
@@ -343,7 +350,13 @@ namespace kisyshot::ast::syntax {
     void BlockStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "   block statement" << std::endl;
         for (auto &child:children) {
+            if(inTheWhile){
+                child->inTheWhile = true;
+                child->beginLabel = beginLabel;
+                child->endLabel = endLabel;
+            }
             child->genCode(gen, nullptr);
+
         }
     }
 
@@ -386,7 +399,6 @@ namespace kisyshot::ast::syntax {
     }
 
     void ExpressionStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-
         expression->genCode(gen, nullptr);
     }
 

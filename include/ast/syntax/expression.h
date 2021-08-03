@@ -17,7 +17,7 @@ namespace kisyshot::ast::syntax{
         SyntaxType getType() override = 0;
         bool hasChild() override = 0;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
-        Var* getVar(compiler::CodeGenerator &gen,std::shared_ptr<Expression> e);
+        Var* getVar(compiler::CodeGenerator &gen);
     };
 
     class BinaryExpression: public Expression {
@@ -98,10 +98,13 @@ namespace kisyshot::ast::syntax{
         bool hasChild() override ;
         void analyseType() override ;
         std::string toString() override ;
-       //TODO：支持序号表达式
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
+        std::shared_ptr<Identifier> arrayName = nullptr;
         std::shared_ptr<Expression> indexedExpr = nullptr;
         std::shared_ptr<Expression> indexerExpr = nullptr;
+        Var* offset;
+        bool isOutLayer = false;
+        std::size_t layer = 1;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };
@@ -157,6 +160,7 @@ namespace kisyshot::ast::syntax{
         std::string_view rawCode;
     };
 
+
     class ArrayInitializeExpression: public Expression, public ISyntaxList<Expression>{
     public:
         void analyseType() override;
@@ -168,7 +172,6 @@ namespace kisyshot::ast::syntax{
         std::size_t end() override;
         SyntaxType getType() override;
         bool hasChild() override;
-        //TODO： 支持数组初始化
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t lBraceIndex, rBraceIndex;
         std::vector<std::shared_ptr<Expression>> array;

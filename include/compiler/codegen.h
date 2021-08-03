@@ -5,19 +5,21 @@
 #include<ast/tac.h>
 #include<string>
 #include<unordered_map>
+//#include "context.h"
 
 namespace kisyshot::compiler {
     //一个中间代码生成类
     class CodeGenerator {
-        //TODO: 定义一个输出所有代码的方法
-        //TODO: call语句和表达式语句在生成中间代码的同时应该返回一个临时变量来保存返回值
     public:
         std:: list < ast::Instruction * > code;
         //在变量声明时加入
         std::unordered_map<std::string,ast::Var* > name2VarMap;
+        std::unordered_map<int,ast::Var*> const2VarMap;
         bool printOrNot = 1;
 
         CodeGenerator();
+
+        ast::Var* getConstVar(int value);
 
         void printInstruction(ast::Instruction * p);
 
@@ -27,13 +29,14 @@ namespace kisyshot::compiler {
         ast::Var* newTempVar();
         //绑定符号表变量和临时变量
 
+
         void genLabel(std::string &label);
         //Load指令
-        void genLoad(ast::Var* src,ast::Var* dst);
+        void genLoad(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genAssign(ast::Var* src,ast::Var* dst);
 
-        void genStore(ast::Var* src,ast::Var* dst);
+        void genStore(ast::Var* src_1,ast::Var* src_2,ast::Var* dst);
 
         void genBinaryOp(std::string &opName,ast::Var* op1,ast::Var* op2,ast::Var * dst);
 
@@ -45,13 +48,17 @@ namespace kisyshot::compiler {
 
         void genIFZ(ast::Var* condition,std::string &label);
 
+        void genCMP(ast::TokenType opType,ast::Var* src_1,ast::Var* src_2, std::string &label);
+
         void genGOTO(std::string &label);
 
         void genReturn(ast::Var* v);
 
-        void genBeginFunc();
+        void genBeginFunc(int stackSize);
 
         void genEndFunc();
+
+
     };
 }
 

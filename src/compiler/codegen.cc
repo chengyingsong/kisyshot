@@ -7,7 +7,14 @@ using namespace kisyshot::compiler;
 
 namespace kisyshot::compiler {
 
-    CodeGenerator::CodeGenerator(){}
+
+    CodeGenerator::CodeGenerator() {}
+
+
+/*    CodeGenerator::CodeGenerator(const std::shared_ptr<Context> &context){
+        Symbol = context->symbols;
+        Function = context->functions;
+    }*/
 
     //返回一个不重复的标号
     std::string CodeGenerator::newLabel() {
@@ -35,8 +42,8 @@ namespace kisyshot::compiler {
 
 
     //Load指令
-    void CodeGenerator::genLoad(Var *src,Var *dst) {
-        Load *p = new Load(src, dst);
+    void CodeGenerator::genLoad(Var *src_1,Var* src_2,Var *dst) {
+        Load *p = new Load(src_1, src_2,dst);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -47,8 +54,8 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genStore(Var *src, Var *dst) {
-        auto p = new Store(src, dst);
+    void CodeGenerator::genStore(Var *src_1, Var* src_2,Var *dst) {
+        auto p = new Store(src_1,src_2,dst);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -95,8 +102,9 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genBeginFunc() {
+    void CodeGenerator::genBeginFunc(int stackSize) {
         auto p = new BeginFunc();
+        p->setFrameSize(stackSize);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }
@@ -121,5 +129,21 @@ namespace kisyshot::compiler {
             }
         }
     }
+
+    ast::Var *CodeGenerator::getConstVar(int value) {
+        if(const2VarMap.find(value) == const2VarMap.end()){
+            Var * t = new Var(value);
+            const2VarMap[value] = t;
+        }
+        return const2VarMap[value];
+    }
+
+
+    void CodeGenerator::genCMP(ast::TokenType opType,ast::Var* src_1,ast::Var* src_2, std::string &label){
+        auto p = new CMP(opType,src_1,src_2,label);
+        code.push_back((Instruction *)p);
+        printInstruction((Instruction *)p);
+    }
+
 
 }
