@@ -52,7 +52,11 @@ namespace kisyshot::ast::syntax {
     void SyntaxUnit::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //根结点生成中间代码，直接调用子节点的方法即可
         for(std::size_t i = 0; i < children.size(); ++i) {
-            children[i]->genCode(gen, nullptr);
+            if(children[i]->getType() == SyntaxType::Function)
+                children[i]->genCode(gen, nullptr);
+            else{
+                children[i]->genCode(gen,gen.getConstVar(0));
+            }
         }
     }
 }

@@ -44,10 +44,18 @@ namespace kisyshot::ast::syntax {
         std::string opName = getTokenSpell(operatorType);
         switch (operatorType) {
             case TokenType::op_eq: {
+                if(left->getType() == SyntaxType::IndexExpression){
+                    Var *src_2 = right->getVar(gen);
+                    //TODO: Store指令
+                    (std::dynamic_pointer_cast<IndexExpression>(left))->isStore = true;
+                    (std::dynamic_pointer_cast<IndexExpression>(left))->isOutSideLayer = true;
+                    left->genCode(gen,src_2);
+                }else {
                 Var *src_1 = left->getVar(gen);
                 Var *src_2 = right->getVar(gen);
                 //left是左值
                 gen.genAssign(src_2, src_1);
+                }
             }
                 break;
             case TokenType::op_ampamp: {
@@ -297,8 +305,7 @@ Var *Expression::getVar(compiler::CodeGenerator &gen) {
             break;
         case SyntaxType::IndexExpression: {
             t = gen.newTempVar();
-            ((IndexExpression * )
-            this)->isOutLayer = true;
+            ((IndexExpression*)this)->isOutSideLayer = true;
             genCode(gen, t);
         }
             break;
@@ -400,24 +407,26 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
      * (t = (i*dim2 + j) *dim3 + k)
      *
      */
-    //TODO: 获取数组名和数组每一维的维度信息，计算offset，
     std::string time = "*";
     std::string add = "+";
     Var *current_offset = indexerExpr->getVar(gen);  //计算当前 offset
-    if (isOutLayer) {
+    if (isOutSideLayer) {
         //最外层，设置offset为当前offset
         //计算内层的offset，如果一维则返回是数组名，不用管
         Var *t;
         if (indexedExpr->getType() == SyntaxType::IndexExpression) {
-            // Var* t = gen.newTempVar();
             t = gen.newTempVar();
+            //std::cout << t->getName() << std::endl;
             indexedExpr->genCode(gen, t);  //计算内层的offset
             gen.genBinaryOp(add, t, current_offset, t);  //offset = offset + k
         } else {  //一维数组
             t = current_offset;
         }
         Var *base = gen.name2VarMap[arrayName->mangledId];
-        gen.genLoad(base, t, temp);  //结果保存在offset中
+        if(isStore)
+            gen.genStore(temp,base,t);
+        else
+            gen.genLoad(base, t, temp);  //结果保存在offset中
     } else {
         //t = offset*layer
         if (indexedExpr->getType() == SyntaxType::IndexExpression) {

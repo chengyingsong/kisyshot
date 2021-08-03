@@ -10,7 +10,6 @@
 using namespace kisyshot::ast;
 
 int main() {
-//TODO:  数组还有字符串，变量名有下划线开头的，把temp改成@temp。
     std::string_view testCode = R"(int square(int x){
        return x * x;
     }
@@ -22,8 +21,8 @@ int main() {
         int  a[1][2][3] = {1,2,3,4,5,6};
         int x = 1,y = 0;
         int z = 1;
-        z =  a[x][y][z];
-        a[0][0][2] = a[0][0][0] + a[0][0][1];
+        arr[0] = 1;
+        a[x][y][z] = 1;
         if(1) {
              y = x % 2;
         }
