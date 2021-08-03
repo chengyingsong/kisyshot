@@ -158,7 +158,6 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::ConstVar)
         printf("\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
-
 }
 
 void Arms::spillReg(Var * dst, Register reg) {
