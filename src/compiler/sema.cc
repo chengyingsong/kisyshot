@@ -69,7 +69,8 @@ namespace kisyshot::compiler {
             _layerNames.pop_back();
             _blockName = func->name->identifier;
             _currFunc = func;
-            traverseStatement(func->body);
+            if (func->body != nullptr)
+                traverseStatement(func->body);
         }
         // check & compute global consts
         int value;

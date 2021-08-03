@@ -142,6 +142,9 @@ void Arms::discardVarInReg(Var * var, Register reg) {
 
 void Arms::fillReg(Var * src, Register reg) {
     Register preReg = (Register)findRegForVar(src);
+    if (src->type == VarType::StringVar) {
+        fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());
+    }
     if (src->type == VarType::GlobalVar) {
         if ((int)preReg == -1)
             if (src->isArray)
@@ -167,9 +170,9 @@ void Arms::fillReg(Var * src, Register reg) {
 void Arms::spillReg(Var * dst, Register reg) {
     if (!(dst->isArray)) {
         if (dst->type == VarType::GlobalVar)
-            fprintf(fp, "\tstr %s, %s\tspill %s into memory\n", regs[reg].name.c_str(), dst->getName().c_str(), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, %s\t# spill %s into memory\n", regs[reg].name.c_str(), dst->getName().c_str(), dst->getName().c_str());
         if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [r7, #%d]\tspill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [r7, #%d]\t# spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
     }
     regs[reg].isDirty = false;
 }
@@ -206,7 +209,7 @@ Arms::Arms(const std::shared_ptr<Context> &context) {
     opName[9] = "no";
     opName[10] = "no";   
 
-    fp = fopen("test.S", "a");
+    fp = fopen("test.S", "w+");
 }
 
 void Arms::generateDiscardVar(Var * var) {
@@ -471,5 +474,11 @@ void Arms::generateGlobal() {
         fprintf(fp, "%s:\n", ctx->globals[i]->varName->toString().c_str());
         for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
             fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
+    }
+    for(auto &s : ctx->strings) {
+        fprintf(fp, "\t.rodata\n");
+        fprintf(fp, "\t.align 2\n");
+        fprintf(fp, "%s:\n", s.second.c_str());
+        fprintf(fp, "\t.ascii \"%s\\000\"\n", s.first.c_str());
     }
 }

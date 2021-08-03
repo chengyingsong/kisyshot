@@ -18,16 +18,18 @@ namespace kisyshot::ast::syntax {
 
     void Function::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
         //gen.genFuncName(name)
-        for (auto &param : params) {
-            //TODO:要不要声明一下参数呀
-            param->genCode(gen, nullptr);
-        }
+        if (body != nullptr) {
+            for (auto &param : params) {
+                //TODO:要不要声明一下参数呀
+                    param->genCode(gen, nullptr);
+            }
 
-        std::string funName = name->identifier;
-        gen.genLabel(funName);
-        gen.genBeginFunc(stackSize);  //设置栈帧写在beginFunc中
-        body->genCode(gen, nullptr); //body是Statement类型
-        gen.genEndFunc();
+            std::string funName = name->identifier;
+            gen.genLabel(funName);
+            gen.genBeginFunc(stackSize);  //设置栈帧写在beginFunc中
+            body->genCode(gen, nullptr); //body是Statement类型
+            gen.genEndFunc();
+        }
     }
 
     void Function::writeCurrentInfo(std::ostream &s) {
