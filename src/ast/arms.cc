@@ -244,7 +244,7 @@ void Arms::generateAssign(Var * dst, Var * src) {
         regs[rd].mutexLock = true;
         rs = (Register)findCleanReg();
         fprintf(fp, "\tmovw %s, #:lower16:%s\n", regs[rs].name.c_str(), src->getName().c_str());
-        fprintf(fp, "\tmovw %s, #:upper16:%s\n", regs[rs].name.c_str(), src->getName().c_str());
+        fprintf(fp, "\tmovt %s, #:upper16:%s\n", regs[rs].name.c_str(), src->getName().c_str());
         fprintf(fp, "\tmov %s, %s", regs[rd].name.c_str(), regs[rs].name.c_str());
         regDescriptorInsert(dst, rd);
         regs[rd].mutexLock = false;
