@@ -298,9 +298,10 @@ Var *Expression::getVar(compiler::CodeGenerator &gen) {
             t = gen.getConstVar(std::stoi(toString()));
             break;
         case SyntaxType::StringLiteralExpression: {
-            t = new Var();
+            //TODO: 获取节点存储名字
+            t = new Var(toString());
             t->type = VarType::StringVar;
-            t->s = toString();
+            //t->s = toString();
         }
             break;
         case SyntaxType::IndexExpression: {
@@ -575,7 +576,7 @@ void StringLiteralExpression::analyseType() {
 }
 
 std::string StringLiteralExpression::toString() {
-    return (std::string) rawCode;
+    return  label;
 }
 
 void StringLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {}

@@ -182,6 +182,18 @@ namespace kisyshot::compiler {
                     break;
                 }
                 e->name->mangledId = s.top()->varName->mangledId;
+                break;
+            }
+            case ast::syntax::SyntaxType::StringLiteralExpression: {
+                auto&& s = std::dynamic_pointer_cast<
+                        ast::syntax::StringLiteralExpression>(expr);
+                auto str = (std::string) s->rawCode;
+                if (_context->strings.count(str) == 0){
+                    s->label = ".LC" + std::to_string(_context->strings.size());
+                    _context->strings[str] = s->label;
+                } else{
+                    s->label = _context->strings[str];
+                }
             }
             default:
                 break;
