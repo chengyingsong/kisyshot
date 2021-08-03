@@ -129,4 +129,5 @@ void ArmCodeGenerator::generateArmCode() {
         generateSpecial(*p, arms);
         p++;
     }
+    fclose(arms.fp);
 }

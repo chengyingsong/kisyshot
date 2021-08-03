@@ -4,6 +4,7 @@
 #include "tac.h"
 #include "cfg.h"
 #include "../context.h"
+#include <stdio.h>
 
 namespace kisyshot::ast {
     class Arms {
@@ -64,6 +65,7 @@ namespace kisyshot::ast {
         void spillReg(Var * dst, Register reg);
 
     public:
+        FILE * fp;
         Arms(const std::shared_ptr<Context> &context);
         void generateDiscardVar(Var * var);
         void generateAssignConst(Var * dst, Var * src);
