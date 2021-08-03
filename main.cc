@@ -139,9 +139,8 @@ int main(){
 
     sm->lex(ctx->contextID);
     sm->parse(ctx->contextID);
+
     ctx->syntaxTree->genCode(gen, nullptr);
-    for (auto it = ctx->functions.begin(); it != ctx->functions.end(); it++)
-        std::cout << it->first << " " << it->second->stackSize << std::endl;
 
     kisyshot::compiler::ArmCodeGenerator armgen(gen.code, ctx);
     armgen.generateArmCode();
