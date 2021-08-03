@@ -51,7 +51,7 @@ namespace kisyshot::ast {
         // 在regDescriptor中找到var对应的reg
         std::map<Register, Var *>::iterator regDescriptorFind(Var * var);
         // regDescriptor插入
-        void regDescriptorInsert(Var * var, Register reg);
+        void regDescriptorInsert(Var * var, Register reg, bool dirty);
         // regDescriptor移除
         void regDescriptorRemove(Var * var, Register reg);
         // regDescriptor更新

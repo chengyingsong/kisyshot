@@ -94,6 +94,7 @@ void Arms::cleanRegForEndFunc() {
     for (int i = r0; i <= r11; i++)
         if (i != r7)
             regs[i].isDirty = false;
+    regDescriptor.clear();
 }
 
 std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
@@ -110,14 +111,14 @@ std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
         return regDescriptor.end();
 }
 
-void Arms::regDescriptorInsert(Var * var, Register reg) {
+void Arms::regDescriptorInsert(Var * var, Register reg, bool dirty = true) {
     if (findRegForVar(var) != -1) {
         regDescriptorUpdate(var);
         return;
     }
     regDescriptor.erase(reg);
     regDescriptor.insert(std::pair<Register, Var *>(reg, var));
-    regs[reg].isDirty = true;
+    regs[reg].isDirty = dirty;
 }
 
 void Arms::regDescriptorRemove(Var * var, Register reg) {
@@ -152,7 +153,10 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
-            printf("\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+            if (src->isArray)
+                printf("\tadd %s, [r7], #%d\n", regs[reg].name.c_str(), getOffset(src));
+            else
+                printf("\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
             printf("\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
@@ -167,6 +171,7 @@ void Arms::spillReg(Var * dst, Register reg) {
         if (dst->type == VarType::LocalVar)
             printf("\tstr %s, [r7, #%d]\tspill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
     }
+    regs[reg].isDirty = false;
 }
 
 Arms::Arms(const std::shared_ptr<Context> &context) {
@@ -264,6 +269,9 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
         regs[rd].mutexLock = false;
         if (regs[rd].canDiscard)
             discardVarInReg(dst, rd);
+        if (offset->type == VarType::ConstVar)
+            discardVarInReg(offset, rt);
+        printf("\t# %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
         return;
     }
     rs = (Register)pickRegForVar(src);
@@ -283,6 +291,8 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
         discardVarInReg(dst, rd);
     if (regs[rt].canDiscard)
         discardVarInReg(offset, rt);
+    if (offset->type == VarType::ConstVar)
+        discardVarInReg(offset, rt);
     printf("\t# %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
 }
 
@@ -300,6 +310,9 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
         regs[rs].mutexLock = false;
         if (regs[rs].canDiscard)
             discardVarInReg(src, rs);
+        if (offset->type == VarType::ConstVar)
+            discardVarInReg(offset, rt);
+        printf("\t# %s[%s] = %s\n", dst->getName().c_str(), offset->getName().c_str(), src->getName().c_str());
         return;
     }
     rs = (Register)pickRegForVar(src);
@@ -319,6 +332,8 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     if (regs[rd].canDiscard)
         discardVarInReg(dst, rd);
     if (regs[rt].canDiscard)
+        discardVarInReg(offset, rt);
+    if (offset->type == VarType::ConstVar)
         discardVarInReg(offset, rt);
     printf("\t# %s[%s] = %s\n", dst->getName().c_str(), offset->getName().c_str(), src->getName().c_str());
 }
@@ -402,8 +417,14 @@ void Arms::generateReturn(Var * result) {
 void Arms::generateParam(Var * arg, int num) {
     if (num == 1)
         cleanRegForBranch();
-    fillReg(arg, (Register)(num - 1));
-    printf("\tparam %s\n", arg->getName().c_str());
+    if (num <= 4) {
+        fillReg(arg, (Register)(num - 1));
+        printf("\t# param %s\n", arg->getName().c_str());
+    } else {
+        fillReg(arg, r4);
+        printf("\tstr r4, [sp, #%d]\n", (num - 5) * 4);
+        printf("\t# param %s\n", arg->getName().c_str());
+    }
 }
 
 void Arms::generateCall(int numVars, std::string label, Var * result, int paramNum) {
@@ -436,5 +457,14 @@ void Arms::generateHeaders() {
 }
 
 void Arms::generateGlobal() {
-    printf("There are globals\n");
+    for (size_t i = 0; i < ctx->globals.size(); i++) {
+        printf("\t.global %s\n", ctx->globals[i]->varName->toString().c_str());
+        printf("\t.data\n");
+        printf("\t.align 2\n");
+        printf("\t.type %s, %%object\n", ctx->globals[i]->varName->toString().c_str());
+        printf("\t.size %s, %lld\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
+        printf("%s:\n", ctx->globals[i]->varName->toString().c_str());
+        for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
+            printf("\t.word %d\n", ctx->globals[i]->values[j]);
+    }
 }

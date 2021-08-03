@@ -26,11 +26,8 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
         arms.generateStore(tac->src_2, tac->dst, tac->src_1);
     if (tac->getType() == InstructionType::Param_)
         arms.generateParam(tac->src_1, paramNum);
-    if (tac->getType() == InstructionType::BeginFunc_) {
-        std::cout << ctx->functions[curFucLabel]->stackSize << std::endl;
+    if (tac->getType() == InstructionType::BeginFunc_)
         arms.generateBeginFunc(curFucLabel, ctx->functions[curFucLabel]->stackSize);
-    }
-
     if (tac->getType() == InstructionType::Return_)
         arms.generateReturn(tac->src_1);
     if (tac->getType() == InstructionType::EndFunc_)
