@@ -61,7 +61,7 @@ namespace kisyshot::ast::syntax {
     }
 
     void VarDefinition::forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) {
-        if (array.empty()) {
+        if (dimensionDef.empty()) {
             if (initialValue == nullptr) {
                 syntaxWalker(varName, true);
             } else {
@@ -70,7 +70,7 @@ namespace kisyshot::ast::syntax {
             }
         } else {
             std::vector<std::shared_ptr<SyntaxNode>> nodes;
-            for (auto & i : array) {
+            for (auto & i : dimensionDef) {
                 if (i != nullptr) {
                     nodes.push_back(i);
                 }
@@ -109,7 +109,7 @@ namespace kisyshot::ast::syntax {
     std::string VarDefinition::toString() {
         std::stringstream s;
         s << varName->toString();
-        for (auto &arr:array) {
+        for (auto &arr:dimensionDef) {
             s << '[';
             if (arr != nullptr) {
                 s << arr->toString();
@@ -130,23 +130,25 @@ namespace kisyshot::ast::syntax {
             return initialValue->end();
         if (equalTokenIndex != invalidTokenIndex)
             return equalTokenIndex;
-        if (array.empty())
+        if (dimensionDef.empty())
             return varName->end();
-        return array.back()->end();
+        return dimensionDef.back()->end();
     }
 
     void VarDefinition::add(const std::shared_ptr<Expression> &child) {
-        array.push_back(child);
+        dimensionDef.push_back(child);
     }
 
     void VarDefinition::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //std::cout << "defination of " << varName->toString() << std::endl;
         Var* src_1 = new  Var(varName->mangledId);
         gen.name2VarMap[varName->mangledId] = src_1;  //把名字和Var绑定
+        if(!dimensionDef.empty()){
+            src_1->isArray = true;
+        }
         if(initialValue != nullptr){  //代表有初始化语句
             if(initialValue->getType() ==SyntaxType::ArrayInitializeExpression) {
                 //数组初始化,先设置数组属性
-                src_1->isArray = true;
                 initialValue->genCode(gen,src_1);
             }else{
                 //initialValue有可能是一个数字

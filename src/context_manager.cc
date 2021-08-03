@@ -2,7 +2,6 @@
 
 #include <compiler/lexer.h>
 #include <compiler/parser.h>
-#include <compiler/sema.h>
 #include <fstream>
 namespace kisyshot{
     std::shared_ptr<Context> ContextManager::create(const std::string_view& code, const std::string & path) {
@@ -33,10 +32,6 @@ namespace kisyshot{
 
     void ContextManager::parse(std::size_t index) {
         compiler::Parser(_contexts[index],diagnosticStream).parse();
-    }
-
-    void ContextManager::check(std::size_t index){
-        compiler::Sema(_contexts[index],diagnosticStream).check();
     }
 
     std::shared_ptr<Context> ContextManager::load(const std::string &path) {

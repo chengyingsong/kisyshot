@@ -15,7 +15,9 @@ namespace kisyshot::compiler{
         void traverseExpression(const std::shared_ptr<ast::syntax::Expression>& expr);
         void traverseStatement(const std::shared_ptr<ast::syntax::Statement>& stmt);
         void newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def);
-        void flattenInit(const std::shared_ptr<ast::syntax::VarDefinition>& dst,const std::shared_ptr<ast::syntax::Expression> &srcExp, size_t dim);
+
+        std::pair<int, bool> checkCompileTimeConstExpr(const std::shared_ptr<ast::syntax::Expression>& expr);
+        void flattenArray(const std::shared_ptr<ast::syntax::VarDefinition>& def,const std::shared_ptr<ast::syntax::ArrayInitializeExpression> &init, size_t target, size_t dim = 0);
         // copy of the context
         std::shared_ptr<Context> _context;
         // copy of the diagnostic info collector
