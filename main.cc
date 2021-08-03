@@ -37,7 +37,7 @@ int main() {
         return 0;
     })";
     auto sm = std::make_shared<kisyshot::ContextManager>();
-    auto ctx = sm->create(testCode, "/path/to/test.sy");
+    auto ctx = sm->create(testCode, "/path/to/test.sy"); //源文件path
     sm->lex(ctx->contextID);
     sm->parse(ctx->contextID);
     sm->check(ctx->contextID);
