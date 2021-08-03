@@ -46,6 +46,10 @@ namespace kisyshot{
          */
         std::vector<std::shared_ptr<ast::syntax::VarDefinition>> globals;
         /**
+         * Strings
+         */
+        std::unordered_map<std::string, std::string> strings;
+        /**
          * The index of the current syntax context.
          */
         std::size_t contextID;
