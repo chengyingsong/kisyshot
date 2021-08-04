@@ -149,7 +149,13 @@ namespace kisyshot::ast::syntax {
         if(initialValue != nullptr && temp == nullptr){  //代表有初始化语句
             if(initialValue->getType() ==SyntaxType::ArrayInitializeExpression) {
                 //数组初始化,先设置数组属性
-                initialValue->genCode(gen,src_1);
+                //initialValue->genCode(gen,src_1);
+                for (size_t i = 0; i < srcArray.size(); i++) {
+                    //temp[i] = t;
+                    Var *t = srcArray[i]->getVar(gen);
+                    Var *offset = gen.getConstVar(i);
+                    gen.genStore(t, src_1, offset);
+                }
             }else{
                 //initialValue有可能是一个数字
                 Var * src_2 = initialValue->getVar(gen);

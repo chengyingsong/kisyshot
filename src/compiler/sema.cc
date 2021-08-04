@@ -46,33 +46,6 @@ namespace kisyshot::compiler {
             if (def->initialValue != nullptr)
                 traverseExpression(def->initialValue);
         }
-        // init functions
-        for (auto& [_, func] : _context->functions) {
-            // push function layer name
-            if (func->body != nullptr) {
-                _layerNames.push_back(func->name->identifier);
-                for (auto &param : func->params) {
-                    // init param dimension info
-                    for (auto &dimExpr : param->dimensionDef) {
-                        int value;
-                        bool ok;
-                        std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
-                        if (!ok) {
-                            value = 0;
-                        }
-                        param->dimension.push_back(value);
-                    }
-
-                    param->offset = func->stackSize;
-                    func->stackSize += 4;
-                    newVariable(param);
-                }
-                _layerNames.pop_back();
-                _blockName = func->name->identifier;
-                _currFunc = func;
-                traverseStatement(func->body);
-            }
-        }
         // check & compute global consts
         int value;
         bool ok;
@@ -108,6 +81,32 @@ namespace kisyshot::compiler {
                 }
             }
         }
+        // init functions
+        for (auto& [_, func] : _context->functions) {
+            // push function layer name
+            if (func->body != nullptr) {
+                _layerNames.push_back(func->name->identifier);
+                for (auto &param : func->params) {
+                    // init param dimension info
+                    for (auto &dimExpr : param->dimensionDef) {
+                        std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
+                        if (!ok) {
+                            value = 0;
+                        }
+                        param->dimension.push_back(value);
+                    }
+
+                    param->offset = func->stackSize;
+                    func->stackSize += 4;
+                    newVariable(param);
+                }
+                _layerNames.pop_back();
+                _blockName = func->name->identifier;
+                _currFunc = func;
+                traverseStatement(func->body);
+            }
+        }
+
     }
 
     void Sema::traverseExpression(
@@ -314,6 +313,7 @@ namespace kisyshot::compiler {
                         }
                         def->dimension.push_back(value);
                     }
+                    //std::reverse(def->dimension.begin(), def->dimension.end());
 
                     newVariable(def);
                     if (def->initialValue != nullptr) {

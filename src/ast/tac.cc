@@ -102,8 +102,8 @@ namespace kisyshot::ast {
     Assign::Assign(Var *t1, Var *t2) : Instruction(t1, t2) {
         numVars = 2;
         assert(t1 != nullptr && t2 != nullptr);
-        assert(t1->type != VarType::GlobalVar);  //愿操作数不是全局变量
-        assert(t1->type != VarType::GlobalVar);   //目的操作数是临时变量
+        //assert(t1->type != VarType::GlobalVar);  //愿操作数不是全局变量
+//        assert(t1->type != VarType::GlobalVar);   //目的操作数是临时变量
     }
 
     std::string Assign::toString() { return src_2->getName() + " = " + src_1->getName(); }

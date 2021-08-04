@@ -49,7 +49,12 @@ namespace kisyshot{
             in.read(&s[0], long(s.size()));
             in.close();
         }
-
+        s += "int getint();\n"
+             "int getch();\n"
+             "int getarray(int a[]);\n"
+             "void putint(int a);\n"
+             "void putch(int a);\n"
+             "void putarray(int n,int a[]);";
         auto ctx = create(s, path);
         _ctxCodes[ctx->contextID] = std::move(s);
         return ctx;
