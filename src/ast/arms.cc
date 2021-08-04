@@ -87,11 +87,13 @@ void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r11; i++)
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
+    regDescriptor.clear();
 }
 
 void Arms::cleanRegForEndFunc() {
     for (int i = r0; i <= r11; i++)
-        regs[i].isDirty = false;
+        if (regs[i].isDirty == true)
+            cleanReg((Register)i);
     regDescriptor.clear();
 }
 
@@ -416,6 +418,7 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
+    cleanRegForEndFunc();
     fprintf(fp, "\tadd sp, sp, #%d\n", frameSize);
     if (curFunc == "main")
         fprintf(fp, "\tpop {fp, pc}\n");
@@ -423,7 +426,6 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
         fprintf(fp, "\tpop {fp, lr}\n");
     fprintf(fp, "\tbx lr\n");
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
-    cleanRegForEndFunc();
 }
 
 void Arms::generateReturn(Var * result) {
