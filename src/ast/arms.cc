@@ -150,8 +150,8 @@ void Arms::fillReg(Var * src, Register reg) {
             if (src->isArray)
                 fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());  
             else {
-                fprintf(fp, "\tmovw %s, #:lower16:%s\n", regs[reg].name.c_str(), src->getName().c_str());
-                fprintf(fp, "\tmovt %s, #:upper16:%s\n", regs[reg].name.c_str(), src->getName().c_str());
+                fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());
+                fprintf(fp, "\tldr %s, [%s]\n", regs[reg].name.c_str(), regs[reg].name.c_str());
             }
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
@@ -245,8 +245,8 @@ void Arms::generateAssign(Var * dst, Var * src) {
         rd = (Register)pickRegForVar(dst);
         regs[rd].mutexLock = true;
         rs = (Register)findCleanReg();
-        fprintf(fp, "\tmovw %s, #:lower16:%s\n", regs[rs].name.c_str(), src->getName().c_str());
-        fprintf(fp, "\tmovt %s, #:upper16:%s\n", regs[rs].name.c_str(), src->getName().c_str());
+        fprintf(fp, "\tldr %s, =%s\n", regs[rs].name.c_str(), src->getName().c_str());
+        fprintf(fp, "\tldr %s, [%s]\n", regs[rs].name.c_str(), regs[rs].name.c_str());
         fprintf(fp, "\tmov %s, %s", regs[rd].name.c_str(), regs[rs].name.c_str());
         regDescriptorInsert(dst, rd);
         regs[rd].mutexLock = false;
