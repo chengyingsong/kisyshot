@@ -129,5 +129,6 @@ void ArmCodeGenerator::generateArmCode() {
         generateSpecial(*p, arms);
         p++;
     }
+    arms.generateEnders();
     fclose(arms.fp);
 }
