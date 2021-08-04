@@ -61,4 +61,5 @@ set(unittest
         test/sema.cc)
 
 add_executable(kisyshot main.cc ${core})
+add_executable(tester test/test_all.cc)
 # add_executable(tests ${unittest} ${core})
