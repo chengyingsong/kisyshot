@@ -301,11 +301,12 @@ namespace kisyshot::ast::syntax {
     }
 
     void ReturnStatement::genCode(compiler::CodeGenerator &gen,ast::Var* temp) {
+        Var *t = nullptr;
         if (value != nullptr) {
             //要求得返回表达式的值，构造返回语句
-            Var *t = value->getVar(gen);
-            gen.genReturn(t);
+            t = value->getVar(gen);
         }
+        gen.genReturn(t);
     }
 
     void BlockStatement::add(const std::shared_ptr<Statement> &child) {

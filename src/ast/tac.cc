@@ -173,10 +173,12 @@ namespace kisyshot::ast {
 
     Return::Return(Var *v) : Instruction(v) {
         numVars = 1;
-        assert(v != nullptr);
     }
 
-    std::string Return::toString() { return "Return " + src_1->getName(); }
+    std::string Return::toString() {
+        if (src_1 == nullptr) return "Return;";
+        else return "Return " + src_1->getName();
+    }
 
     InstructionType Return::getType() {
         return InstructionType::Return_;
