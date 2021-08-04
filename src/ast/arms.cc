@@ -172,9 +172,8 @@ void Arms::fillReg(Var * src, Register reg) {
 void Arms::spillReg(Var * dst, Register reg) {
     if (!(dst->isArray)) {
         if (dst->type == VarType::GlobalVar) {
-            rd = (Register)findCleanReg();
-            fprintf(fp, "\tldr %s, =%s\n", regs[rd].name.c_str(), dst->getName().c_str());
-            fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[rd].name.c_str(), dst->getName().c_str());
+            fprintf(fp, "\tldr %s, =%s\n", regs[r12].name.c_str(), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r12].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
             fprintf(fp, "\tstr %s, [r7, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
