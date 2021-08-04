@@ -204,7 +204,7 @@ Arms::Arms(const std::shared_ptr<Context> &context) {
     opName[0] = "add";
     opName[1] = "sub";
     opName[2] = "mul";
-    opName[3] = "div";
+    opName[3] = "sdiv";
     opName[4] = "no";
     opName[5] = "no";
     opName[6] = "no";
