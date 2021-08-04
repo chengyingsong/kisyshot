@@ -277,13 +277,24 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     fillReg(offset, rt);
     regDescriptorInsert(offset, rt);
     if (src->type == VarType::GlobalVar) {
+        rs = (Register)pickRegForVar(src);
+        regs[rs].mutexLock = true;
+        fillReg(src, rs);
+        regDescriptorInsert(src, rs);
         rd = (Register)pickRegForVar(dst);
         regs[rd].mutexLock = true;
-        fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rd].name.c_str(), src->getName().c_str(), regs[rt].name.c_str());
+        fillReg(dst, rd);
         regDescriptorInsert(dst, rd);
+        fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rd].name.c_str(), regs[rs].name.c_str(), regs[rt].name.c_str());
+        regs[rs].mutexLock = false;
         regs[rd].mutexLock = false;
+        regs[rt].mutexLock = false;
+        if (regs[rs].canDiscard)
+            discardVarInReg(src, rs);        
         if (regs[rd].canDiscard)
             discardVarInReg(dst, rd);
+        if (regs[rt].canDiscard)
+            discardVarInReg(offset, rt);
         if (offset->type == VarType::ConstVar)
             discardVarInReg(offset, rt);
         fprintf(fp, "\t@ %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
@@ -300,6 +311,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rd].name.c_str(), regs[rs].name.c_str(), regs[rt].name.c_str());
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
+    regs[rt].mutexLock = false;
     if (regs[rs].canDiscard)
         discardVarInReg(src, rs);
     if (regs[rd].canDiscard)
@@ -327,8 +339,14 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
         regDescriptorInsert(dst, rd);
         fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
         regs[rs].mutexLock = false;
+        regs[rd].mutexLock = false;
+        regs[rt].mutexLock = false;
         if (regs[rs].canDiscard)
             discardVarInReg(src, rs);
+        if (regs[rd].canDiscard)
+            discardVarInReg(dst, rd);
+        if (regs[rt].canDiscard)
+            discardVarInReg(offset, rt);
         if (offset->type == VarType::ConstVar)
             discardVarInReg(offset, rt);
         fprintf(fp, "\t@ %s[%s] = %s\n", dst->getName().c_str(), offset->getName().c_str(), src->getName().c_str());
@@ -346,6 +364,7 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
+    regs[rt].mutexLock = false;
     if (regs[rs].canDiscard)
         discardVarInReg(src, rs);
     if (regs[rd].canDiscard)
