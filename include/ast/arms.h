@@ -83,6 +83,7 @@ namespace kisyshot::ast {
         void generateCall(int numVars, std::string label, Var * result, int paramNum);
         void generateHeaders();
         void generateGlobal();
+        void generateEnders();
     };
 }
 

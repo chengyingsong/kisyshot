@@ -34,7 +34,7 @@ int Arms::findRegForVar(Var * var) {
 int Arms::findCleanReg() {
     int index = -1;
     for (int i = r0; i <= r11; i++) {
-        if (regs[i].isDirty == false && i != r7) {
+        if (regs[i].isDirty == false) {
             index = i;
             break;
         }
@@ -52,10 +52,9 @@ int Arms::selectRandomReg() {
     int select = 0;
     while (!flag) {
         select = rand() % 13;
-        if (select != r7)
-            if (regs[select].mutexLock == false)
-                if (regs[select].isDirty)
-                    flag = true;
+        if (regs[select].mutexLock == false)
+            if (regs[select].isDirty)
+                flag = true;
     }
 
     return select;
@@ -86,14 +85,13 @@ void Arms::cleanReg(Register reg) {
 
 void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r11; i++)
-        if (regs[i].isDirty == true && i != r7)
+        if (regs[i].isDirty == true)
             cleanReg((Register)i);
 }
 
 void Arms::cleanRegForEndFunc() {
     for (int i = r0; i <= r11; i++)
-        if (i != r7)
-            regs[i].isDirty = false;
+        regs[i].isDirty = false;
     regDescriptor.clear();
 }
 
@@ -159,9 +157,9 @@ void Arms::fillReg(Var * src, Register reg) {
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
             if (src->isArray)
-                fprintf(fp, "\tadd %s, [r7], #%d\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tadd %s, [fp], #%d\n", regs[reg].name.c_str(), getOffset(src));
             else
-                fprintf(fp, "\tldr %s, [r7, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
@@ -176,7 +174,7 @@ void Arms::spillReg(Var * dst, Register reg) {
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r12].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [r7, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [fp, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
     }
     regs[reg].isDirty = false;
 }
@@ -291,7 +289,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     rs = (Register)pickRegForVar(src);
     regs[rs].mutexLock = true;
     if (getRegContents(rs) != src)
-        fprintf(fp, "\tadd %s, r7, #%d\n", regs[rs].name.c_str(), getOffset(src));
+        fprintf(fp, "\tadd %s, , #%d\n", regs[rs].name.c_str(), getOffset(src));
     regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
@@ -340,7 +338,7 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
     if (getRegContents(rd) != dst)
-        fprintf(fp, "\tadd %s, r7, #%d\n", regs[rd].name.c_str(), getOffset(dst));
+        fprintf(fp, "\tadd %s, fp, #%d\n", regs[rd].name.c_str(), getOffset(dst));
     regDescriptorInsert(dst, rd);
     fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
     regs[rs].mutexLock = false;
@@ -409,20 +407,20 @@ void Arms::generateIfZ(Var * test, std::string label) {
 }
 
 void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
-    fprintf(fp, "\tpush {r7, lr}\n");
+    fprintf(fp, "\tpush {fp, lr}\n");
     fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
+    fprintf(fp, "\tadd fp, sp, #0\n");
     int parNum = ctx->functions[curFunc]->params.size();
     for (int i = 0; i < parNum; i++)
-        fprintf(fp, "\tstr r%d, [r7, #%d]\n", i, i * 4);
+        fprintf(fp, "\tstr r%d, [fp, #%d]\n", i, i * 4);
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tadd sp, sp, #%d\n", frameSize);
-    fprintf(fp, "\tmov sp, r7\n");
     if (curFunc == "main")
-        fprintf(fp, "\tpop {r7, pc}\n");
+        fprintf(fp, "\tpop {fp, pc}\n");
     else
-        fprintf(fp, "\tpop {r7, lr}\n");
+        fprintf(fp, "\tpop {fp, lr}\n");
     fprintf(fp, "\tbx lr\n");
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
     cleanRegForEndFunc();
@@ -494,4 +492,8 @@ void Arms::generateGlobal() {
         fprintf(fp, "%s:\n", s.second.c_str());
         fprintf(fp, "\t.ascii \"%s\\000\"\n", s.first.c_str());
     }
+}
+
+void Arms::generateEnders() {
+    fprintf(fp, "\t.section .note.GNU-stack,\"\",%%progbits");
 }
