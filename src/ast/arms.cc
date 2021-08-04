@@ -159,7 +159,7 @@ void Arms::fillReg(Var * src, Register reg) {
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
             if (src->isArray)
-                fprintf(fp, "\tadd %s, [fp], #%d\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
             else
                 fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
@@ -407,8 +407,7 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.align 1\n");
         fprintf(fp, "\t.global %s\n", label.c_str());
         fprintf(fp, "\t.syntax unified\n");
-        fprintf(fp, "\t.thumb\n");
-        fprintf(fp, "\t.thumb_func\n");
+        fprintf(fp, "\t.arch armv7-a\n");
         fprintf(fp, "\t.fpu neon\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
     }
