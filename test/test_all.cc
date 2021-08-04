@@ -19,8 +19,8 @@ int main(){
         if (entry.path().extension() == ".S") {
             std::cout << "file: " << entry.path().string() << std::endl;
             std::string p = entry.path().string();
-            std::string i = p.replace(p.find(".S"), 2, "");
-            std::string out = p.replace(p.find(".S"), 2, ".out");
+            p.replace(p.find(".S"), 2, "");
+            std::string out = p + ".out";
 
             system(("gcc " + entry.path().string() + " libsysy.a -o " + p).c_str());
 
