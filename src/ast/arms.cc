@@ -222,6 +222,7 @@ void Arms::generateDiscardVar(Var * var) {
     rd = (Register)pickRegForVar(var);
     fprintf(fp, "\t@ Last use of %s. Discard register %s\n", var->getName().c_str(), regs[rd].name.c_str());
     regs[rd].canDiscard = true;
+    discardVarInReg(var, rd);
 }
 
 void Arms::generateAssignConst(Var * dst, Var * src) {
@@ -291,7 +292,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     rs = (Register)pickRegForVar(src);
     regs[rs].mutexLock = true;
     if (getRegContents(rs) != src)
-        fprintf(fp, "\tadd %s, , #%d\n", regs[rs].name.c_str(), getOffset(src));
+        fprintf(fp, "\tadd %s, fp, #%d\n", regs[rs].name.c_str(), getOffset(src));
     regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
@@ -418,7 +419,6 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
-    cleanRegForEndFunc();
     fprintf(fp, "\tadd sp, sp, #%d\n", frameSize);
     if (curFunc == "main")
         fprintf(fp, "\tpop {fp, pc}\n");
@@ -429,6 +429,7 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
 }
 
 void Arms::generateReturn(Var * result) {
+    cleanRegForEndFunc();
     rs = (Register)pickRegForVar(result);
     fillReg(result, rs);
     fprintf(fp, "\tmov r0, %s\n", regs[rs].name.c_str());
