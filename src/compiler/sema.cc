@@ -95,7 +95,13 @@ namespace kisyshot::compiler {
                         }
                         param->dimension.push_back(value);
                     }
-
+                    auto dim = param->dimension;
+                    param->accumulation.push_back(1);
+                    while (!dim.empty()){
+                        param->accumulation.push_back(param->accumulation.back() * dim.back());
+                        dim.pop_back();
+                    }
+                    std::reverse(param->accumulation.begin(), param->accumulation.end());
                     param->offset = func->stackSize;
                     func->stackSize += 4;
                     newVariable(param);
@@ -138,17 +144,10 @@ namespace kisyshot::compiler {
                     std::dynamic_pointer_cast<ast::syntax::IndexExpression>(
                         expr);
 
-                _arrLayer++;
-
                 traverseExpression(e->indexedExpr);
                 traverseExpression(e->indexerExpr);
-                if (_arrLayer != 1) {
-                    auto def = _context->symbols[e->arrayName->mangledId];
-                    e->layer = def->dimension[def->dimensionDef.size() -
-                                              _arrLayer + 1];
-                }
 
-                _arrLayer--;
+                e->accumulation = _context->symbols[e->arrayName->mangledId]->accumulation[e->layer];
                 break;
             }
             case ast::syntax::SyntaxType::ArrayInitializeExpression: {

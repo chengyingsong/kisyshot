@@ -106,6 +106,7 @@ namespace kisyshot::ast::syntax{
         bool isStore= false;
         bool isOutSideLayer = false;
         std::size_t layer = 1;
+        std::size_t accumulation = 1;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };

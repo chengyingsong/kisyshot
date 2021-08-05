@@ -26,6 +26,7 @@ namespace kisyshot::ast::syntax {
         std::vector<std::shared_ptr<Expression>> dimensionDef;   //这里保存维度信息
         std::vector<std::shared_ptr<Expression>> srcArray;
         std::vector<int> dimension;                              //这里保存check后的维度信息
+        std::vector<int> accumulation;                           //这里保存累积维度
         std::vector<int> values;
         std::size_t equalTokenIndex = invalidTokenIndex;
         std::size_t offset;
