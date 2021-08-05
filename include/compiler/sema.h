@@ -15,6 +15,7 @@ namespace kisyshot::compiler{
         void traverseExpression(const std::shared_ptr<ast::syntax::Expression>& expr);
         void traverseStatement(const std::shared_ptr<ast::syntax::Statement>& stmt);
         void newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def);
+        void prepareArrayDef(const std::shared_ptr<ast::syntax::VarDefinition>& def);
 
         std::pair<int, bool> checkCompileTimeConstExpr(const std::shared_ptr<ast::syntax::Expression>& expr);
         void flattenArray(const std::shared_ptr<ast::syntax::VarDefinition>& def,const std::shared_ptr<ast::syntax::ArrayInitializeExpression> &init, size_t target, size_t dim = 0);

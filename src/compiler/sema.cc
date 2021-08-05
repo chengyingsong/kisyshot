@@ -55,25 +55,12 @@ namespace kisyshot::compiler {
                         checkCompileTimeConstExpr(def->initialValue);
                 def->values.emplace_back(ok ? value : 0);
             } else {
-                // check dimension and get const compile-time value
-                for (auto &dimExpr : def->dimensionDef) {
-                    std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
-                    if (!ok) {
-                        value = 0;
-                    }
-                    def->dimension.push_back(value);
-                }
-                size_t s = 1;
-                for (auto &&i : def->dimension) {
-                    // TODO : push error
-                    assert(i > 0);
-                    s *= i;
-                }
+                prepareArrayDef(def);
                 flattenArray(def,
                              std::dynamic_pointer_cast<
                                      ast::syntax::ArrayInitializeExpression>(
                                      def->initialValue),
-                             s);
+                             def->accumulation.front());
                 for (auto &expr : def->srcArray) {
 
                     std::tie(value, ok) = checkCompileTimeConstExpr(expr);
@@ -87,21 +74,7 @@ namespace kisyshot::compiler {
             if (func->body != nullptr) {
                 _layerNames.push_back(func->name->identifier);
                 for (auto &param : func->params) {
-                    // init param dimension info
-                    for (auto &dimExpr : param->dimensionDef) {
-                        std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
-                        if (!ok) {
-                            value = 0;
-                        }
-                        param->dimension.push_back(value);
-                    }
-                    auto dim = param->dimension;
-                    param->accumulation.push_back(1);
-                    while (!dim.empty()){
-                        param->accumulation.push_back(param->accumulation.back() * dim.back());
-                        dim.pop_back();
-                    }
-                    std::reverse(param->accumulation.begin(), param->accumulation.end());
+                    prepareArrayDef(param);
                     param->offset = func->stackSize;
                     func->stackSize += 4;
                     newVariable(param);
@@ -301,18 +274,7 @@ namespace kisyshot::compiler {
                      std::dynamic_pointer_cast<ast::syntax::VarDeclaration>(
                          stmt)
                          ->varDefs) {
-                    // check dimension and get const compile-time value
-                    for (auto& dimExpr : def->dimensionDef) {
-                        int value;
-                        bool ok;
-                        std::tie(value, ok) =
-                            checkCompileTimeConstExpr(dimExpr);
-                        if (!ok) {
-                            value = 0;
-                        }
-                        def->dimension.push_back(value);
-                    }
-                    //std::reverse(def->dimension.begin(), def->dimension.end());
+                    prepareArrayDef(def);
 
                     newVariable(def);
                     if (def->initialValue != nullptr) {
@@ -461,5 +423,25 @@ namespace kisyshot::compiler {
             e->rawCode = "0";
             def->srcArray.push_back(e);
         }
+    }
+
+    void Sema::prepareArrayDef(const std::shared_ptr<ast::syntax::VarDefinition> &def) {
+        int value;
+        bool ok;
+        for (auto &dimExpr : def->dimensionDef) {
+            std::tie(value, ok) = checkCompileTimeConstExpr(dimExpr);
+            if (!ok) {
+                value = 0;
+            }
+            def->dimension.push_back(value);
+        }
+        auto dim = def->dimension;
+        def->accumulation.push_back(1);
+        while (!dim.empty()){
+            def->accumulation.push_back(def->accumulation.back() * dim.back());
+            dim.pop_back();
+        }
+        std::reverse(def->accumulation.begin(), def->accumulation.end());
+        def->accumulation.back() = -1;
     }
 } // namespace kisyshot::compiler
