@@ -17,7 +17,7 @@ namespace kisyshot::ast::syntax {
 
         std::shared_ptr<Type> returnType = nullptr;
         std::shared_ptr<Identifier> name = nullptr;
-        std::shared_ptr<Statement> body = nullptr;
+        std::shared_ptr<BlockStatement> body = nullptr;
         std::vector<std::shared_ptr<VarDefinition>> params;
         std::size_t lParenIndex = invalidTokenIndex;
         std::size_t rParenIndex = invalidTokenIndex;
