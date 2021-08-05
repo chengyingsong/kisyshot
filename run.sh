@@ -1,1 +1,1 @@
-cd artifacts && ./kisyshot
+cd artifacts && ./kisyshot -S -o out.s  path/to/input.sy cases/function_test2020/$1
