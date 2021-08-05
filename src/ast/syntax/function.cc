@@ -21,7 +21,7 @@ namespace kisyshot::ast::syntax {
         if (body != nullptr) {
             for (auto &param : params) {
                 //TODO:要不要声明一下参数呀
-                    param->genCode(gen, nullptr);
+                    param->genCode(gen, gen.getConstVar(0));
             }
 
             std::string funName = name->identifier;

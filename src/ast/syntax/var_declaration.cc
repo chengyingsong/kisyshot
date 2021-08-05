@@ -146,6 +146,9 @@ namespace kisyshot::ast::syntax {
         if(!dimensionDef.empty()){
             src_1->isArray = true;
         }
+        if(temp != nullptr){
+            src_1->isParam = true;
+        }
         if(initialValue != nullptr && temp == nullptr){  //代表有初始化语句
             if(initialValue->getType() ==SyntaxType::ArrayInitializeExpression) {
                 //数组初始化,先设置数组属性

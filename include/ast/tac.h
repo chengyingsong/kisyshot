@@ -33,6 +33,7 @@ namespace kisyshot::ast {
         std::string  s;
         VarType type;
         bool isArray = false;  //如果是数组，在初始化类Var的时候设置isArray为true。
+        bool isParam = false; //形参
 
         //传入一个变量名建立一个Var对象，需要判断是否是全局变量
         Var(std::string variableName);
