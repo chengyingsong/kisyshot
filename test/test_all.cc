@@ -68,17 +68,17 @@ int main(int argc, char* argv[]) {
         sorted.insert(entry.path());
 
     for (const auto& fpath : sorted) {
-        if (fpath.extension() == ".S") {
+        if (fpath.extension() == ".sy") {
             std::cout << "file: " << fpath.string() << std::endl;
             std::string p = fpath.string();
-            p.replace(p.find(".S"), 2, "");
+            p.replace(p.find(".sy"), 3, "");
             std::string in = p + ".in";
             
             std::string out = p + ".out";
-            std::cout << exec(("./kisyshot -S -o " + fpath.string() + " " + p + ".sy"));
+            std::cout << exec(("./kisyshot -S -o " + p + ".s " + fpath.string()));
             if (argc > 1 && std::string(argv[1]) == std::string("-r")) {
                 std::cout << exec(
-                    ("gcc " + fpath.string() + " libsysy.a -o " + p));
+                    ("gcc " + p + ".s libsysy.a -o " + p));
                 if(std::filesystem::exists(in))
                     p += " < " + in;
                 std::cout << exec(("./" + p));
