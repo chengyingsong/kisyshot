@@ -14,6 +14,7 @@ int main() {
     auto sm = std::make_shared<kisyshot::ContextManager>();
     for (const auto& entry: std::filesystem::directory_iterator("cases/function_test2020")) {
         if(entry.path().extension() == ".sy") {
+            std::cout << entry.path() << std::endl;
             auto ctx = sm->load(entry.path().string());
             sm->lex(ctx->contextID);
             sm->parse(ctx->contextID);

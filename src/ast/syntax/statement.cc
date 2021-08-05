@@ -361,8 +361,8 @@ namespace kisyshot::ast::syntax {
                 child->inTheWhile = true;
                 child->beginLabel = beginLabel;
                 child->endLabel = endLabel;
-                child->endFuncLabel = endFuncLabel;
             }
+            child->endFuncLabel = endFuncLabel;
             child->genCode(gen, nullptr);
 
         }
