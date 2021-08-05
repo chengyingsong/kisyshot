@@ -454,7 +454,7 @@ void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string l
         fprintf(fp, "\t@ %s == %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
     }
     if (opType == TokenType::op_exclaimeq) {
-        fprintf(fp, "\tbnq %s", label.c_str());
+        fprintf(fp, "\tbne %s", label.c_str());
         fprintf(fp, "\t@ %s != %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
     }
     if (opType == TokenType::op_greater) {
