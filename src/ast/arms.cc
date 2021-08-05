@@ -578,5 +578,5 @@ void Arms::generateGlobal() {
 }
 
 void Arms::generateEnders() {
-    fprintf(fp, "\t.section .note.GNU-stack,\"\",%%progbits");
+    fprintf(fp, "\t.section .note.GNU-stack,\"\",%%progbits\n");
 }
