@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
             std::string in = p + ".in";
             
             std::string out = p + ".out";
-            std::cout << exec(("./kisyshot -S -o " + fpath.string() + " " + p));
+            std::cout << exec(("./kisyshot -S -o " + fpath.string() + " " + p + ".sy"));
             if (argc > 1 && std::string(argv[1]) == std::string("-r")) {
                 std::cout << exec(
                     ("gcc " + fpath.string() + " libsysy.a -o " + p));
