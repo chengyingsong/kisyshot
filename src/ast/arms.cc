@@ -158,8 +158,12 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
-            if (src->isArray)
-                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+            if (src->isArray) {
+                if (src->isParam)
+                    fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                else
+                    fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
+            }
             else
                 fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
@@ -305,8 +309,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     }
     rs = (Register)pickRegForVar(src);
     regs[rs].mutexLock = true;
-    if (getRegContents(rs) != src)
-        fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[rs].name.c_str(), getOffset(src));
+    fillReg(src, rs);
     regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
@@ -361,8 +364,7 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
-    if (getRegContents(rd) != dst)
-        fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[rd].name.c_str(), getOffset(dst));
+    fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
     fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
     regs[rs].mutexLock = false;
