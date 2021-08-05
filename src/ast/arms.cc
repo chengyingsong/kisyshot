@@ -167,9 +167,9 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::ConstVar)
         fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
-    if (src->type == VarType::TempVar) {
-        fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
-    }
+    if (src->type == VarType::TempVar)
+        if (((int)preReg != -1) && (preReg != reg))
+            fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
 }
 
 void Arms::spillReg(Var * dst, Register reg) {
