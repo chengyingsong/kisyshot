@@ -69,25 +69,28 @@ namespace kisyshot::ast::syntax {
         Var* t1 = condition->getVar(gen);
         if(elseClause != nullptr) {
             std::string falseLabel = gen.newLabel();
-            std::string endLabel = gen.newLabel();
+            std::string ifEndLabel = gen.newLabel();
             gen.genIFZ(t1, falseLabel);
             ifClause->inTheWhile = inTheWhile;
             ifClause->beginLabel = beginLabel;
             ifClause->endLabel = endLabel;
+            ifClause->endFuncLabel = endFuncLabel;
             ifClause->genCode(gen, nullptr);
-            gen.genGOTO(endLabel);
+            gen.genGOTO(ifEndLabel);
             gen.genLabel(falseLabel);
             elseClause->inTheWhile = inTheWhile;
             elseClause->beginLabel = beginLabel;
             elseClause->endLabel = endLabel;
+            elseClause->endFuncLabel = endFuncLabel;
             elseClause->genCode(gen, nullptr);
-            gen.genLabel(endLabel);
+            gen.genLabel(ifEndLabel);
         } else{
             std::string falseLabel = gen.newLabel();
             gen.genIFZ(t1,falseLabel);
             ifClause->inTheWhile = inTheWhile;
             ifClause->beginLabel = beginLabel;
             ifClause->endLabel = endLabel;
+            ifClause->endFuncLabel = endFuncLabel;
             ifClause->genCode(gen, nullptr);
             gen.genLabel(falseLabel);
         }
@@ -148,6 +151,7 @@ namespace kisyshot::ast::syntax {
         body->inTheWhile = true;
         body->beginLabel = beginLabel;
         body->endLabel = endLabel;
+        body->endFuncLabel = endFuncLabel;
         body->genCode(gen, nullptr);
         gen.genGOTO(beginLabel);
         gen.genLabel(endLabel);
@@ -219,7 +223,6 @@ namespace kisyshot::ast::syntax {
     }
 
     void BreakStatement::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        //TODO: break语句，
         gen.genGOTO(endLabel); //跳出循环
     }
 
@@ -307,6 +310,7 @@ namespace kisyshot::ast::syntax {
             t = value->getVar(gen);
         }
         gen.genReturn(t);
+        gen.genGOTO(endFuncLabel);
     }
 
     void BlockStatement::add(const std::shared_ptr<Statement> &child) {
@@ -357,6 +361,7 @@ namespace kisyshot::ast::syntax {
                 child->inTheWhile = true;
                 child->beginLabel = beginLabel;
                 child->endLabel = endLabel;
+                child->endFuncLabel = endFuncLabel;
             }
             child->genCode(gen, nullptr);
 

@@ -505,7 +505,7 @@ void Arms::generateGlobal() {
         fprintf(fp, "\t.data\n");
         fprintf(fp, "\t.align 2\n");
         fprintf(fp, "\t.type %s, %%object\n", ctx->globals[i]->varName->toString().c_str());
-        fprintf(fp, "\t.size %s, %lld\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
+        fprintf(fp, "\t.size %s, %lu\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
         fprintf(fp, "%s:\n", ctx->globals[i]->varName->toString().c_str());
         for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
             fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);

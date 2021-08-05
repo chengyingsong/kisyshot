@@ -25,9 +25,12 @@ namespace kisyshot::ast::syntax {
             }
 
             std::string funName = name->identifier;
+            std::string endFuncLabel = gen.newLabel();
             gen.genLabel(funName);
             gen.genBeginFunc(stackSize);  //设置栈帧写在beginFunc中
+            body->endFuncLabel = endFuncLabel;
             body->genCode(gen, nullptr); //body是Statement类型
+            gen.genLabel(endFuncLabel);
             gen.genEndFunc();
         }
     }

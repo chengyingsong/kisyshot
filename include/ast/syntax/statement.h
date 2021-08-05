@@ -15,6 +15,7 @@ namespace kisyshot::ast::syntax{
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override = 0;
         std::string endLabel;  //While循环中的结尾
         std::string beginLabel;  //While循环中的开始
+        std::string endFuncLabel;  //函数的结尾Label
         bool inTheWhile = false;
 
     };
@@ -70,7 +71,6 @@ namespace kisyshot::ast::syntax{
         std::size_t tokenIndex = invalidTokenIndex;
     };
 
-    //TODO: 支持break和continue
     class BreakStatement:public Statement{
     public:
         void forEachChild(const std::function<void (std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
