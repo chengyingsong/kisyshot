@@ -411,6 +411,7 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.global %s\n", label.c_str());
         fprintf(fp, "\t.syntax unified\n");
         fprintf(fp, "\t.arch armv7-a\n");
+        fprintf(fp, "\t.arch armv7ve\n");
         fprintf(fp, "\t.fpu neon\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
     }
@@ -490,6 +491,7 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
 
 void Arms::generateHeaders() {
     fprintf(fp, "\t.arch armv7-a\n");
+    fprintf(fp, "\t.arch armv7ve\n");
 	fprintf(fp, "\t.eabi_attribute 28, 1\n");
 	fprintf(fp, "\t.eabi_attribute 20, 1\n");
 	fprintf(fp, "\t.eabi_attribute 21, 1\n");
