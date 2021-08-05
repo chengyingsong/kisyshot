@@ -13,6 +13,7 @@ namespace kisyshot{
     };
     class Context{
     public:
+        std::string target;
         /**
          * The path of the given code, used in diagnostic.
          */

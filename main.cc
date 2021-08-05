@@ -1,7 +1,5 @@
-#include <iostream>
 #include <memory>
 #include <filesystem>
-#include <set>
 
 #include "ast/syntax/syntax_ostream_writer.h"
 #include "context_manager.h"
@@ -11,17 +9,11 @@
 
 using namespace kisyshot::ast;
 
-int main() {
-    auto sm = std::make_shared<kisyshot::ContextManager>();
-    std::set<std::string> paths;
-    for (const auto& entry: std::filesystem::directory_iterator("cases/function_test2020")) {
-        if(entry.path().extension() == ".sy") {
-            paths.insert(entry.path().string());
-        }
-    }
-    for(const auto& entry: paths){
-        std::cout << entry << std::endl;
-        auto ctx = sm->load(entry);
+int main(int argc, char* argv[]) {
+    if (argc == 5) {
+        auto sm = std::make_shared<kisyshot::ContextManager>();
+        auto ctx = sm->load(std::string(argv[4]));
+        ctx->target = argv[3];
         sm->lex(ctx->contextID);
         sm->parse(ctx->contextID);
         sm->check(ctx->contextID);

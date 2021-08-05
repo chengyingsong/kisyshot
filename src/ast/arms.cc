@@ -220,9 +220,7 @@ Arms::Arms(const std::shared_ptr<Context> &context) {
     opName[9] = "no";
     opName[10] = "no";
 
-    std::string p = context->path;
-    p = p.replace(p.find(".sy"), 3, ".S");
-    fp = fopen(p.c_str(), "w+");
+    fp = fopen(context->target.c_str(), "w+");
 }
 
 void Arms::generateDiscardVar(Var * var) {
