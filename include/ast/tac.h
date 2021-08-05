@@ -1,124 +1,211 @@
 #pragma once
-#define Numops 11
 
-#include "variable.h"
+#include <string>
+#include "token.h"
+
 
 namespace kisyshot::ast {
+    enum VarType{
+        ConstVar,
+        GlobalVar,
+        LocalVar,
+        TempVar,
+        StringVar,
+    };
+
     class Var {
+        //TODO: 完成四种类型的变量和offset设置
         /*
-        Var是表示四元式里，操作数的数据结构。操作数有临时变量类型，符号表指针类型和整型
+        Var是表示四元式里，操作数的数据结构。操作数有临时变量类型，全局变量类型和整型
+         变量有重整名,字符串是当作字符串常量处理。
+        关于全局变量和局部变量的问题，在Var中判断类型后，可以使用getname方法得到重整名
+         ，然后在context中map[key]得到符号表项，一般来说是VarDefination节点，其中有属性
+         offset和width，都是公开的。
+         例子：
+        if(v->type == VarType::LocalVar){
+            ctx->symbols[v->getName()]->offset  (建议可以在你的文件中写一个这个方法
+
+         }
         */
     public:
-        TempVar temp;
-        SymbolTable * p;
-        int which = 0;  //Which为0表示空，1为临时变量，2为符号表条目
-        Var(TempVar temp);
-        Var(SymbolTable * p);
+        std::string variableName;  //变量名，可以是变量名或者变量重整名
+        int value;
+        std::string  s;
+        VarType type;
+        bool isArray = false;  //如果是数组，在初始化类Var的时候设置isArray为true。
+        bool isParam = false; //形参
+
+        //传入一个变量名建立一个Var对象，需要判断是否是全局变量
+        Var(std::string variableName);
+
+        //传入常量
+        Var(int value);
+
+
+        Var();
+
+        //常数返回数值转字符串，其他类型返回名字
+        std::string getName();
+
+        std::string getBase();
+    };
+
+    enum InstructionType{
+        Binary_op_,
+        GOTO_,
+        Label_,
+        IfZ_,
+        Assign_,
+        Load_,
+        Store_,
+        Param_,
+        Call_,
+        Return_,
+        BeginFunc_,
+        EndFunc_,
+        CMP_
     };
 
     class Instruction {
-        
-        public:
-            virtual void print();
-            virtual void toString();
+        //一个基类，表示各种指令
+    public:
+        //返回指令的三地址码
+        virtual std::string toString() = 0;
+        virtual InstructionType getType() = 0;
+        //void generate();
 
-            void generate();
+        Var*  src_1;
+        Var*  src_2;
+        Var*  dst;
+        int numVars;
+        Instruction();
+        Instruction(Var* src_1);
+        Instruction(Var* src_1,Var* src_2);
+        Instruction(Var* src_1,Var* src_2,Var* dst);
+    };
 
-            Var  src_1;
-            Var  src_2;
-            Var  dst;
-            
-            int numVars;
+
+    //统一把Dst放在最后。也就是左值一般是最后一个参数。
+
+    class CMP :Instruction {
+    public:
+        TokenType opType;
+        std::string label;
+        std::string toString() override;
+        InstructionType getType() override;
+        CMP(TokenType opType,Var* src_1,Var* src_2,std::string &label);
     };
 
     class Binary_op : Instruction{
-        public:
+    public:
+        static const int NumOps = 11;
         typedef enum {Add,Sub,Mul,Div,Mod,Less,Greater,Equaleq,Exclaimeq,Greatereq,Lesseq} OpCode; //后面是关系表达式
-        static const char* const opName[Numops]; //每一个索引对应的运算符号
-        static OpCode opCodeForName(const char* name);
+        static std::string opName[NumOps]; //每一个索引对应的运算符号
+        //返回名字对应的code
+        static OpCode opCodeForName(std::string &name);
+        std::string toString() override;
+        InstructionType getType() override;
 
-        OpCode code;
-        Var src_1,src_2,dst;
-        
-
-        Binary_op(OpCode c,Var &src_1,Var &src_2,Var &Dst);
-        void generate();
+        OpCode code;   //运算符号类型
+        //Var *src_1,*src_2,*dst;
+        //一个构造器
+        Binary_op(OpCode c,Var *src_1,Var *src_2,Var *Dst);
     };
+
     //中间代码生成后无 逻辑表达式，也就是没有A && B
+
 
     class GOTO :Instruction {
     public:
-        int label;
-        GOTO(int label);
-        void genrate();
+        std::string label;
+        GOTO(std::string &label);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
-    class If :Instruction {
+
+    class Label :Instruction {
     public:
-        Var condition;
-        int trueLabel;
-        int falseLabel;
-        If(Var& condition,int trueLabel,int falseLabel);  
+        std::string label;
+        Label(std::string &label);
+        std::string toString() override;
+        InstructionType getType() override;
+    };
+
+    class IfZ :Instruction {
+    public:
+        //如果conditon的值为0则跳转到label处
+        std::string trueLabel;
+        IfZ(Var* condition,std::string &trueLabel);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Assign : Instruction {
+        //Assign是两个变量之间的赋值
     public:
-        TempVar  t1;
-        TempVar  t2;  
-        //t2 = t1
-        Assign(TempVar&t1,TempVar&t2);
+        Assign(Var* t1,Var *t2);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
 
     class Load : Instruction {
+        //Load是把数组的值取出来
     public:
-        TempVar t1;
-        SymbolTable * p;
-        //从p中取数赋值给t1
-        Load(TempVar &t1,SymbolTable *p);
+        Load(Var *src_1,Var* src_2,Var* dst);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
 
     class Store : Instruction {
+        //Store是把值存入数组中
     public:
-        TempVar &t1;
-        SymbolTable * p;
-        //从t1赋值给p
-        Store(TempVar &t1,SymbolTable *p);
+        Store(Var *src_1,Var* src_2,Var *dst);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Param : Instruction {
     public:
-        Var par;
-        Param(Var &par);
+        Param(Var* par);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Call : Instruction {
     public:
-        int funLabel;
+        std::string funLabel;
         int n; //参数个数
-        Call(int funLabel,int n);
+        Call(std::string &funLabel,int n);
+        Call(std::string &funLabel,int n,Var* result);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
     class Return: Instruction {
-        Var v;
     public:
-        Return(Var & v);
-
+        Return(Var * v);
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
     class BeginFunc : Instruction {
-        int frameSize;
     public:
+        int frameSize;
         BeginFunc();
-        void setFrameSize(int numBytesForLocalsAndTemps); 
-        
+        std::string toString() override;
+        InstructionType getType() override;
+        //TODO: 设置栈帧
+        void setFrameSize(int numBytesForLocalsAndTemps);
     };
 
     class EndFunc : Instruction {
     public:
         EndFunc();
-
+        std::string toString() override;
+        InstructionType getType() override;
     };
 
 }

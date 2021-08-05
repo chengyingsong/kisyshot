@@ -2,6 +2,7 @@
 
 #include <compiler/lexer.h>
 #include <compiler/parser.h>
+#include <compiler/sema.h>
 #include <fstream>
 namespace kisyshot{
     std::shared_ptr<Context> ContextManager::create(const std::string_view& code, const std::string & path) {
@@ -22,7 +23,7 @@ namespace kisyshot{
         return nullptr;
     }
 
-    ContextManager::ContextManager(): diagnosticStream(std::make_shared<diagnostics::DiagnosticStream>()) {
+    ContextManager::ContextManager(): diagnosticStream(std::make_shared<diagnostic::DiagnosticStream>()) {
 
     }
 
@@ -32,6 +33,10 @@ namespace kisyshot{
 
     void ContextManager::parse(std::size_t index) {
         compiler::Parser(_contexts[index],diagnosticStream).parse();
+    }
+
+    void ContextManager::check(std::size_t index){
+        compiler::Sema(_contexts[index],diagnosticStream).check();
     }
 
     std::shared_ptr<Context> ContextManager::load(const std::string &path) {
@@ -44,7 +49,12 @@ namespace kisyshot{
             in.read(&s[0], long(s.size()));
             in.close();
         }
-
+        s += "int getint();\n"
+             "int getch();\n"
+             "int getarray(int a[]);\n"
+             "void putint(int a);\n"
+             "void putch(int a);\n"
+             "void putarray(int n,int a[]);";
         auto ctx = create(s, path);
         _ctxCodes[ctx->contextID] = std::move(s);
         return ctx;

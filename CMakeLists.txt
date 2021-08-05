@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.11)
 project(kisyshot)
 
 if (MSVC_VERSION GREATER_EQUAL "1900")
@@ -7,6 +7,7 @@ if (MSVC_VERSION GREATER_EQUAL "1900")
     if (_cpp_latest_flag_supported)
         add_compile_options("/std:c++latest")
     endif()
+    add_compile_options(/utf-8)
     add_compile_definitions(NOMINMAX)
 else()
     if(MINGW)
@@ -34,24 +35,31 @@ set(core
         src/ast/syntax/expression.cc
         src/ast/syntax/function.cc
         src/ast/syntax/identifier.cc
-        src/ast/syntax/param_list.cc
         src/ast/syntax/statement.cc
         src/ast/syntax/syntax_node.cc
         src/ast/syntax/syntax_ostream_writer.cc
         src/ast/syntax/syntax_unit.cc
         src/ast/syntax/type.cc
         src/ast/syntax/var_declaration.cc
+        src/ast/tac.cc
         src/ast/token.cc
+        src/ast/cfg.cc
+        src/ast/arms.cc
+        src/compiler/codegen.cc
         src/compiler/lexer.cc
         src/compiler/parser.cc
-        src/diagnostics/diagnostic.cc
-        src/diagnostics/diagnostic_builder.cc
-        src/diagnostics/diagnostic_stream.cc
+        src/compiler/armcode.cc
+        src/compiler/sema.cc
+        src/diagnostic/diagnostic.cc
+        src/diagnostic/diagnostic_stream.cc
         src/context.cc
         src/context_manager.cc)
 set(unittest
         test/main.cc
-        test/lex.cc)
+        test/lex.cc
+        test/parse.cc
+        test/sema.cc)
 
 add_executable(kisyshot main.cc ${core})
-add_executable(tests ${unittest} ${core})
+add_executable(tester test/test_all.cc)
+# add_executable(tests ${unittest} ${core})

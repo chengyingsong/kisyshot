@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include<compiler/codegen.h>
 
 namespace kisyshot::ast::syntax{
     enum class SyntaxType{
@@ -33,6 +34,7 @@ namespace kisyshot::ast::syntax{
         UnaryExpression,
         IdentifierExpression,
         NumericLiteralExpression,
+        StringLiteralExpression,
         CallExpression,
         IndexExpression,
         ParenthesesExpression,
@@ -42,8 +44,9 @@ namespace kisyshot::ast::syntax{
         InterlineComment
     };
     std::ostream & operator<<(std::ostream& s,SyntaxType type);
-    template <class TListElem>
-    class ISyntaxContext;
+
+    //class ISyntaxContext{};
+
     class SyntaxNode{
     public:
         virtual void forEachChild(const std::function<void(std::weak_ptr<SyntaxNode>,bool)>& syntaxWalker) = 0;
@@ -53,6 +56,8 @@ namespace kisyshot::ast::syntax{
         virtual std::size_t start() = 0;
         virtual std::size_t end() = 0;
         virtual ~SyntaxNode() = default;
+        //需要生成中间代码的节点实现该方法
+        virtual void genCode(compiler::CodeGenerator &gen,ast::Var* temp) = 0;
         constexpr static std::size_t invalidTokenIndex = std::numeric_limits<std::size_t>::max();
     };
 

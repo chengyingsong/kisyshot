@@ -14,9 +14,9 @@ namespace kisyshot::ast::syntax{
         void add(const std::shared_ptr<VarDeclaration> &child) override;
         void add(const std::shared_ptr<Function> &child) override;
         void forEachChild(const std::function<void (std::weak_ptr<SyntaxNode>, bool)> &syntaxWalker) override;
+        void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t start() override;
         std::size_t end() override;
-    private:
-        std::vector<std::shared_ptr<SyntaxNode>> _syntax;
+        std::vector<std::shared_ptr<SyntaxNode>> children;
     };
 }

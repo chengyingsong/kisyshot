@@ -4,20 +4,19 @@
 
 using namespace kisyshot;
 using namespace kisyshot::ast;
-using namespace kisyshot::diagnostics;
+using namespace kisyshot::diagnostic;
 
 
 TEST_CASE("lex_test_expected_errors") {
     auto sm = std::make_shared<kisyshot::ContextManager>();
     sm->load("cases/lex/octal_overflow.sy");
     sm->load("cases/lex/comment_not_close.sy");
+    sm->load("cases/lex/string_not_close.sy");
     sm->lex(0);
     sm->lex(1);
-    REQUIRE(sm->diagnosticStream->diagnostic.size() == 3);
-    REQUIRE(sm->diagnosticStream->diagnostic[0]->errorCode == CompileError::InvalidNumericConst);
-    REQUIRE(sm->diagnosticStream->diagnostic[1]->errorCode == CompileError::InvalidNumericConst);
-    REQUIRE(sm->diagnosticStream->diagnostic[2]->errorCode == CompileError::InterlineCommentNotClosed);
-
+    sm->lex(2);
+    std::cout << *(sm->diagnosticStream);
+    REQUIRE(sm->diagnosticStream->diagnostics.size() == 4);
 }
 
 TEST_CASE("lex_test_expected_full_success") {
@@ -161,7 +160,7 @@ TEST_CASE("lex_test_expected_full_success") {
             TokenType::l_paren, TokenType::numeric_literal, TokenType::r_paren, TokenType::semi, TokenType::kw_return,
             TokenType::numeric_literal, TokenType::semi, TokenType::r_brace, TokenType::eof
     };
-    REQUIRE(sm->diagnosticStream->diagnostic.empty());
+    REQUIRE(sm->diagnosticStream->diagnostics.empty());
     auto &tokens = sm->access(0)->tokens;
     REQUIRE(tokens.size() == reference.size());
     for (size_t i = 0; i < tokens.size(); ++i) {

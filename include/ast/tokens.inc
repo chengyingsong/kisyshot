@@ -40,7 +40,8 @@ TOKEN(interline_comment)    // inter-line comment
 
 // yuuki language user input tokens
 TOKEN(identifier)           // identifier like: _some_variable
-TOKEN(numeric_literal)        // numeric const like: 01237
+TOKEN(numeric_literal)      // numeric const like: 01237
+TOKEN(string_literal)       // string const like: "abc"
 
 // operator definitions
 PUNCTUATOR(l_paren,     "(")
