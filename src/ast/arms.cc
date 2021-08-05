@@ -451,12 +451,13 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
 
 void Arms::generateReturn(Var * result) {
     cleanRegForEndFunc();
-        if (result != nullptr) {
-            rs = (Register)pickRegForVar(result);
-            fillReg(result, rs);
-            fprintf(fp, "\tmov r0, %s\n", regs[rs].name.c_str());
-            fprintf(fp, "\t@ return %s\n", result->getName().c_str());
-        }
+    if (result != nullptr) {
+        rs = (Register)pickRegForVar(result);
+        fillReg(result, rs);
+        fprintf(fp, "\tmov r0, %s\n", regs[rs].name.c_str());
+        fprintf(fp, "\t@ return %s\n", result->getName().c_str());
+    }
+    return;
 }
 
 void Arms::generateParam(Var * arg, int num) {

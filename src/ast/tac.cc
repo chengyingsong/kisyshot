@@ -172,7 +172,10 @@ namespace kisyshot::ast {
     }
 
     Return::Return(Var *v) : Instruction(v) {
-        numVars = 1;
+        if (v == nullptr)
+            numVars = 0;
+        else
+            numVars = 1;
     }
 
     std::string Return::toString() {
