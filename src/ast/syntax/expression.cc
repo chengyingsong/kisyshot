@@ -437,7 +437,7 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
             gen.genBinaryOp(add, temp, t1, temp);  //offset = offset + j*dim;
         } else {
             //最内层
-            gen.genBinaryOp(time, temp, gen.getConstVar(accumulation), current_offset);  // offset = i * dim
+            gen.genBinaryOp(time, gen.getConstVar(accumulation), current_offset, temp);  // offset = i * dim
         }
     }
 
