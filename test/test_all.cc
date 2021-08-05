@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
             std::string out = p + ".out";
             auto mid = exec(("./kisyshot -S -o " + p + ".s " + fpath.string()));
             if (argc > 1 && std::string(argv[1]) == std::string("-r")) {
-                std::cout << exec(
+                exec(
                     ("gcc " + p + ".s libsysy.a -o " + p));
                 if(std::filesystem::exists(in))
                     p += " < " + in;
