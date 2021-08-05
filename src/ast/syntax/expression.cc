@@ -400,12 +400,7 @@ std::string IndexExpression::toString() {
 void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
     //递归计算 a[i][j] = a[i] + j = a + i* dim1 + j
     /*a[i][j][k]
-     * t = i
-     * t = t * dim2
-     * t = t + j
-     * t = t * dim3
-     * t = t + k
-     * (t = (i*dim2 + j) *dim3 + k)
+     * t  = i * ;
      *
      */
     std::string time = "*";
@@ -426,18 +421,23 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         Var *base = gen.name2VarMap[arrayName->mangledId];
         if(isStore)
             gen.genStore(temp,base,t);
-        else
-            gen.genLoad(base, t, temp);  //结果保存在offset中
+        else{
+            if(accumulation == -1)  //说明是一个数
+                gen.genLoad(base, t, temp);  //结果保存在offset中
+            else  //说明是部分地址
+               gen.genBinaryOp(add,base,t,temp);
+        }
+
     } else {
         //t = offset*layer
         if (indexedExpr->getType() == SyntaxType::IndexExpression) {
             indexedExpr->genCode(gen, temp);
-            gen.genBinaryOp(add, temp, current_offset, temp);  //offset = offset + j;
-            gen.genBinaryOp(time, temp, gen.getConstVar(layer), temp);  // offset = offset * dim
+            Var* t1 = gen.newTempVar();
+            gen.genBinaryOp(time,current_offset,gen.getConstVar(accumulation),t1);
+            gen.genBinaryOp(add, temp, t1, temp);  //offset = offset + j*dim;
         } else {
             //最内层
-            gen.genAssign(current_offset, temp);  //offset = i;
-            gen.genBinaryOp(time, temp, gen.getConstVar(layer), temp);  // offset = offset * dim
+            gen.genBinaryOp(time, temp, gen.getConstVar(accumulation), current_offset);  // offset = i * dim
         }
     }
 
