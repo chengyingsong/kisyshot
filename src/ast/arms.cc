@@ -159,7 +159,7 @@ void Arms::fillReg(Var * src, Register reg) {
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
             if (src->isArray)
-                fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
             else
                 fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
@@ -306,7 +306,7 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     rs = (Register)pickRegForVar(src);
     regs[rs].mutexLock = true;
     if (getRegContents(rs) != src)
-        fprintf(fp, "\tadd %s, fp, #%d\n", regs[rs].name.c_str(), getOffset(src));
+        fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[rs].name.c_str(), getOffset(src));
     regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
@@ -362,7 +362,7 @@ void Arms::generateStore(Var * dst, Var * offset, Var * src) {
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
     if (getRegContents(rd) != dst)
-        fprintf(fp, "\tadd %s, fp, #%d\n", regs[rd].name.c_str(), getOffset(dst));
+        fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[rd].name.c_str(), getOffset(dst));
     regDescriptorInsert(dst, rd);
     fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
     regs[rs].mutexLock = false;
@@ -564,7 +564,7 @@ void Arms::generateGlobal() {
         fprintf(fp, "\t.data\n");
         fprintf(fp, "\t.align 2\n");
         fprintf(fp, "\t.type %s, %%object\n", ctx->globals[i]->varName->toString().c_str());
-        fprintf(fp, "\t.size %s, %lld\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
+        fprintf(fp, "\t.size %s, %u\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
         fprintf(fp, "%s:\n", ctx->globals[i]->varName->toString().c_str());
         for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
             fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
