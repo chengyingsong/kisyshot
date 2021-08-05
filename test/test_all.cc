@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
             std::string in = p + ".in";
             
             std::string out = p + ".out";
-            std::cout << exec(("./kisyshot -S -o " + p + ".s " + fpath.string()));
+            auto mid = exec(("./kisyshot -S -o " + p + ".s " + fpath.string()));
             if (argc > 1 && std::string(argv[1]) == std::string("-r")) {
                 std::cout << exec(
                     ("gcc " + p + ".s libsysy.a -o " + p));
@@ -83,6 +83,8 @@ int main(int argc, char* argv[]) {
                     p += " < " + in;
                 std::cout << exec(("./" + p));
                 std::cout << ", and expected: " << expected(out);
+            } else {
+                std::cout << mid;
             }
             std::cout << std::endl << std::endl << std::endl;
         }
