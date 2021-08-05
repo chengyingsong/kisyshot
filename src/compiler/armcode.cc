@@ -18,6 +18,8 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
         arms.generateGOTO(((Label *)tac)->label);
     if (tac->getType() == InstructionType::IfZ_)
         arms.generateIfZ(tac->src_1, ((IfZ *)tac)->trueLabel);
+    if (tac->getType() == InstructionType::CMP_)
+        arms.generateCMP(((CMP *)tac)->opType, tac->src_1, tac->src_2, ((CMP *)tac)->label);
     if (tac->getType() == InstructionType::Label_)
         arms.generateLabel(((Label *)tac)->label);
     if (tac->getType() == InstructionType::Load_)

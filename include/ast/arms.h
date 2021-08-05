@@ -76,6 +76,7 @@ namespace kisyshot::ast {
         void generateLabel(std::string label);
         void generateGOTO(std::string label);
         void generateIfZ(Var * test, std::string label);
+        void generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string label);
         void generateBeginFunc(std::string curFunc, int frameSize);
         void generateEndFunc(std::string curFunc, int frameSize);
         void generateReturn(Var * result);

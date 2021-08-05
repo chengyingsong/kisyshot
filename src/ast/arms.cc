@@ -33,7 +33,7 @@ int Arms::findRegForVar(Var * var) {
 
 int Arms::findCleanReg() {
     int index = -1;
-    for (int i = r0; i <= r11; i++) {
+    for (int i = r0; i <= r10; i++) {
         if (regs[i].isDirty == false) {
             index = i;
             break;
@@ -84,14 +84,14 @@ void Arms::cleanReg(Register reg) {
 }
 
 void Arms::cleanRegForBranch() {
-    for (int i = r0; i <= r11; i++)
+    for (int i = r0; i <= r10; i++)
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
     regDescriptor.clear();
 }
 
 void Arms::cleanRegForEndFunc() {
-    for (int i = r0; i <= r11; i++)
+    for (int i = r0; i <= r10; i++)
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
     regDescriptor.clear();
@@ -411,6 +411,7 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.global %s\n", label.c_str());
         fprintf(fp, "\t.syntax unified\n");
         fprintf(fp, "\t.arch armv7-a\n");
+        fprintf(fp, "\t.arch armv7ve\n");
         fprintf(fp, "\t.fpu neon\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
     }
@@ -426,8 +427,38 @@ void Arms::generateIfZ(Var * test, std::string label) {
     fillReg(test, r12);
 //    cleanRegForBranch();
     fprintf(fp, "\tcmp %s, #0\n", regs[r12].name.c_str());
-    fprintf(fp, "\tbeq %s\n", label.c_str());
+    fprintf(fp, "\tbeq %s", label.c_str());
     fprintf(fp, "\t@ beq %s, %s\n", test->getName().c_str(), label.c_str());
+}
+
+void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string label) {
+    fillReg(src_1, r11);
+    fillReg(src_2, r12);
+    fprintf(fp, "\tcmp %s, %s\n", regs[r11].name.c_str(), regs[r12].name.c_str());
+    if (opType == TokenType::op_equaleq) {
+        fprintf(fp, "\tbeq %s", label.c_str());
+        fprintf(fp, "\t@ %s == %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
+    if (opType == TokenType::op_exclaimeq) {
+        fprintf(fp, "\tbnq %s", label.c_str());
+        fprintf(fp, "\t@ %s != %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
+    if (opType == TokenType::op_greater) {
+        fprintf(fp, "\tbgt %s", label.c_str());
+        fprintf(fp, "\t@ %s > %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
+    if (opType == TokenType::op_less) {
+        fprintf(fp, "\tblt %s", label.c_str());
+        fprintf(fp, "\t@ %s < %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
+    if (opType == TokenType::op_greatereq) {
+        fprintf(fp, "\tbge %s", label.c_str());
+        fprintf(fp, "\t@ %s >= %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
+    if (opType == TokenType::op_lesseq) {
+        fprintf(fp, "\tble %s", label.c_str());
+        fprintf(fp, "\t@ %s <= %s, goto %s\n", src_1->getName().c_str(), src_2->getName().c_str(), label.c_str());
+    }
 }
 
 void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
@@ -490,6 +521,7 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
 
 void Arms::generateHeaders() {
     fprintf(fp, "\t.arch armv7-a\n");
+    fprintf(fp, "\t.arch armv7ve\n");
 	fprintf(fp, "\t.eabi_attribute 28, 1\n");
 	fprintf(fp, "\t.eabi_attribute 20, 1\n");
 	fprintf(fp, "\t.eabi_attribute 21, 1\n");
