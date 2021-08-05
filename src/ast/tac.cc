@@ -220,7 +220,7 @@ namespace kisyshot::ast {
     }
 
     InstructionType CMP::getType() {
-        return InstructionType::Param_;
+        return InstructionType::CMP_;
     }
 
     std::string CMP::toString() {
