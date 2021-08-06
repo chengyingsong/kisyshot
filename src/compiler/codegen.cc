@@ -66,8 +66,8 @@ namespace kisyshot::compiler {
         printInstruction((Instruction *)p);
     }
 
-    void CodeGenerator::genParam(Var *pa) {
-        auto p = new Param(pa);
+    void CodeGenerator::genParam(std::string funName,Var *pa) {
+        auto p = new Param(funName,pa);
         code.push_back((Instruction *)p);
         printInstruction((Instruction *)p);
     }

@@ -137,12 +137,12 @@ namespace kisyshot::ast {
         return InstructionType::Store_;
     }
 
-    Param::Param(Var *par) : Instruction(par) {
+    Param::Param(std::string funName,Var *par) : Instruction(par),funName(funName) {
         numVars = 1;
         assert(par != nullptr);
     }
 
-    std::string Param::toString() { return "parameter " + src_1->getName(); }
+    std::string Param::toString() { return "parameter " + funName + "  " + src_1->getName(); }
 
     InstructionType Param::getType() {
         return InstructionType::Param_;

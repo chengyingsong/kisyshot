@@ -169,7 +169,8 @@ namespace kisyshot::ast {
 
     class Param : Instruction {
     public:
-        Param(Var* par);
+        std::string funName;
+        Param(std::string funName,Var* par);
         std::string toString() override;
         InstructionType getType() override;
     };

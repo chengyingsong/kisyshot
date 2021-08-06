@@ -498,12 +498,16 @@ std::string CallExpression::toString() {
 }
 
 void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
+        std::vector<Var*> params;
     for (auto &argument: arguments) {
         Var *t = argument->getVar(gen);
+        params.push_back(t);
         // argument->genCode(gen, t);  //参数声明语句
-        gen.genParam(t);
     }
     std::string funName = name->toString();
+    for(auto &param:params){
+        gen.genParam(funName,param);
+    }
     if (temp != nullptr)
         gen.genCall(funName, arguments.size(), temp);
     else

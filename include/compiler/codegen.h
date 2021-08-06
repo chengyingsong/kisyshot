@@ -40,7 +40,7 @@ namespace kisyshot::compiler {
 
         void genBinaryOp(std::string &opName,ast::Var* op1,ast::Var* op2,ast::Var * dst);
 
-        void genParam(ast::Var* pa);
+        void genParam(std::string funName,ast::Var* pa);
 
         void genCall(std::string &funLabelId,int n,ast::Var* dst);
 
