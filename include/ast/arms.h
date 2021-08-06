@@ -29,8 +29,7 @@ namespace kisyshot::ast {
         std::string opName[11];
 
         Register rs, rt, rd;
-        // 将寄存器映射至变量
-        std::map<Register, Var *> regDescriptor;
+
         // 符号表
         std::shared_ptr<Context> ctx;
         // 获得偏移值
@@ -69,6 +68,8 @@ namespace kisyshot::ast {
         void spillReg(Var * dst, Register reg);
 
     public:
+        // 将寄存器映射至变量
+        std::map<Register, Var *> regDescriptor;
         FILE * fp;
         std::map<Var *, bool> ParamDiscard;
         int curFuncFrameSize;

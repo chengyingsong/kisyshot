@@ -70,7 +70,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->src_1);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->src_1->getName().find("_temp_") != (*cfgIterator)->src_1->getName().npos)) {
+                if (((*cfgIterator)->src_1->type) == VarType::TempVar) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->src_1, (*cfgIterator)));
                 } 
             } 
@@ -78,7 +78,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->src_2);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->src_2->getName().find("_temp_") != (*cfgIterator)->src_2->getName().npos)) {
+                if (((*cfgIterator)->src_2->type) == VarType::TempVar) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->src_2, (*cfgIterator)));
                 }
             }
@@ -86,7 +86,7 @@ void ArmCodeGenerator::generateArmCode() {
                 varListIterator = varList.find((*cfgIterator)->dst);
                 if (varListIterator != varList.end())
                     varList.erase(varListIterator);
-                if (((*cfgIterator)->dst->getName().find("_temp_") != (*cfgIterator)->dst->getName().npos)) {
+                if (((*cfgIterator)->dst->type) == VarType::TempVar) {
                     varList.insert(std::pair<Var *, Instruction *>((*cfgIterator)->dst, (*cfgIterator)));
                 }
             } 

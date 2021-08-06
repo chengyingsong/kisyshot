@@ -84,23 +84,25 @@ void Arms::cleanReg(Register reg) {
 
 void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r9; i++)
-        if (regs[i].isDirty == true) {
-            if (getRegContents((Register)i)->type == VarType::GlobalVar)
-                cleanReg((Register)i);
-            if (getRegContents((Register)i)->type == VarType::LocalVar)
-                cleanReg((Register)i);
-        }
+        if (regs[i].isDirty)
+            if (getRegContents((Register)i) != NULL) {
+                if (getRegContents((Register)i)->type == VarType::GlobalVar)
+                    cleanReg((Register)i);
+                else if (getRegContents((Register)i)->type == VarType::LocalVar)
+                    cleanReg((Register)i);
+            }
 }
 
 void Arms::cleanRegForCall() {
     for (int i = r0; i <= r9; i++)
-        if (regs[i].isDirty == true) {
-            if (getRegContents((Register)i)->type != VarType::TempVar)
-                spillReg(getRegContents((Register)i), (Register)i);
-            else {
-                VarStack.push_back(getRegContents((Register)i));
-                regStack.push_back(i);
-                regDescriptorRemove(getRegContents((Register)i), (Register)i);
+        if (regs[i].isDirty == true)
+            if (getRegContents((Register)i) != NULL) {
+                if (getRegContents((Register)i)->type != VarType::TempVar)
+                    spillReg(getRegContents((Register)i), (Register)i);
+                else {
+                    VarStack.push_back(getRegContents((Register)i));
+                    regStack.push_back(i);
+                    regDescriptorRemove(getRegContents((Register)i), (Register)i);
             }
         }
     for (size_t i = 0; i < regStack.size(); i++) {
@@ -115,7 +117,13 @@ void Arms::cleanRegForCall() {
 
 void Arms::cleanRegForEndFunc() {
     for (int i = r0; i <= r9; i++)
-        regs[i].isDirty = false;
+        if (regs[i].isDirty) 
+            if (getRegContents((Register)i) != NULL) {
+                if (getRegContents((Register)i)->type == VarType::GlobalVar)
+                    cleanReg((Register)i);
+                else if (getRegContents((Register)i)->type == VarType::LocalVar)
+                    cleanReg((Register)i);
+            }   
 }
 
 std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
@@ -133,14 +141,16 @@ std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
 }
 
 void Arms::regDescriptorInsert(Var * var, Register reg, bool dirty = true) {
-    regDescriptor.erase(reg);
-    regDescriptor.insert(std::pair<Register, Var *>(reg, var));
+    if (regDescriptor.find((Register)reg) != regDescriptor.end())
+        regDescriptor[reg] = var;
+    else 
+        regDescriptor.insert(std::pair<Register, Var *>(reg, var));
     regs[reg].isDirty = dirty;
 }
 
 void Arms::regDescriptorRemove(Var * var, Register reg) {
-    std::map<Register, Var *>::iterator it = regDescriptorFind(var);
-    regDescriptor.erase(it);
+    if (regDescriptor.find(reg) != regDescriptor.end())
+        regDescriptor.erase(reg);
     regs[reg].isDirty = false;
 }
 
@@ -510,7 +520,7 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
     }
     for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
         if (it->second)
-            discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
+             discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
     VarStack.clear();
     regStack.clear();
     if (numVars == 1) {
