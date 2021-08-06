@@ -190,10 +190,8 @@ void Arms::fillReg(Var * src, Register reg) {
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->type == VarType::ConstVar) {
-        if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0) {
-            fprintf(fp, "\tmov %s, #:lower16:%s\n", regs[rd].name.c_str(), src->getName().c_str());
-            fprintf(fp, "\tmovt %s, #:upper16:%s\n", regs[rd].name.c_str(), src->getName().c_str());
-        }
+        if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
+            fprintf(fp, "\tldr %s, =0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
         else
             fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
     }
@@ -261,10 +259,8 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     regs[rd].mutexLock = true;
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
-    if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0) {
-        fprintf(fp, "\tmov %s, #:lower16:%s\n", regs[rd].name.c_str(), src->getName().c_str());
-        fprintf(fp, "\tmovt %s, #:upper16:%s", regs[rd].name.c_str(), src->getName().c_str());
-    }
+    if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
+        fprintf(fp, "\tldr %s, =0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
     else
         fprintf(fp, "\tmov %s, #%s", regs[rd].name.c_str(), src->getName().c_str());
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
