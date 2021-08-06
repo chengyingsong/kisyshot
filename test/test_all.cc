@@ -82,7 +82,8 @@ int main(int argc, char* argv[]) {
                 if(std::filesystem::exists(in))
                     p += " < " + in;
                 auto run = exec(("./" + p));
-                if (std::stoi(out) == run.exitstatus|| run.output == out) {
+                std::string o = expected(out);
+                if (std::stoi(o) == run.exitstatus|| run.output == o) {
                     continue;
                 }
 
