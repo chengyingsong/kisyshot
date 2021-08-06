@@ -78,21 +78,26 @@ Var * Arms::getRegContents(Register reg) {
 
 void Arms::cleanReg(Register reg) {
     Var * var = getRegContents(reg);
-    if (var == NULL)
-        return;
-    spillReg(var, reg);
+    if (var != NULL)
+        spillReg(var, reg);
+    regs[reg].isDirty = false;
 }
 
 void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r9; i++)
-        if (regs[i].isDirty == true)
+        if (regs[i].isDirty == true) {
             cleanReg((Register)i);
+            regs[i].isDirty = false;
+        }
 }
 
 void Arms::cleanRegForEndFunc() {
-    for (int i = r0; i <= r9; i++)
+    for (int i = r0; i <= r9; i++) {
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
+        regs[i].isDirty = false;
+    }
+
 }
 
 std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
@@ -500,6 +505,7 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
         fprintf(fp, "\tpop {fp, lr}\n");
     fprintf(fp, "\tbx lr\n");
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
+    regDescriptor.clear();
 }
 
 void Arms::generateReturn(Var * result) {
@@ -529,6 +535,7 @@ void Arms::generateParam(Var * arg, int num) {
 void Arms::generateCall(int numVars, std::string label, Var * result, int paramNum) {
     if (paramNum == 0)
         cleanRegForBranch();
+    regDescriptor.clear();
     if (numVars == 1) {
         fprintf(fp, "\tbl %s\n", label.c_str());
         rd = (Register)pickRegForVar(result);
