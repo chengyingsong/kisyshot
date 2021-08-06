@@ -87,14 +87,12 @@ void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r9; i++)
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
-    regDescriptor.clear();
 }
 
 void Arms::cleanRegForEndFunc() {
     for (int i = r0; i <= r9; i++)
         if (regs[i].isDirty == true)
             cleanReg((Register)i);
-    regDescriptor.clear();
 }
 
 std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
