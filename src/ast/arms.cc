@@ -440,7 +440,7 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
-    fprintf(fp, "\tadd sp, sp, #%d\n", frameSize);
+    fprintf(fp, "\tadd sp, fp, #0\n");
     if (curFunc == "main")
         fprintf(fp, "\tpop {fp, pc}\n");
     else
