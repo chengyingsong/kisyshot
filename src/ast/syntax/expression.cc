@@ -120,7 +120,7 @@ namespace kisyshot::ast::syntax {
                 gen.genAssign(t0, temp);
                 gen.genLabel(endLabel);
             }
-
+              break;
             case TokenType::op_modulus: {
                 //a % b = a - (a / b) * b
                 //TODO: 膜运算正负处理
