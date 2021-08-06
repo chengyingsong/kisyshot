@@ -5,6 +5,7 @@
 #include "cfg.h"
 #include "../context.h"
 #include <stdio.h>
+#include <vector>
 
 namespace kisyshot::ast {
     class Arms {
@@ -21,6 +22,9 @@ namespace kisyshot::ast {
             bool mutexLock;
             bool canDiscard;
         } regs[16];
+
+        std::vector<Var *> VarStack;
+        std::vector<int> regStack;
 
         std::string opName[11];
 
@@ -45,9 +49,11 @@ namespace kisyshot::ast {
         Var * getRegContents(Register reg);
         // clean寄存器reg
         void cleanReg(Register reg);
-        // 遇到跳转指令或标号时clean所有的通用寄存器（r0~r12，r7除外）
+        // 遇到跳转指令时clean所有的通用寄存器
         void cleanRegForBranch();
-        // 函数结束时clean所有通用寄存器（r7除外）
+        // 遇到call清空所有的通用寄存器
+        void cleanRegForCall();
+        // 函数结束时clean所有通用寄存器
         void cleanRegForEndFunc();
         // 在regDescriptor中找到var对应的reg
         std::map<Register, Var *>::iterator regDescriptorFind(Var * var);
@@ -55,8 +61,6 @@ namespace kisyshot::ast {
         void regDescriptorInsert(Var * var, Register reg, bool dirty);
         // regDescriptor移除
         void regDescriptorRemove(Var * var, Register reg);
-        // regDescriptor更新
-        void regDescriptorUpdate(Var * var);
         // 标注reg中的变量可以被替换
         void discardVarInReg(Var * var, Register reg);
         // 从src中读取数据放到寄存器reg中
@@ -66,6 +70,7 @@ namespace kisyshot::ast {
 
     public:
         FILE * fp;
+        std::map<Var *, bool> ParamDiscard;
         Arms(const std::shared_ptr<Context> &context);
         void generateDiscardVar(Var * var);
         void generateAssignConst(Var * dst, Var * src);

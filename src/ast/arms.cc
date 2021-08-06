@@ -51,9 +51,8 @@ int Arms::selectRandomReg() {
     bool flag = false;
     int select = 0;
     while (!flag) {
-        select = rand() % 13;
+        select = rand() % 10;
         if (regs[select].mutexLock == false)
-            if (regs[select].isDirty)
                 flag = true;
     }
 
@@ -86,18 +85,37 @@ void Arms::cleanReg(Register reg) {
 void Arms::cleanRegForBranch() {
     for (int i = r0; i <= r9; i++)
         if (regs[i].isDirty == true) {
-            cleanReg((Register)i);
-            regs[i].isDirty = false;
+            if (getRegContents((Register)i)->type == VarType::GlobalVar)
+                cleanReg((Register)i);
+            if (getRegContents((Register)i)->type == VarType::LocalVar)
+                cleanReg((Register)i);
         }
 }
 
-void Arms::cleanRegForEndFunc() {
-    for (int i = r0; i <= r9; i++) {
-        if (regs[i].isDirty == true)
-            cleanReg((Register)i);
-        regs[i].isDirty = false;
+void Arms::cleanRegForCall() {
+    for (int i = r0; i <= r9; i++)
+        if (regs[i].isDirty == true) {
+            if (getRegContents((Register)i)->type != VarType::TempVar)
+                spillReg(getRegContents((Register)i), (Register)i);
+            else {
+                VarStack.push_back(getRegContents((Register)i));
+                regStack.push_back(i);
+                regDescriptorRemove(getRegContents((Register)i), (Register)i);
+            }
+        }
+    for (size_t i = 0; i < regStack.size(); i++) {
+        if (i == 0)
+            fprintf(fp, "\tpush {");
+        if (i == regStack.size() - 1)
+            fprintf(fp, "r%d}\n", regStack[i]);
+        else
+            fprintf(fp, "r%d, ", regStack[i]);
     }
+}
 
+void Arms::cleanRegForEndFunc() {
+    for (int i = r0; i <= r9; i++)
+        regs[i].isDirty = false;
 }
 
 std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
@@ -115,26 +133,15 @@ std::map<Arms::Register, Var *>::iterator Arms::regDescriptorFind(Var * var) {
 }
 
 void Arms::regDescriptorInsert(Var * var, Register reg, bool dirty = true) {
-    if (findRegForVar(var) != -1) {
-        regDescriptorUpdate(var);
-        return;
-    }
     regDescriptor.erase(reg);
     regDescriptor.insert(std::pair<Register, Var *>(reg, var));
     regs[reg].isDirty = dirty;
 }
 
 void Arms::regDescriptorRemove(Var * var, Register reg) {
-    if (findRegForVar(var) != -1) {
-        regs[reg].isDirty = false;
-        std::map<Register, Var *>::iterator it = regDescriptorFind(var);
-        regDescriptor.erase(it);
-    }
-}
-
-void Arms::regDescriptorUpdate(Var * var) {
     std::map<Register, Var *>::iterator it = regDescriptorFind(var);
-    it->second = var;
+    regDescriptor.erase(it);
+    regs[reg].isDirty = false;
 }
 
 void Arms::discardVarInReg(Var * var, Register reg) {
@@ -163,20 +170,21 @@ void Arms::fillReg(Var * src, Register reg) {
         if ((int)preReg == -1)
             if (src->isArray) {
                 if (src->isParam)
-                    fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                    fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), getOffset(src) + 4);
                 else
-                    fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
+                    fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), getOffset(src) + 4);
             }
             else
-                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), getOffset(src) + 4);
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->type == VarType::ConstVar)
         fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
-    if (src->type == VarType::TempVar)
-        if (((int)preReg != -1) && (preReg != reg))
+    if (src->type == VarType::TempVar) {
+        if ((reg != preReg) && (preReg != -1))
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
+    }
 }
 
 void Arms::spillReg(Var * dst, Register reg) {
@@ -186,9 +194,9 @@ void Arms::spillReg(Var * dst, Register reg) {
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r10].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [fp, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst) + 4, dst->getName().c_str());
     }
-    regs[reg].isDirty = false;
+    regDescriptorRemove(dst, reg);
 }
 
 Arms::Arms(const std::shared_ptr<Context> &context) {
@@ -227,21 +235,20 @@ Arms::Arms(const std::shared_ptr<Context> &context) {
 }
 
 void Arms::generateDiscardVar(Var * var) {
-    rd = (Register)pickRegForVar(var);
-    fprintf(fp, "\t@ Last use of %s. Discard register %s\n", var->getName().c_str(), regs[rd].name.c_str());
-    regs[rd].canDiscard = true;
-    discardVarInReg(var, rd);
+    int reg = findRegForVar(var);
+    if (reg != -1)
+        discardVarInReg(var, (Register)reg);
 }
 
 void Arms::generateAssignConst(Var * dst, Var * src) {
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
+    fillReg(dst, rd);
+    regDescriptorInsert(dst, rd);
+
     fprintf(fp, "\tmov %s, #%s", regs[rd].name.c_str(), src->getName().c_str());
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
-    regDescriptorInsert(dst, rd);
     regs[rd].mutexLock = false;
-    if (regs[rd].canDiscard)
-        discardVarInReg(dst, rd);
 }
 
 void Arms::generateAssign(Var * dst, Var * src) {
@@ -249,136 +256,69 @@ void Arms::generateAssign(Var * dst, Var * src) {
         generateAssignConst(dst, src);
         return;
     }
-    if (src->type == VarType::GlobalVar) {
-        rd = (Register)pickRegForVar(dst);
-        regs[rd].mutexLock = true;
-        rs = (Register)findCleanReg();
-        fprintf(fp, "\tldr %s, =%s\n", regs[rs].name.c_str(), src->getName().c_str());
-        fprintf(fp, "\tldr %s, [%s]\n", regs[rs].name.c_str(), regs[rs].name.c_str());
-        fprintf(fp, "\tmov %s, %s", regs[rd].name.c_str(), regs[rs].name.c_str());
-        regDescriptorInsert(dst, rd);
-        regs[rd].mutexLock = false;
-        if (regs[rd].canDiscard)
-            discardVarInReg(dst, rd);
-        return;
-    }
     rs = (Register)pickRegForVar(src);
     regs[rs].mutexLock = true;
     fillReg(src, rs);
     regDescriptorInsert(src, rs);
-    rd = (Register)pickRegForVar(dst);
-    regs[rd].mutexLock = true;
-    fprintf(fp, "\tmov %s, %s", regs[rd].name.c_str(), regs[rs].name.c_str());
-    regDescriptorInsert(dst, rd);
-    regs[rs].mutexLock = false;
-    regs[rd].mutexLock = false;
-    if (regs[rs].canDiscard)
-        discardVarInReg(src, rs);
-    if (regs[rd].canDiscard)
-        discardVarInReg(dst, rd);
-    fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
-}
 
-void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
-    rt = (Register)pickRegForVar(offset);
-    regs[rt].mutexLock = true;
-    fillReg(offset, rt);
-    regDescriptorInsert(offset, rt);
-    if (src->type == VarType::GlobalVar) {
-        rs = (Register)pickRegForVar(src);
-        regs[rs].mutexLock = true;
-        fillReg(src, rs);
-        regDescriptorInsert(src, rs);
-        rd = (Register)pickRegForVar(dst);
-        regs[rd].mutexLock = true;
-        fillReg(dst, rd);
-        regDescriptorInsert(dst, rd);
-        fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rd].name.c_str(), regs[rs].name.c_str(), regs[rt].name.c_str());
-        regs[rs].mutexLock = false;
-        regs[rd].mutexLock = false;
-        regs[rt].mutexLock = false;
-        if (regs[rs].canDiscard)
-            discardVarInReg(src, rs);        
-        if (regs[rd].canDiscard)
-            discardVarInReg(dst, rd);
-        if (regs[rt].canDiscard)
-            discardVarInReg(offset, rt);
-        if (offset->type == VarType::ConstVar)
-            discardVarInReg(offset, rt);
-        fprintf(fp, "\t@ %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
-        return;
-    }
-    rs = (Register)pickRegForVar(src);
-    regs[rs].mutexLock = true;
-    fillReg(src, rs);
-    regDescriptorInsert(src, rs);
-    rd = (Register)pickRegForVar(dst);
-    regs[rd].mutexLock = true;
-    regDescriptorInsert(dst, rd);
-    fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rd].name.c_str(), regs[rs].name.c_str(), regs[rt].name.c_str());
-    regs[rs].mutexLock = false;
-    regs[rd].mutexLock = false;
-    regs[rt].mutexLock = false;
-    if (regs[rs].canDiscard)
-        discardVarInReg(src, rs);
-    if (regs[rd].canDiscard)
-        discardVarInReg(dst, rd);
-    if (regs[rt].canDiscard)
-        discardVarInReg(offset, rt);
-    if (offset->type == VarType::ConstVar)
-        discardVarInReg(offset, rt);
-    fprintf(fp, "\t@ %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
-}
-
-void Arms::generateStore(Var * dst, Var * offset, Var * src) {
-    rt = (Register)pickRegForVar(offset);
-    regs[rt].mutexLock = true;
-    fillReg(offset, rt);
-    regDescriptorInsert(offset, rt);
-    if (dst->type == VarType::GlobalVar) {
-        rs = (Register)pickRegForVar(src);
-        regs[rs].mutexLock = true;
-        fillReg(src, rs);
-        regDescriptorInsert(src, rs);
-        rd = (Register)pickRegForVar(dst);
-        regs[rd].mutexLock = true;
-        fillReg(dst, rd);
-        regDescriptorInsert(dst, rd);
-        fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
-        regs[rs].mutexLock = false;
-        regs[rd].mutexLock = false;
-        regs[rt].mutexLock = false;
-        if (regs[rs].canDiscard)
-            discardVarInReg(src, rs);
-        if (regs[rd].canDiscard)
-            discardVarInReg(dst, rd);
-        if (regs[rt].canDiscard)
-            discardVarInReg(offset, rt);
-        if (offset->type == VarType::ConstVar)
-            discardVarInReg(offset, rt);
-        fprintf(fp, "\t@ %s[%s] = %s\n", dst->getName().c_str(), offset->getName().c_str(), src->getName().c_str());
-        return;
-    }
-    rs = (Register)pickRegForVar(src);
-    regs[rs].mutexLock = true;
-    fillReg(src, rs);
-    regDescriptorInsert(src, rs);
     rd = (Register)pickRegForVar(dst);
     regs[rd].mutexLock = true;
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
-    fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rd].name.c_str(), regs[rt].name.c_str());
+
+    fprintf(fp, "\tmov %s, %s", regs[rd].name.c_str(), regs[rs].name.c_str());
+    regs[rs].mutexLock = false;
+    regs[rd].mutexLock = false;
+    fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
+}
+
+void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
+    rs = (Register)pickRegForVar(src);
+    regs[rs].mutexLock = true;
+    fillReg(src, rs);
+    regDescriptorInsert(src, rs);
+
+    rd = (Register)pickRegForVar(offset);
+    regs[rd].mutexLock = true;
+    fillReg(offset, rd);
+    regDescriptorInsert(offset, rd);
+
+    rt = (Register)pickRegForVar(dst);
+    regs[rt].mutexLock = true;
+    fillReg(dst, rt);
+    regDescriptorInsert(dst, rt);
+
+    fprintf(fp, "\tldr %s, [%s, %s, lsl #2]", regs[rt].name.c_str(), regs[rs].name.c_str(), regs[rd].name.c_str());
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
     regs[rt].mutexLock = false;
-    if (regs[rs].canDiscard)
-        discardVarInReg(src, rs);
-    if (regs[rd].canDiscard)
-        discardVarInReg(dst, rd);
-    if (regs[rt].canDiscard)
-        discardVarInReg(offset, rt);
     if (offset->type == VarType::ConstVar)
-        discardVarInReg(offset, rt);
+        discardVarInReg(offset, rd);
+    fprintf(fp, "\t@ %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
+}
+
+void Arms::generateStore(Var * dst, Var * offset, Var * src) {
+    rs = (Register)pickRegForVar(src);
+    regs[rs].mutexLock = true;
+    fillReg(src, rs);
+    regDescriptorInsert(src, rs);
+
+    rd = (Register)pickRegForVar(offset);
+    regs[rd].mutexLock = true;
+    fillReg(offset, rd);
+    regDescriptorInsert(offset, rd);
+
+    rt = (Register)pickRegForVar(dst);
+    regs[rt].mutexLock = true;
+    fillReg(dst, rt);
+    regDescriptorInsert(dst, rt);
+
+    fprintf(fp, "\tstr %s, [%s, %s, lsl #2]", regs[rs].name.c_str(), regs[rt].name.c_str(), regs[rd].name.c_str());
+    regs[rs].mutexLock = false;
+    regs[rd].mutexLock = false;
+    regs[rt].mutexLock = false;
+    if (offset->type == VarType::ConstVar)
+        discardVarInReg(offset, rd);
     fprintf(fp, "\t@ %s[%s] = %s\n", dst->getName().c_str(), offset->getName().c_str(), src->getName().c_str());
 }
 
@@ -387,23 +327,25 @@ void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * 
     regs[rs].mutexLock = true;
     fillReg(src_1, rs);
     regDescriptorInsert(src_1, rs);
-    rt = (Register)pickRegForVar(src_2);
-    regs[rt].mutexLock = true;
-    fillReg(src_2, rt);
-    regDescriptorInsert(src_2, rt);
-    rd = (Register)pickRegForVar(dst);
+
+    rd = (Register)pickRegForVar(src_2);
     regs[rd].mutexLock = true;
-    regDescriptorInsert(dst, rd);
-    fprintf(fp, "\t%s %s, %s, %s", opName[op].c_str(), regs[rd].name.c_str(), regs[rs].name.c_str(), regs[rt].name.c_str());
+    fillReg(src_2, rd);
+    regDescriptorInsert(src_2, rd);
+
+    rt = (Register)pickRegForVar(dst);
+    regs[rt].mutexLock = true;
+    fillReg(dst, rt);
+    regDescriptorInsert(dst, rt);
+
+    fprintf(fp, "\t%s %s, %s, %s", opName[op].c_str(), regs[rt].name.c_str(), regs[rs].name.c_str(), regs[rd].name.c_str());
     regs[rs].mutexLock = false;
     regs[rt].mutexLock = false;
-    regs[rd].mutexLock = false;
-    if (regs[rs].canDiscard)
+    regs[rd].mutexLock = false; 
+    if (src_1->type == VarType::ConstVar)
         discardVarInReg(src_1, rs);
-    if (regs[rt].canDiscard)
-        discardVarInReg(src_2, rt);  
-    if (regs[rd].canDiscard)
-        discardVarInReg(dst, rd);   
+    if (src_2->type == VarType::ConstVar)
+        discardVarInReg(src_2, rd);
     fprintf(fp, "\t@ %s = %s %s %s\n", dst->getName().c_str(), src_1->getName().c_str(), opName[op].c_str(), src_2->getName().c_str());
 }
 
@@ -432,12 +374,11 @@ void Arms::generateIfZ(Var * test, std::string label) {
     regs[rs].mutexLock = true;
     fillReg(test, rs);
     regDescriptorInsert(test, rs);
+
     fprintf(fp, "\tcmp %s, #0\n", regs[rs].name.c_str());
     fprintf(fp, "\tbeq %s", label.c_str());
     fprintf(fp, "\t@ beq %s, %s\n", test->getName().c_str(), label.c_str());
     regs[rs].mutexLock = false;
-    if (regs[rs].canDiscard)
-        discardVarInReg(test, rs);
     if (test->type == VarType::ConstVar)
         discardVarInReg(test, rs);
 }
@@ -448,10 +389,12 @@ void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string l
     regs[rs].mutexLock = true;
     fillReg(src_1, rs);
     regDescriptorInsert(src_1, rs);
+
     rd = (Register)pickRegForVar(src_2);
     regs[rd].mutexLock = true;
     fillReg(src_2, rd);
     regDescriptorInsert(src_2, rd);
+
     fprintf(fp, "\tcmp %s, %s\n", regs[rs].name.c_str(), regs[rd].name.c_str());
     if (opType == TokenType::op_equaleq) {
         fprintf(fp, "\tbeq %s", label.c_str());
@@ -479,10 +422,6 @@ void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string l
     }
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
-    if (regs[rs].canDiscard)
-        discardVarInReg(src_1, rs);
-    if (regs[rd].canDiscard)
-        discardVarInReg(src_2, rd);
     if (src_1->type == VarType::ConstVar)
         discardVarInReg(src_1, rs);
     if (src_2->type == VarType::ConstVar)
@@ -491,11 +430,13 @@ void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string l
 
 void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tpush {fp, lr}\n");
-    fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
     fprintf(fp, "\tadd fp, sp, #0\n");
+    fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
     int parNum = ctx->functions[curFunc]->params.size();
+    if (parNum > 4)
+        parNum = 4;
     for (int i = 0; i < parNum; i++)
-        fprintf(fp, "\tstr r%d, [fp, #%d]\n", i, i * 4);
+        fprintf(fp, "\tstr r%d, [fp, #-%d]\n", i, i * 4 + 4);
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
@@ -513,40 +454,68 @@ void Arms::generateReturn(Var * result) {
     cleanRegForEndFunc();
     if (result != nullptr) {
         rs = (Register)pickRegForVar(result);
+        regs[rs].mutexLock = true;
         fillReg(result, rs);
         fprintf(fp, "\tmov r0, %s\n", regs[rs].name.c_str());
         fprintf(fp, "\t@ return %s\n", result->getName().c_str());
+        regs[rs].mutexLock = false;
     }
     return;
 }
 
 void Arms::generateParam(Var * arg, int num) {
     if (num == 1)
-        cleanRegForBranch();
+        cleanRegForCall();
     if (num <= 4) {
-        fillReg(arg, (Register)(num - 1));
+        if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar)
+            fillReg(arg, (Register)(num - 1));
+        else {
+            size_t index = 0;
+            for (index = 0; index < VarStack.size(); index++)
+                if (varsAreSame(arg, VarStack[index]))
+                    break;
+            fprintf(fp, "\tldr r%d, [sp, #%u]\n", num - 1, index * 4);
+        }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     } else {
-        fillReg(arg, r4);
-        fprintf(fp, "\tstr r4, [sp, #%d]\n", (num - 5) * 4);
+        if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar) {
+            fillReg(arg, r4);   
+            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + num * 4);
+        }
+        else {
+            size_t index = 0;
+            for (index = 0; index < VarStack.size(); index++)
+                if (varsAreSame(arg, VarStack[index]))
+                    break;
+            fprintf(fp, "\tldr r4, [sp, #%u]\n", index * 4);
+            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + num * 4);
+        }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     }
 }
 
 void Arms::generateCall(int numVars, std::string label, Var * result, int paramNum) {
     if (paramNum == 0)
-        cleanRegForBranch();
-    regDescriptor.clear();
+        cleanRegForCall();
+    fprintf(fp, "\tbl %s\n", label.c_str());
+    for (int i = regStack.size() - 1; i >= 0; i--) {
+        fprintf(fp, "\tpop {r%d}\n", regStack[i]);
+        regDescriptorInsert(VarStack[i], (Register)regStack[i]);
+    } 
+    for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
+        if (it->second)
+            discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
+    VarStack.clear();
+    regStack.clear();
     if (numVars == 1) {
-        fprintf(fp, "\tbl %s\n", label.c_str());
         rd = (Register)pickRegForVar(result);
+        regs[rd].mutexLock = true;
         fillReg(result, rd);
         regDescriptorInsert(result, rd);
         fprintf(fp, "\tmov %s, r0", regs[rd].name.c_str());
         fprintf(fp, "\t@ %s = %s\n", result->getName().c_str(), label.c_str());
+        regs[rd].mutexLock = false;
     }
-    else
-        fprintf(fp, "\tbl %s\n", label.c_str());
 }
 
 void Arms::generateHeaders() {
