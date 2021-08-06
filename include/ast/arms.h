@@ -71,6 +71,8 @@ namespace kisyshot::ast {
     public:
         FILE * fp;
         std::map<Var *, bool> ParamDiscard;
+        int curFuncFrameSize;
+        std::string curFuncLabel;
         Arms(const std::shared_ptr<Context> &context);
         void generateDiscardVar(Var * var);
         void generateAssignConst(Var * dst, Var * src);

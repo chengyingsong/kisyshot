@@ -131,7 +131,10 @@ void ArmCodeGenerator::generateArmCode() {
             }
         }
         if ((*p)->getType() == InstructionType::Label_)
-            curFucLabel = ((Label *)(*p))->label;
+            if ((((Label *)(*p))->label)[0] != '.') {
+                curFucLabel = ((Label *)(*p))->label;
+                arms.curFuncLabel = curFucLabel;
+            }
         generateSpecial(*p, arms);
         p++;
     }

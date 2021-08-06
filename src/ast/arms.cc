@@ -170,12 +170,12 @@ void Arms::fillReg(Var * src, Register reg) {
         if ((int)preReg == -1)
             if (src->isArray) {
                 if (src->isParam)
-                    fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), getOffset(src) + 4);
+                    fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
                 else
-                    fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), getOffset(src) + 4);
+                    fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
             }
             else
-                fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), getOffset(src) + 4);
+                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
@@ -194,7 +194,7 @@ void Arms::spillReg(Var * dst, Register reg) {
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r10].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst) + 4, dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [fp, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
     }
     regDescriptorRemove(dst, reg);
 }
@@ -359,6 +359,7 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.arch armv7ve\n");
         fprintf(fp, "\t.fpu neon\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
+        curFuncFrameSize = ctx->functions[curFuncLabel]->stackSize;
     }
     fprintf(fp, "%s:\n", label.c_str());
 }
@@ -480,7 +481,7 @@ void Arms::generateParam(Var * arg, int num) {
     } else {
         if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar) {
             fillReg(arg, r4);   
-            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + num * 4);
+            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + num * 4);
         }
         else {
             size_t index = 0;
@@ -488,7 +489,7 @@ void Arms::generateParam(Var * arg, int num) {
                 if (varsAreSame(arg, VarStack[index]))
                     break;
             fprintf(fp, "\tldr r4, [sp, #%u]\n", index * 4);
-            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + num * 4);
+            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + num * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     }
