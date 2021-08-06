@@ -83,8 +83,12 @@ int main(int argc, char* argv[]) {
                     p += " < " + in;
                 auto run = exec(("./" + p));
                 std::string o = expected(out);
-                if (std::stoi(o) == run.exitstatus|| run.output == o) {
-                    continue;
+                try {
+                    if (std::stoi(o) == run.exitstatus || run.output == o) {
+                        continue;
+                    }
+                } catch (std::exception &e){
+
                 }
 
                 std::cout << "file: " << fpath.string() << std::endl;
