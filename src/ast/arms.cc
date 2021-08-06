@@ -255,7 +255,7 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     regs[rd].mutexLock = true;
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
-    if (std::stoi(src->getName()) > 65535) {
+    if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0) {
         fprintf(fp, "\tmov %s, #:lower16:%s", regs[rd].name.c_str(), src->getName().c_str());
         fprintf(fp, "\tmovt %s, #:upper16:%s", regs[rd].name.c_str(), src->getName().c_str());
     }
