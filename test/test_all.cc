@@ -69,7 +69,6 @@ int main(int argc, char* argv[]) {
 
     for (const auto& fpath : sorted) {
         if (fpath.extension() == ".sy") {
-            std::cout << "file: " << fpath.string() << std::endl;
             std::string p = fpath.string();
             p.replace(p.find(".sy"), 3, "");
             std::string in = p + ".in";
@@ -77,20 +76,21 @@ int main(int argc, char* argv[]) {
             std::string out = p + ".out";
             auto mid = exec(("./kisyshot -S -o " + p + ".s " + fpath.string()));
             if (argc > 1 && std::string(argv[1]) == std::string("-r")) {
+
                 exec(
                     ("gcc " + p + ".s libsysy.a -o " + p));
                 if(std::filesystem::exists(in))
                     p += " < " + in;
                 auto run = exec(("./" + p));
-                if (std::to_string(run.exitstatus) == out || run.output == out) {
-                    std::cout << p << "ok";
+                if (std::to_string(run.exitstatus) + "\n"== out || run.output + "\n" == out) {
                     continue;
                 }
-                std::cout << run << ", and expected: " << expected(out);
+
+                std::cout << "file: " << fpath.string() << std::endl;
+                std::cout << run << ", and expected: " << expected(out) << std::endl << std::endl;
             } else {
-                std::cout << mid;
+                std::cout << mid << std::endl;
             }
-            std::cout << std::endl << std::endl;
         }
     }
 }
