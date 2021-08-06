@@ -422,16 +422,16 @@ void Arms::generateLabel(std::string label) {
 }
 
 void Arms::generateGOTO(std::string label) {
-//    cleanRegForBranch();
+    cleanRegForBranch();
     fprintf(fp, "\tb %s\n", label.c_str());
 }
 
 void Arms::generateIfZ(Var * test, std::string label) {
+    cleanRegForBranch();
     rs = (Register)pickRegForVar(test);
     regs[rs].mutexLock = true;
     fillReg(test, rs);
     regDescriptorInsert(test, rs);
-//    cleanRegForBranch();
     fprintf(fp, "\tcmp %s, #0\n", regs[rs].name.c_str());
     fprintf(fp, "\tbeq %s", label.c_str());
     fprintf(fp, "\t@ beq %s, %s\n", test->getName().c_str(), label.c_str());
@@ -443,6 +443,7 @@ void Arms::generateIfZ(Var * test, std::string label) {
 }
 
 void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string label) {
+    cleanRegForBranch();
     rs = (Register)pickRegForVar(src_1);
     regs[rs].mutexLock = true;
     fillReg(src_1, rs);
