@@ -81,12 +81,16 @@ int main(int argc, char* argv[]) {
                     ("gcc " + p + ".s libsysy.a -o " + p));
                 if(std::filesystem::exists(in))
                     p += " < " + in;
-                std::cout << exec(("./" + p));
-                std::cout << ", and expected: " << expected(out);
+                auto run = exec(("./" + p));
+                if (std::to_string(run.exitstatus) == out || run.output == out) {
+                    std::cout << p << "ok";
+                    continue;
+                }
+                std::cout << run << ", and expected: " << expected(out);
             } else {
                 std::cout << mid;
             }
-            std::cout << std::endl << std::endl << std::endl;
+            std::cout << std::endl << std::endl;
         }
     }
 }
