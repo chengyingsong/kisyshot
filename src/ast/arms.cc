@@ -459,6 +459,8 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tbx lr\n");
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
     regDescriptor.clear();
+    for (int i = r0; i <= r9; i++)
+        regs[i].isDirty = false;
 }
 
 void Arms::generateReturn(Var * result) {
