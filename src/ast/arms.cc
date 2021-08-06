@@ -259,6 +259,8 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     fprintf(fp, "\tmov %s, #%s", regs[rd].name.c_str(), src->getName().c_str());
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
     regs[rd].mutexLock = false;
+    if (dst->type == VarType::LocalVar || dst->type == VarType::GlobalVar)
+        spillReg(dst, rd);
 }
 
 void Arms::generateAssign(Var * dst, Var * src) {
@@ -280,6 +282,8 @@ void Arms::generateAssign(Var * dst, Var * src) {
     regs[rs].mutexLock = false;
     regs[rd].mutexLock = false;
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
+    if (dst->type == VarType::LocalVar || dst->type == VarType::GlobalVar)
+        spillReg(dst, rd);
 }
 
 void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
@@ -305,6 +309,8 @@ void Arms::generateLoad(Var * dst, Var * src, Var * offset) {
     if (offset->type == VarType::ConstVar)
         discardVarInReg(offset, rd);
     fprintf(fp, "\t@ %s = %s[%s]\n", dst->getName().c_str(), src->getName().c_str(), offset->getName().c_str());
+    if (dst->type == VarType::LocalVar || dst->type == VarType::GlobalVar)
+        spillReg(dst, rt);
 }
 
 void Arms::generateStore(Var * dst, Var * offset, Var * src) {
@@ -357,6 +363,8 @@ void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * 
     if (src_2->type == VarType::ConstVar)
         discardVarInReg(src_2, rd);
     fprintf(fp, "\t@ %s = %s %s %s\n", dst->getName().c_str(), src_1->getName().c_str(), opName[op].c_str(), src_2->getName().c_str());
+    if (dst->type == VarType::LocalVar || dst->type == VarType::GlobalVar)
+        spillReg(dst, rt);
 }
 
 void Arms::generateLabel(std::string label) {
