@@ -170,12 +170,12 @@ void Arms::fillReg(Var * src, Register reg) {
         if ((int)preReg == -1)
             if (src->isArray) {
                 if (src->isParam)
-                    fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                    fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
                 else
-                    fprintf(fp, "\tadd %s, fp, #%d\n", regs[reg].name.c_str(), getOffset(src));
+                    fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
             }
             else
-                fprintf(fp, "\tldr %s, [fp, #%d]\n", regs[reg].name.c_str(), getOffset(src));
+                fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
@@ -194,7 +194,7 @@ void Arms::spillReg(Var * dst, Register reg) {
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r10].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [fp, #%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), getOffset(dst), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(dst), dst->getName().c_str());
     }
     regDescriptorRemove(dst, reg);
 }
@@ -437,7 +437,7 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     if (parNum > 4)
         parNum = 4;
     for (int i = 0; i < parNum; i++)
-        fprintf(fp, "\tstr r%d, [fp, #-%d]\n", i, i * 4 + 4);
+        fprintf(fp, "\tstr r%d, [fp, #-%d]\n", i, frameSize - i * 4);
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
@@ -464,7 +464,7 @@ void Arms::generateReturn(Var * result) {
     return;
 }
 
-void Arms::generateParam(Var * arg, int num) {
+void Arms::generateParam(Var * arg, int num, int frame) {
     if (num == 1)
         cleanRegForCall();
     if (num <= 4) {
@@ -481,7 +481,7 @@ void Arms::generateParam(Var * arg, int num) {
     } else {
         if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar) {
             fillReg(arg, r4);   
-            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + num * 4);
+            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
         }
         else {
             size_t index = 0;
@@ -489,7 +489,7 @@ void Arms::generateParam(Var * arg, int num) {
                 if (varsAreSame(arg, VarStack[index]))
                     break;
             fprintf(fp, "\tldr r4, [sp, #%u]\n", index * 4);
-            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + num * 4);
+            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + frame - (num - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     }
@@ -499,10 +499,15 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
     if (paramNum == 0)
         cleanRegForCall();
     fprintf(fp, "\tbl %s\n", label.c_str());
-    for (int i = regStack.size() - 1; i >= 0; i--) {
-        fprintf(fp, "\tpop {r%d}\n", regStack[i]);
-        regDescriptorInsert(VarStack[i], (Register)regStack[i]);
-    } 
+    for (size_t i = 0; i < regStack.size(); i++) {
+        if (i == 0)
+            fprintf(fp, "\tpop {");
+        if (i == regStack.size() - 1)
+            fprintf(fp, "r%d}\n", regStack[i]);
+        else
+            fprintf(fp, "r%d, ", regStack[i]);
+        regDescriptorInsert(VarStack[i], (Register)i);
+    }
     for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
         if (it->second)
             discardVarInReg(it->first, (Register)findRegForVar(it->first)); 

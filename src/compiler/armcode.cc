@@ -27,7 +27,7 @@ void ArmCodeGenerator::generateSpecial(Instruction * tac, Arms &arms) {
     if (tac->getType() == InstructionType::Store_)
         arms.generateStore(tac->src_2, tac->dst, tac->src_1);
     if (tac->getType() == InstructionType::Param_)
-        arms.generateParam(tac->src_1, paramNum);
+        arms.generateParam(tac->src_1, paramNum, ctx->functions[((Param *)tac)->funName]->stackSize);
     if (tac->getType() == InstructionType::BeginFunc_)
         arms.generateBeginFunc(curFucLabel, ctx->functions[curFucLabel]->stackSize);
     if (tac->getType() == InstructionType::Return_)
