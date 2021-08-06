@@ -190,7 +190,12 @@ void Arms::fillReg(Var * src, Register reg) {
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->type == VarType::ConstVar)
-        fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
+        if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0) {
+            fprintf(fp, "\tmov %s, #:lower16:%s", regs[rd].name.c_str(), src->getName().c_str());
+            fprintf(fp, "\tmovt %s, #:upper16:%s", regs[rd].name.c_str(), src->getName().c_str());
+        }
+        else
+            fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
     if (src->type == VarType::TempVar) {
         if ((reg != preReg) && (preReg != -1))
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
