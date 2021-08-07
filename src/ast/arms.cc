@@ -567,7 +567,10 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
         regs[rd].mutexLock = true;
         fillReg(result, rd);
         regDescriptorInsert(result, rd);
-        fprintf(fp, "\tmov %s, r0", regs[rd].name.c_str());
+        if (label == "__aeabi_idivmod")
+            fprintf(fp, "\tmov %s, r1", regs[rd].name.c_str());
+        else
+            fprintf(fp, "\tmov %s, r0", regs[rd].name.c_str());
         fprintf(fp, "\t@ %s = %s\n", result->getName().c_str(), label.c_str());
         regs[rd].mutexLock = false;
     }
@@ -617,6 +620,8 @@ void Arms::generateGlobal() {
         fprintf(fp, "%s:\n", s.second.c_str());
         fprintf(fp, "\t.ascii \"%s\\000\"\n", s.first.c_str());
     }
+    fprintf(fp, "\t.text\n");
+    fprintf(fp, "\t.global __aeabi_idivmod\n");
 }
 
 void Arms::generateEnders() {
