@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     std::set<std::filesystem::path> sorted;
 
     for (auto& entry :
-         std::filesystem::directory_iterator("cases/function_test2020"))
+         std::filesystem::directory_iterator("cases/function_test2021"))
         sorted.insert(entry.path());
 
     for (const auto& fpath : sorted) {
@@ -94,7 +94,8 @@ int main(int argc, char* argv[]) {
                 std::cout << "file: " << fpath.string() << std::endl;
                 std::cout << run << ", and expected: " << expected(out) << std::endl << std::endl;
             } else {
-                std::cout << mid << std::endl;
+                std::cout << "file: " << fpath.string() << std::endl;
+		std::cout << mid << std::endl;
             }
         }
     }

@@ -414,16 +414,18 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
         curFuncFrameSize = ctx->functions[curFuncLabel]->stackSize;
     }
+    else
+        cleanRegForBranch();
     fprintf(fp, "%s:\n", label.c_str());
 }
 
 void Arms::generateGOTO(std::string label) {
-//    cleanRegForBranch();
+    cleanRegForBranch();
     fprintf(fp, "\tb %s\n", label.c_str());
 }
 
 void Arms::generateIfZ(Var * test, std::string label) {
-//   cleanRegForBranch();
+   cleanRegForBranch();
     rs = (Register)pickRegForVar(test);
     regs[rs].mutexLock = true;
     fillReg(test, rs);
@@ -438,7 +440,7 @@ void Arms::generateIfZ(Var * test, std::string label) {
 }
 
 void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string label) {
-//    cleanRegForBranch();
+    cleanRegForBranch();
     rs = (Register)pickRegForVar(src_1);
     regs[rs].mutexLock = true;
     fillReg(src_1, rs);
