@@ -445,7 +445,7 @@ namespace kisyshot::compiler {
             }
         }
         while (def->srcArray.size() < current + target) {
-            def->srcArray.emplace_back();
+            def->srcArray.push_back(std::make_shared<ast::syntax::NumericLiteralExpression>());
         }
     }
 
