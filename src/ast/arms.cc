@@ -163,14 +163,14 @@ void Arms::discardVarInReg(Var * var, Register reg) {
 void Arms::fillReg(Var * src, Register reg) {
     Register preReg = (Register)findRegForVar(src);
     if (src->type == VarType::StringVar) {
-        fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());
+        fprintf(fp, "\tmov32I %s, %s\n", regs[reg].name.c_str(), src->getName().c_str());
     }
     if (src->type == VarType::GlobalVar) {
         if ((int)preReg == -1)
             if (src->isArray)
-                fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());  
+                fprintf(fp, "\tmov32I %s, %s\n", regs[reg].name.c_str(), src->getName().c_str());  
             else {
-                fprintf(fp, "\tldr %s, =%s\n", regs[reg].name.c_str(), src->getName().c_str());
+                fprintf(fp, "\tmov32I %s, %s\n", regs[reg].name.c_str(), src->getName().c_str());
                 fprintf(fp, "\tldr %s, [%s]\n", regs[reg].name.c_str(), regs[reg].name.c_str());
             }
         else if (reg != preReg)
@@ -210,7 +210,7 @@ void Arms::fillReg(Var * src, Register reg) {
 void Arms::spillReg(Var * dst, Register reg) {
     if (!(dst->isArray)) {
         if (dst->type == VarType::GlobalVar) {
-            fprintf(fp, "\tldr %s, =%s\n", regs[r10].name.c_str(), dst->getName().c_str());
+            fprintf(fp, "\tmov32I %s, %s\n", regs[r10].name.c_str(), dst->getName().c_str());
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r10].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
@@ -385,9 +385,6 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.align 1\n");
         fprintf(fp, "\t.global %s\n", label.c_str());
         fprintf(fp, "\t.syntax unified\n");
-        fprintf(fp, "\t.arch armv8-a\n");
-        fprintf(fp, "\t.arch armv7ve\n");
-        fprintf(fp, "\t.fpu vfp\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
         curFuncFrameSize = ctx->functions[curFuncLabel]->stackSize;
     }
@@ -563,6 +560,7 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
 void Arms::generateHeaders() {
     fprintf(fp, "\t.arch armv8-a\n");
     fprintf(fp, "\t.arch armv7ve\n");
+    fprintf(fp, "\t.fpu vfp\n");
 	fprintf(fp, "\t.eabi_attribute 28, 1\n");
 	fprintf(fp, "\t.eabi_attribute 20, 1\n");
 	fprintf(fp, "\t.eabi_attribute 21, 1\n");
@@ -587,8 +585,12 @@ void Arms::generateGlobal() {
         fprintf(fp, "\t.type %s, %%object\n", ctx->globals[i]->varName->toString().c_str());
         fprintf(fp, "\t.size %s, %u\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->values.size() * 4);
         fprintf(fp, "%s:\n", ctx->globals[i]->varName->toString().c_str());
-        for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
-            fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
+        if (ctx->globals[i]->initialValue != nullptr) {
+            for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
+                fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
+        }
+        else
+            fprintf(fp, "\t.space %d\n", ctx->globals[i]->values.size() * 4);
     }
     for(auto &s : ctx->strings) {
         fprintf(fp, "\t.rodata\n");
