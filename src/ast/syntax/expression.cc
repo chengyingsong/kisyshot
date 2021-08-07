@@ -121,18 +121,14 @@ namespace kisyshot::ast::syntax {
                 gen.genLabel(endLabel);
             }
               break;
-            case TokenType::op_modulus: {
+           case TokenType::op_modulus: {
                 //a % b = a - (a / b) * b
-                //TODO: 膜运算正负处理
                 Var *src_1 = left->getVar(gen);
                 Var *src_2 = right->getVar(gen);
-                std::string div = "/";
-                std::string time = "*";
-                std::string minus = "-";
-                Var *t1 = gen.newTempVar();
-                gen.genBinaryOp(div, src_1, src_2, t1);
-                gen.genBinaryOp(time, t1, src_2, t1);
-                gen.genBinaryOp(minus, src_1, t1, temp);
+                std::string mod= "__aeabi_idivmod";
+                gen.genParam(mod,src_1);
+                gen.genParam(mod,src_2);
+                gen.genCall(mod,2,temp);
             }
                 break;
             case TokenType::op_less:
