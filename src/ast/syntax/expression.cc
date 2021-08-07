@@ -123,8 +123,8 @@ namespace kisyshot::ast::syntax {
               break;
            case TokenType::op_modulus: {
                 //a % b = a - (a / b) * b
-                Var *src_1 = left->getVar(gen);
                 Var *src_2 = right->getVar(gen);
+                Var *src_1 = left->getVar(gen);
                 std::string mod= "__aeabi_idivmod";
                 gen.genParam(mod,src_1);
                 gen.genParam(mod,src_2);
