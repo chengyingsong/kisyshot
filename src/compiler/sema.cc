@@ -80,19 +80,30 @@ namespace kisyshot::compiler {
                     func->stackSize += 4;
                     auto id = param->varName->identifier;
                     param->varName->mangledId = id + "%" + func->name->identifier;
-                    if (!_variables[id].empty()) {
+
+                    _context->symbols[param->varName->mangledId] = param;
+                    if (_variables.count(id) == 1 && !_variables[id].empty()) {
                         recover[id] = _variables[id].top();
                         _variables[id].top() = param;
-                    } else{
+                    } else {
                         recover[id] = nullptr;
                         _variables[id].push(param);
                     }
                 }
                 _layerNames.pop_back();
-                _blockName = func->name->identifier;
                 _currFunc = func;
-                traverseStatement(func->body);
-                for(auto &[id, def]:recover){
+
+                _layerNames.push_back(func->name->identifier);
+                for (auto &s :
+                        std::dynamic_pointer_cast<ast::syntax::BlockStatement>(
+                                func->body)
+                                ->children) {
+                    traverseStatement(s);
+                }
+                _layerNames.pop_back();
+
+
+                for (auto &[id, def]:recover) {
                     if (def != nullptr)
                         _variables[id].top() = def;
                     else
@@ -334,7 +345,7 @@ namespace kisyshot::compiler {
                 }
                 _layerNames.pop_back();
                 for (auto&& [_, s] : _variables) {
-                    if (s.size() > _layerNames.size() + 1)
+                    if (s.size() > _layerNames.size())
                         s.pop();
                 }
 
@@ -389,17 +400,18 @@ namespace kisyshot::compiler {
 
     void
     Sema::newVariable(const std::shared_ptr<ast::syntax::VarDefinition>& def) {
-        if (_variables.count(def->varName->identifier) == 1 &&
-            _variables[def->varName->identifier].size() == _layerNames.size()) {
-            // TODO error
-            return;
-        }
         if (_layerNames.empty()) {
             def->varName->mangledId = def->varName->identifier;
         } else {
             def->varName->mangledId =
-                def->varName->identifier + "@" + _layerNames.back();
+                    def->varName->identifier + "@" + _layerNames.back();
         }
+        if (_variables.count(def->varName->identifier) == 1 &&
+            _variables[def->varName->identifier].top()->varName->mangledId  == def->varName->mangledId) {
+            // TODO error
+            return;
+        }
+
         _context->symbols[def->varName->mangledId] = def;
         _variables[def->varName->identifier].push(def);
     }
