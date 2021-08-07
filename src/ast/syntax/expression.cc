@@ -414,9 +414,21 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
             t = gen.newTempVar();
             //std::cout << t->getName() << std::endl;
             indexedExpr->genCode(gen, t);  //计算内层的offset
-            gen.genBinaryOp(add, t, current_offset, t);  //offset = offset + k
+            if(accumulation == -1) {
+                gen.genBinaryOp(add, t, current_offset, t);  //offset = offset + k
+            }
+            else{
+                Var* t1 = gen.newTempVar();
+                gen.genBinaryOp(time,current_offset,gen.getConstVar(accumulation),t1);
+                gen.genBinaryOp(add, t, t1, t);  //offset = offset + j*dim;
+            }
         } else {  //一维数组
-            t = current_offset;
+            if(accumulation == -1){
+                t = current_offset;
+            } else {
+                t = gen.newTempVar();
+                gen.genBinaryOp(time,current_offset,gen.getConstVar(accumulation),t);
+            }
         }
         Var *base = gen.name2VarMap[arrayName->mangledId];
         if(isStore)
