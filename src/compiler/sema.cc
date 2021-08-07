@@ -55,6 +55,7 @@ namespace kisyshot::compiler {
                 std::tie(value, ok) =
                         checkCompileTimeConstExpr(def->initialValue);
                 def->values.emplace_back(ok ? value : 0);
+                def->accumulation.push_back(1);
             } else {
                 prepareArrayDef(def);
 
