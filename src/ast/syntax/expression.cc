@@ -410,6 +410,11 @@ void IndexExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         //最外层，设置offset为当前offset
         //计算内层的offset，如果一维则返回是数组名，不用管
         Var *t;
+        if (accumulation != -1) {
+            Var* tmp = gen.newTempVar();
+            gen.genBinaryOp(time, current_offset, gen.getConstVar(accumulation), tmp);
+            current_offset = tmp;
+        }
         if (indexedExpr->getType() == SyntaxType::IndexExpression) {
             t = gen.newTempVar();
             //std::cout << t->getName() << std::endl;
