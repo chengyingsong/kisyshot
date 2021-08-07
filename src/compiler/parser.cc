@@ -447,6 +447,21 @@ namespace kisyshot::compiler {
             step();
             while (_current < _context->tokens.size() && current() != ast::TokenType::r_brace) {
                 auto stmt = parseStatement();
+                if (stmt->getType() == ast::syntax::SyntaxType::ExpressionStatement){
+                    auto expr = std::dynamic_pointer_cast<ast::syntax::ExpressionStatement>(stmt);
+                    switch (expr->expression->getType()) {
+                        case ast::syntax::SyntaxType::BinaryExpression:{
+                            auto b = std::dynamic_pointer_cast<ast::syntax::BinaryExpression>(expr->expression);
+                            if (b->operatorType != ast::TokenType::op_eq)
+                                continue;
+                            break;
+                        }
+                        case ast::syntax::SyntaxType::CallExpression:
+                            break;
+                        default:
+                            continue;
+                    }
+                }
                 block->add(stmt);
             }
             if (current() == ast::TokenType::r_brace)
