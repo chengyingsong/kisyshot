@@ -265,10 +265,18 @@ namespace kisyshot::compiler {
                 }
             }
             case ast::syntax::SyntaxType::IdentifierExpression: {
-                auto id =
+                auto name =
                         std::dynamic_pointer_cast<ast::syntax::IdentifierExpression>(
                                 expr);
-                auto def = _context->symbols[id->name->mangledId];
+                auto id = name->name->identifier;
+                auto&& s = _variables[id];
+                std::shared_ptr<ast::syntax::VarDefinition> def;
+                if (s.empty()) {
+                    assert(_globals.count(id) == 1);
+                    def = _globals[id];
+                } else{
+                    def = s.top();
+                }
                 if (def->isConst) {
                     return checkCompileTimeConstExpr(def->initialValue);
                 }
