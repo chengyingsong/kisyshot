@@ -331,6 +331,8 @@ namespace kisyshot::compiler {
                 break;
             }
             case ast::syntax::SyntaxType::BlockStatement: {
+                // add a block-exit cleaner
+                _blockVars.emplace();
                 if (_blockName.empty()) {
                     _layerNames.emplace_back("b." + std::to_string(_blockId++) +
                                              "@" + _layerNames.back());
@@ -345,12 +347,11 @@ namespace kisyshot::compiler {
                     traverseStatement(s);
                 }
                 _layerNames.pop_back();
-                for (auto&& [_, s] : _variables) {
-                    if (s.size() > _layerNames.size())
-                        s.pop();
+                for (auto& id : _blockVars.top()) {
+                    _variables[id].pop();
                 }
-
-                //
+                // pop block
+                _blockVars.pop();
                 break;
             }
             case ast::syntax::SyntaxType::IfStatement: {
@@ -414,6 +415,7 @@ namespace kisyshot::compiler {
         }
         _context->symbols[def->varName->mangledId] = def;
         _variables[def->varName->identifier].push(def);
+        _blockVars.top().push_back(def->varName->identifier);
     }
 
     void Sema::flattenArray(
