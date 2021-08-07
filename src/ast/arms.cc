@@ -574,12 +574,13 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
         fprintf(fp, "\t@ %s = %s\n", result->getName().c_str(), label.c_str());
         regs[rd].mutexLock = false;
     }
-    for (size_t i = 0; i < VarStack.size(); i--) {
+    for (size_t i = 0; i < VarStack.size(); i++) {
         int reg = pickRegForVar(VarStack[i]);
         regs[reg].mutexLock = true;
         fillReg(VarStack[i], (Register)reg);
         regDescriptorInsert(VarStack[i], (Register)reg);
         fprintf(fp, "\tpop {%s}\n", regs[reg].name.c_str());
+        fprintf(fp, "\t@ %s\n", VarStack[i]->getName().c_str());
         regs[reg].mutexLock = false;
     }
     for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
