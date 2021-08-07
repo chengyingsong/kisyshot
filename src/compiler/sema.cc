@@ -197,11 +197,8 @@ namespace kisyshot::compiler {
             return std::make_pair(0, false);
         switch (expr->getType()) {
             case ast::syntax::SyntaxType::NumericLiteralExpression: {
-                return std::make_pair(
-                    std::stoi((std::string)std::dynamic_pointer_cast<
-                                  ast::syntax::NumericLiteralExpression>(expr)
-                                  ->rawCode),
-                    true);
+                return std::make_pair(std::dynamic_pointer_cast<ast::syntax::NumericLiteralExpression>(expr)->number,
+                                      true);
             }
             case ast::syntax::SyntaxType::UnaryExpression: {
                 auto unary =
@@ -448,9 +445,7 @@ namespace kisyshot::compiler {
             }
         }
         while (def->srcArray.size() < current + target) {
-            auto e = std::make_shared<ast::syntax::NumericLiteralExpression>();
-            e->rawCode = "0";
-            def->srcArray.push_back(e);
+            def->srcArray.emplace_back();
         }
     }
 
