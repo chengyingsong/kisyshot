@@ -499,8 +499,9 @@ std::string CallExpression::toString() {
 
 void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
     std::vector<Var*> params;
-    for (int i = 0; i < arguments.size(); ++i) {
-        Var *t = arguments[params.size() - i - 1]->getVar(gen);
+    std::reverse(arguments.begin(), arguments.end());
+    for (auto &argument:arguments) {
+        Var *t = argument->getVar(gen);
         params.push_back(t);
     }
     std::string funName = name->toString();
