@@ -52,8 +52,20 @@ int Arms::selectRandomReg() {
     int select = 0;
     while (!flag) {
         select = rand() % 10;
-        if (regs[select].mutexLock == false)
-                flag = true;
+        if (regs[select].mutexLock == false) {
+            if (getRegContents((Register)select) != NULL) {
+                if (getRegContents((Register)select)->type == VarType::GlobalVar)
+                    spillReg(getRegContents((Register)select), (Register)select);
+                else if (getRegContents((Register)select)->type == VarType::LocalVar)
+                    spillReg(getRegContents((Register)select), (Register)select);
+                else if (getRegContents((Register)select)->type == VarType::TempVar) {
+                    stack.push_back(getRegContents((Register)select));
+                    fprintf(fp, "\tpush {%s}\n", regs[select].name.c_str());
+                    spillReg(getRegContents((Register)select), (Register)select);
+                }
+            }
+            flag = true;
+        }
     }
 
     return select;
@@ -196,13 +208,27 @@ void Arms::fillReg(Var * src, Register reg) {
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
     if (src->type == VarType::ConstVar) {
-        if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
-            fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
+        if (src->value > 65535 || src->value < 0)
+            fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), src->value);
         else
-            fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
+            fprintf(fp, "\tmov %s, #%d\n", regs[reg].name.c_str(), src->value);
     }
     if (src->type == VarType::TempVar) {
-        if ((reg != preReg) && (preReg != -1))
+        if (preReg == -1) {
+            for (int index = (int)stack.size() - 1; index >= 0; index--) {
+                if (varsAreSame(stack[index], src)) {
+                    if (index == (int)stack.size() - 1) {
+                        fprintf(fp, "\tpop {%s}\n", regs[reg].name.c_str());
+                        stack.pop_back();
+                    }
+                    else {
+                        fprintf(fp, "\tldr %s, [sp, #%u]\n", regs[reg].name.c_str(), (stack.size() - index - 1) * 4);
+                    }
+                    break;
+                }
+            } 
+        }
+        else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
 }
@@ -265,10 +291,10 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     regs[rd].mutexLock = true;
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
-    if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
-        fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
+    if (src->value > 65535 || src->value < 0)
+        fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), src->value);
     else
-        fprintf(fp, "\tmov %s, #%s", regs[rd].name.c_str(), src->getName().c_str());
+        fprintf(fp, "\tmov %s, #%d", regs[rd].name.c_str(), src->value);
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
     regs[rd].mutexLock = false;
     if (dst->type == VarType::LocalVar || dst->type == VarType::GlobalVar)
@@ -481,6 +507,7 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tbx lr\n");
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
     regDescriptor.clear();
+    stack.clear();
     for (int i = r0; i <= r9; i++)
         regs[i].isDirty = false;
 }
@@ -561,16 +588,6 @@ void Arms::generateHeaders() {
     fprintf(fp, "\t.arch armv8-a\n");
     fprintf(fp, "\t.arch armv7ve\n");
     fprintf(fp, "\t.fpu vfp\n");
-	fprintf(fp, "\t.eabi_attribute 28, 1\n");
-	fprintf(fp, "\t.eabi_attribute 20, 1\n");
-	fprintf(fp, "\t.eabi_attribute 21, 1\n");
-	fprintf(fp, "\t.eabi_attribute 23, 3\n");
-	fprintf(fp, "\t.eabi_attribute 24, 1\n");
-	fprintf(fp, "\t.eabi_attribute 25, 1\n");
-	fprintf(fp, "\t.eabi_attribute 26, 2\n");
-	fprintf(fp, "\t.eabi_attribute 30, 6\n");
-	fprintf(fp, "\t.eabi_attribute 34, 1\n");
-	fprintf(fp, "\t.eabi_attribute 18, 4\n");
     fprintf(fp, "\t.macro mov32I, reg, val\n");
     fprintf(fp, "\t\tmovw \\reg, #:lower16:\\val\n");
     fprintf(fp, "\t\tmovt \\reg, #:upper16:\\val\n");

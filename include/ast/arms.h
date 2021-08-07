@@ -72,6 +72,7 @@ namespace kisyshot::ast {
         std::map<Register, Var *> regDescriptor;
         FILE * fp;
         std::map<Var *, bool> ParamDiscard;
+        std::vector<Var *> stack;
         int curFuncFrameSize;
         std::string curFuncLabel;
         Arms(const std::shared_ptr<Context> &context);
