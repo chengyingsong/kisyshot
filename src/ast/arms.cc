@@ -181,8 +181,14 @@ void Arms::fillReg(Var * src, Register reg) {
             if (src->isArray) {
                 if (src->isParam)
                     fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
-                else
-                    fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
+                else {
+                    if (curFuncFrameSize - getOffset(src) > 255) {
+                        fprintf(fp, "\tmov32I r10, 0x%08x\n", getOffset(src) - curFuncFrameSize);
+                        fprintf(fp, "\tadd %s, fp, r10\n", regs[reg].name.c_str());
+                    }
+                    else
+                        fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
+                }
             }
             else
                 fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
@@ -191,7 +197,7 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::ConstVar) {
         if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
-            fprintf(fp, "\tldr %s, =0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
+            fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
         else
             fprintf(fp, "\tmov %s, #%s\n", regs[reg].name.c_str(), src->getName().c_str());
     }
@@ -260,7 +266,7 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
     if (std::stoi(src->getName()) > 65535 || std::stoi(src->getName()) < 0)
-        fprintf(fp, "\tldr %s, =0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
+        fprintf(fp, "\tmov32I %s, 0x%08x\n", regs[rd].name.c_str(), std::stoi(src->getName()));
     else
         fprintf(fp, "\tmov %s, #%s", regs[rd].name.c_str(), src->getName().c_str());
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
@@ -379,9 +385,9 @@ void Arms::generateLabel(std::string label) {
         fprintf(fp, "\t.align 1\n");
         fprintf(fp, "\t.global %s\n", label.c_str());
         fprintf(fp, "\t.syntax unified\n");
-        fprintf(fp, "\t.arch armv7-a\n");
+        fprintf(fp, "\t.arch armv8-a\n");
         fprintf(fp, "\t.arch armv7ve\n");
-        fprintf(fp, "\t.fpu neon\n");
+        fprintf(fp, "\t.fpu vfp\n");
         fprintf(fp, "\t.type %s, %%function\n", label.c_str());
         curFuncFrameSize = ctx->functions[curFuncLabel]->stackSize;
     }
@@ -456,7 +462,12 @@ void Arms::generateCMP(TokenType opType, Var * src_1, Var * src_2, std::string l
 void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tpush {fp, lr}\n");
     fprintf(fp, "\tadd fp, sp, #0\n");
-    fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
+    if (frameSize > 255) {
+        fprintf(fp, "\tmov32I r10, 0x%08x\n", frameSize);
+        fprintf(fp, "\tsub sp, sp, r10\n");
+    }
+    else
+        fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
     int parNum = ctx->functions[curFunc]->params.size();
     if (parNum > 4)
         parNum = 4;
@@ -551,7 +562,7 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
 }
 
 void Arms::generateHeaders() {
-    fprintf(fp, "\t.arch armv7-a\n");
+    fprintf(fp, "\t.arch armv8-a\n");
     fprintf(fp, "\t.arch armv7ve\n");
 	fprintf(fp, "\t.eabi_attribute 28, 1\n");
 	fprintf(fp, "\t.eabi_attribute 20, 1\n");
@@ -563,6 +574,10 @@ void Arms::generateHeaders() {
 	fprintf(fp, "\t.eabi_attribute 30, 6\n");
 	fprintf(fp, "\t.eabi_attribute 34, 1\n");
 	fprintf(fp, "\t.eabi_attribute 18, 4\n");
+    fprintf(fp, "\t.marco mov32I, reg, val\n");
+    fprintf(fp, "\t\tmovw \\reg, #:lower16:\\val\n");
+    fprintf(fp, "\t\tmovt \\reg, #:upper16:\\val\n");
+    fprintf(fp, "\t.endm\n");
 }
 
 void Arms::generateGlobal() {
