@@ -139,7 +139,8 @@ namespace kisyshot::compiler {
             function->body = nullptr;
         } else {
             function->body = parseBlockStatement();
-            if(function->body->children.back()->getType() != ast::syntax::SyntaxType::ReturnStatement){
+            if(function->body->children.empty() ||
+               function->body->children.back()->getType() != ast::syntax::SyntaxType::ReturnStatement) {
                 function->body->children.push_back(std::make_shared<ast::syntax::ReturnStatement>());
             }
         }

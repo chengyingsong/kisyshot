@@ -498,13 +498,13 @@ std::string CallExpression::toString() {
 }
 
 void CallExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-        std::vector<Var*> params;
-    for (auto &argument: arguments) {
-        Var *t = argument->getVar(gen);
+    std::vector<Var*> params;
+    for (int i = 0; i < arguments.size(); ++i) {
+        Var *t = arguments[params.size() - i - 1]->getVar(gen);
         params.push_back(t);
-        // argument->genCode(gen, t);  //参数声明语句
     }
     std::string funName = name->toString();
+    std::reverse(params.begin(), params.end());
     for(auto &param:params){
         gen.genParam(funName,param);
     }
