@@ -14,12 +14,12 @@ namespace kisyshot::compiler {
         std:: list < ast::Instruction * > code;
         //在变量声明时加入
         std::unordered_map<std::string,ast::Var* > name2VarMap;
-        std::unordered_map<int,ast::Var*> const2VarMap;
+        std::unordered_map<int64_t,ast::Var*> const2VarMap;
         bool printOrNot = 1;
 
         CodeGenerator();
 
-        ast::Var* getConstVar(int value);
+        ast::Var* getConstVar(int64_t value);
 
         void printInstruction(ast::Instruction * p);
 

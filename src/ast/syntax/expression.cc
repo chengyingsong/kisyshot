@@ -295,7 +295,7 @@ Var *Expression::getVar(compiler::CodeGenerator &gen) {
             this)->name->mangledId];
             break;
         case SyntaxType::NumericLiteralExpression:
-            t = gen.getConstVar(std::stoi(toString()));
+            t = gen.getConstVar(((NumericLiteralExpression*)this)->number);
             break;
         case SyntaxType::StringLiteralExpression: {
             //TODO: 获取节点存储名字

@@ -232,14 +232,14 @@ namespace kisyshot::compiler {
                 case ast::TokenType::numeric_literal: {
                     auto number = std::make_shared<NumericLiteralExpression>();
                     number->rawCode = _context->tokens[_current]->raw_code;
-                    std::size_t base = 10;
+                    int base = 0;
                     if (number->rawCode[0] == '0'){
                         base = 8;
                         if (number->rawCode.size() > 1 && (number->rawCode[1] == 'x' || number->rawCode[1] == 'X')){
                             base = 16;
                         }
                     }
-                    number->number = std::stoll(number->rawCode.data(), &base, base);
+                    number->number = std::stoll(number->rawCode.data(), nullptr, base);
                     number->tokenIndex = _current;
                     left = number;
                     step();

@@ -130,7 +130,7 @@ namespace kisyshot::compiler {
         }
     }
 
-    ast::Var *CodeGenerator::getConstVar(int value) {
+    ast::Var *CodeGenerator::getConstVar(int64_t value) {
         if(const2VarMap.find(value) == const2VarMap.end()){
             Var * t = new Var(value);
             const2VarMap[value] = t;

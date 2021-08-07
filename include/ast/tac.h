@@ -29,7 +29,7 @@ namespace kisyshot::ast {
         */
     public:
         std::string variableName;  //变量名，可以是变量名或者变量重整名
-        int value;
+        int64_t value;
         std::string  s;
         VarType type;
         bool isArray = false;  //如果是数组，在初始化类Var的时候设置isArray为true。
@@ -39,7 +39,7 @@ namespace kisyshot::ast {
         Var(std::string variableName);
 
         //传入常量
-        Var(int value);
+        Var(int64_t value);
 
 
         Var();

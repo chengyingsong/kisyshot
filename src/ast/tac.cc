@@ -17,7 +17,7 @@ namespace kisyshot::ast {
     }
 
     //常量赋值
-    Var::Var(int value) : value(value) {
+    Var::Var(int64_t value) : value(value) {
         type = VarType::ConstVar;
     }
 
