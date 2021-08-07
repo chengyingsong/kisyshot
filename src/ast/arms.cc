@@ -34,7 +34,7 @@ int Arms::findRegForVar(Var * var) {
 int Arms::findCleanReg() {
     int index = -1;
     for (int i = r0; i <= r9; i++) {
-        if (regs[i].isDirty == false) {
+        if ((regs[i].isDirty == false) && (regs[i].mutexLock == false)) {
             index = i;
             break;
         }
@@ -536,20 +536,6 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
     if (paramNum == 0)
         cleanRegForCall();
     fprintf(fp, "\tbl %s\n", label.c_str());
-    for (size_t i = 0; i < regStack.size(); i++) {
-        if (i == 0)
-            fprintf(fp, "\tpop {");
-        if (i == regStack.size() - 1)
-            fprintf(fp, "r%d}\n", regStack[i]);
-        else
-            fprintf(fp, "r%d, ", regStack[i]);
-        regDescriptorInsert(VarStack[i], (Register)i);
-    }
-    for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
-        if (it->second)
-             discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
-    VarStack.clear();
-    regStack.clear();
     if (numVars == 1) {
         rd = (Register)pickRegForVar(result);
         regs[rd].mutexLock = true;
@@ -559,6 +545,19 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
         fprintf(fp, "\t@ %s = %s\n", result->getName().c_str(), label.c_str());
         regs[rd].mutexLock = false;
     }
+    for (size_t i = 0; i < VarStack.size(); i--) {
+        int reg = pickRegForVar(VarStack[i]);
+        regs[reg].mutexLock = true;
+        fillReg(VarStack[i], (Register)reg);
+        regDescriptorInsert(VarStack[i], (Register)reg);
+        fprintf(fp, "\tpop {%s}\n", regs[reg].name.c_str());
+        regs[reg].mutexLock = false;
+    }
+    for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
+        if (it->second)
+            discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
+    VarStack.clear();
+    regStack.clear();
 }
 
 void Arms::generateHeaders() {
