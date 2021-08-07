@@ -590,7 +590,7 @@ void Arms::generateGlobal() {
                 fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
         }
         else
-            fprintf(fp, "\t.space %d\n", ctx->globals[i]->values.size() * 4);
+            fprintf(fp, "\t.space %d\n", ctx->globals[i]->accumulation.front() * 4);
     }
     for(auto &s : ctx->strings) {
         fprintf(fp, "\t.rodata\n");
