@@ -21,7 +21,8 @@ namespace kisyshot::compiler {
                     std::dynamic_pointer_cast<ast::syntax::VarDeclaration>(
                         node);
                 for (auto& def : decl->varDefs) {
-                    newVariable(def);
+                    _globals[def->varName->identifier] = def;
+                    _context->symbols[def->varName->identifier] = def;
                     _context->globals.push_back(def);
                 }
             }
@@ -73,16 +74,27 @@ namespace kisyshot::compiler {
             // push function layer name
             if (func->body != nullptr) {
                 _layerNames.push_back(func->name->identifier);
+                std::vector<std::string> recover;
                 for (auto &param : func->params) {
                     prepareArrayDef(param);
                     param->offset = func->stackSize;
                     func->stackSize += 4;
-                    newVariable(param);
+                    auto id = param->varName->identifier;
+                    param->varName->mangledId = id + "%" +func->name->identifier;
+                    _context->symbols[param->varName->mangledId] = param;
+                    if (_globals.count(param->varName->identifier) == 1) {
+                        recover.push_back(id);
+                    }
+                    _globals[id] = param;
                 }
                 _layerNames.pop_back();
                 _blockName = func->name->identifier;
                 _currFunc = func;
                 traverseStatement(func->body);
+                // release param covered global ids;
+                for(auto& id: recover){
+                    _globals[id] = _context->symbols[id];
+                }
             }
         }
 
@@ -149,9 +161,11 @@ namespace kisyshot::compiler {
             case ast::syntax::SyntaxType::IdentifierExpression: {
                 auto&& e = std::dynamic_pointer_cast<
                     ast::syntax::IdentifierExpression>(expr);
-                auto&& s = _variables[e->name->identifier];
+                auto id = e->name->identifier;
+                auto&& s = _variables[id];
                 if (s.empty()) {
-                    // TODO push er
+                    assert(_globals.count(id) == 1);
+                    e->name->mangledId = _globals[e->name->identifier]->varName->mangledId;
                     break;
                 }
                 e->name->mangledId = s.top()->varName->mangledId;
@@ -251,9 +265,10 @@ namespace kisyshot::compiler {
                 }
             }
             case ast::syntax::SyntaxType::IdentifierExpression: {
-                auto id = std::dynamic_pointer_cast<
-                    ast::syntax::IdentifierExpression>(expr);
-                auto def = _variables[id->name->identifier].top();
+                auto id =
+                        std::dynamic_pointer_cast<ast::syntax::IdentifierExpression>(
+                                expr);
+                auto def = _context->symbols[id->name->mangledId];
                 if (def->isConst) {
                     return checkCompileTimeConstExpr(def->initialValue);
                 }
@@ -444,4 +459,5 @@ namespace kisyshot::compiler {
         std::reverse(def->accumulation.begin(), def->accumulation.end());
         def->accumulation.back() = -1;
     }
+
 } // namespace kisyshot::compiler
