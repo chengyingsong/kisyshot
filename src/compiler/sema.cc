@@ -55,7 +55,7 @@ namespace kisyshot::compiler {
                 std::tie(value, ok) =
                         checkCompileTimeConstExpr(def->initialValue);
                 def->values.emplace_back(ok ? value : 0);
-            } else {
+            } else if (def->initialValue != nullptr){
                 prepareArrayDef(def);
                 flattenArray(def,
                              std::dynamic_pointer_cast<
