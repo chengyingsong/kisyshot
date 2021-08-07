@@ -55,17 +55,20 @@ namespace kisyshot::compiler {
                 std::tie(value, ok) =
                         checkCompileTimeConstExpr(def->initialValue);
                 def->values.emplace_back(ok ? value : 0);
-            } else if (def->initialValue != nullptr){
+            } else {
                 prepareArrayDef(def);
-                flattenArray(def,
-                             std::dynamic_pointer_cast<
-                                     ast::syntax::ArrayInitializeExpression>(
-                                     def->initialValue),
-                             def->accumulation.front());
-                for (auto &expr : def->srcArray) {
 
-                    std::tie(value, ok) = checkCompileTimeConstExpr(expr);
-                    def->values.emplace_back(ok ? value : 0);
+                if (def->initialValue != nullptr) {
+                    flattenArray(def,
+                                 std::dynamic_pointer_cast<
+                                         ast::syntax::ArrayInitializeExpression>(
+                                         def->initialValue),
+                                 def->accumulation.front());
+                    for (auto &expr : def->srcArray) {
+
+                        std::tie(value, ok) = checkCompileTimeConstExpr(expr);
+                        def->values.emplace_back(ok ? value : 0);
+                    }
                 }
             }
         }
