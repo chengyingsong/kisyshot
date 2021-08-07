@@ -227,7 +227,11 @@ void UnaryExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
         gen.genLabel(label0);
         gen.genAssign(gen.getConstVar(1), temp);
         gen.genLabel(endLabel);
-    } else {  //负号
+    } else if(operatorType == TokenType::op_plus){
+        Var *t0 = gen.getConstVar(0);
+        std::string opName = "+";
+        gen.genBinaryOp(opName, t0, t, temp);
+    } else{  //负号
         Var *t0 = gen.getConstVar(0);
         std::string opName = "-";
         gen.genBinaryOp(opName, t0, t, temp);
@@ -543,7 +547,7 @@ void NumericLiteralExpression::analyseType() {
 }
 
 std::string NumericLiteralExpression::toString() {
-    return (std::string) rawCode;
+    return std::to_string(number);
 }
 
 void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
