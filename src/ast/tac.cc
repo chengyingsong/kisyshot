@@ -8,8 +8,7 @@ namespace kisyshot::ast {
     Var::Var(std::string variableName) : variableName(variableName) {
         //TODO: 根据传入的重整变量名判断全局变量，临时变量还是局部变量
         //如果重整名没有@就是全局变量,如果前面是_temp_就是临时变量
-        if (variableName.find("@") != variableName.npos ||
-            variableName.find("%") != variableName.npos )  //形参也是局部变量
+        if (variableName.find("@") != variableName.npos)
             type = VarType::LocalVar;
         else if (variableName.find("_temp_") != variableName.npos)
             type = VarType::TempVar;
