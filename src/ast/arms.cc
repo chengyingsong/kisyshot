@@ -574,7 +574,7 @@ void Arms::generateHeaders() {
 	fprintf(fp, "\t.eabi_attribute 30, 6\n");
 	fprintf(fp, "\t.eabi_attribute 34, 1\n");
 	fprintf(fp, "\t.eabi_attribute 18, 4\n");
-    fprintf(fp, "\t.marco mov32I, reg, val\n");
+    fprintf(fp, "\t.macro mov32I, reg, val\n");
     fprintf(fp, "\t\tmovw \\reg, #:lower16:\\val\n");
     fprintf(fp, "\t\tmovt \\reg, #:upper16:\\val\n");
     fprintf(fp, "\t.endm\n");
