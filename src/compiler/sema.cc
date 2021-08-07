@@ -73,16 +73,31 @@ namespace kisyshot::compiler {
             // push function layer name
             if (func->body != nullptr) {
                 _layerNames.push_back(func->name->identifier);
+                std::unordered_map<std::string, std::shared_ptr<ast::syntax::VarDefinition>> recover;
                 for (auto &param : func->params) {
                     prepareArrayDef(param);
                     param->offset = func->stackSize;
                     func->stackSize += 4;
-                    newVariable(param);
+                    auto id = param->varName->identifier;
+                    param->varName->mangledId = id + "%" + func->name->identifier;
+                    if (!_variables[id].empty()) {
+                        recover[id] = _variables[id].top();
+                        _variables[id].top() = param;
+                    } else{
+                        recover[id] = nullptr;
+                        _variables[id].push(param);
+                    }
                 }
                 _layerNames.pop_back();
                 _blockName = func->name->identifier;
                 _currFunc = func;
                 traverseStatement(func->body);
+                for(auto &[id, def]:recover){
+                    if (def != nullptr)
+                        _variables[id].top() = def;
+                    else
+                        _variables[id].pop();
+                }
             }
         }
 
@@ -319,7 +334,7 @@ namespace kisyshot::compiler {
                 }
                 _layerNames.pop_back();
                 for (auto&& [_, s] : _variables) {
-                    if (s.size() > _layerNames.size())
+                    if (s.size() > _layerNames.size() + 1)
                         s.pop();
                 }
 
