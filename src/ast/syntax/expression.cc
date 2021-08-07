@@ -547,7 +547,7 @@ std::string NumericLiteralExpression::toString() {
 }
 
 void NumericLiteralExpression::genCode(compiler::CodeGenerator &gen, ast::Var *temp) {
-    gen.genAssign((gen.getConstVar(std::stoi(toString()))), temp);
+    gen.genAssign((gen.getConstVar(number)), temp);
 }
 
 

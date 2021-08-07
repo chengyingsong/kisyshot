@@ -106,7 +106,7 @@ namespace kisyshot::ast::syntax{
         bool isStore= false;
         bool isOutSideLayer = false;
         std::size_t layer = 1;
-        std::size_t accumulation = 1;
+        int accumulation = 1;
         std::size_t lSquareIndex = invalidTokenIndex;
         std::size_t rSquareIndex = invalidTokenIndex;
     };
@@ -144,6 +144,7 @@ namespace kisyshot::ast::syntax{
         std::string toString() override;
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t tokenIndex;
+        int64_t number;
         std::string_view rawCode;
     };
 
