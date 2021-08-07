@@ -31,6 +31,5 @@ namespace kisyshot::compiler{
         std::vector<std::string> _layerNames;
         std::string _blockName;
         std::size_t _blockId = 0;
-        std::size_t _arrLayer = 0;
     };
 }
