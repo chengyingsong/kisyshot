@@ -2,7 +2,7 @@
 #include <context.h>
 
 namespace kisyshot {
-    Context::Context(const std::string_view &code,
+    Context::Context(const std::string &code,
                      std::size_t contextID) {
         this->code = code;
         this->contextID = contextID;
@@ -13,6 +13,15 @@ namespace kisyshot {
                 lineStartPos.push_back(lastLine);
                 lines.push_back(code.substr(lastLine, i - lastLine));
                 lastLine = i + 1;
+            }
+        }
+        for (std::size_t i = 0; i < lines.size(); ++i) {
+            size_t s;
+            while ((s = lines[i].find("starttime();")) != npos){
+                lines[i].replace(s, 12, "_sysy_starttime(" + std::to_string(i + 1) + ");");
+            }
+            while ((s = lines[i].find("stoptime();")) != npos){
+                lines[i].replace(s, 12, "_sysy_stoptime(" + std::to_string(i + 1) + ");");
             }
         }
         // handle with

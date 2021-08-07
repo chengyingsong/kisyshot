@@ -5,7 +5,7 @@
 #include <compiler/sema.h>
 #include <fstream>
 namespace kisyshot{
-    std::shared_ptr<Context> ContextManager::create(const std::string_view& code, const std::string & path) {
+    std::shared_ptr<Context> ContextManager::create(const std::string& code, const std::string & path) {
         auto context = std::make_shared<Context>(code, _contexts.size());
         context->path = path;
         _contexts.push_back(context);
@@ -54,9 +54,11 @@ namespace kisyshot{
              "int getarray(int a[]);\n"
              "void putint(int a);\n"
              "void putch(int a);\n"
-             "void putarray(int n,int a[]);";
+             "void putarray(int n,int a[]);\n"
+             "void _sysy_starttime(int lineno);\n"
+             "void _sysy_stoptime(int lineno);\n"
+             "int __aeabi_idivmod(int a, int b);\n";
         auto ctx = create(s, path);
-        _ctxCodes[ctx->contextID] = std::move(s);
         return ctx;
     }
 }

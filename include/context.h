@@ -21,11 +21,11 @@ namespace kisyshot{
         /**
          * The code reference string.
          */
-        std::string_view code;
+        std::string code;
         /**
          * The reference to the lines of the codes.
          */
-        std::vector<std::string_view> lines;
+        std::vector<std::string> lines;
         /**
          * The tokens lexed by Lexer are stored here.
          */
@@ -55,7 +55,7 @@ namespace kisyshot{
          */
         std::size_t contextID;
 
-        Context(const std::string_view &code, std::size_t contextID);
+        Context(const std::string &code, std::size_t contextID);
 
         /**
          * Locate the given token in the source code.

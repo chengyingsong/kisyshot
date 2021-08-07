@@ -18,7 +18,7 @@ namespace kisyshot {
          * @param code
          * @return
          */
-        std::shared_ptr<Context> create(const std::string_view &code, const std::string& path);
+        std::shared_ptr<Context> create(const std::string &code, const std::string& path);
 
         /**
          * Create a Context by loading file from path
@@ -65,6 +65,5 @@ namespace kisyshot {
         std::shared_ptr<diagnostic::DiagnosticStream> diagnosticStream;
     private:
         std::vector<std::shared_ptr<Context>> _contexts;
-        std::unordered_map<std::size_t, std::string> _ctxCodes;
     };
 }
