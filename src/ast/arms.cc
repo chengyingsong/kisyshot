@@ -542,7 +542,7 @@ void Arms::generateParam(Var * arg, int num, int frame) {
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     } else {
-        if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::StringVar) {
+        if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar) {
             fillReg(arg, r4);   
             fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
         }
@@ -552,7 +552,7 @@ void Arms::generateParam(Var * arg, int num, int frame) {
                 if (varsAreSame(arg, VarStack[index]))
                     break;
             fprintf(fp, "\tldr r4, [sp, #%u]\n", index * 4);
-            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
+            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + frame - (num - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     }
