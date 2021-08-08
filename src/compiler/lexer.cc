@@ -1,9 +1,13 @@
 #include <compiler/lexer.h>
 #include <diagnostic/diagnostic.h>
+#include <unordered_set>
 using namespace kisyshot::ast;
 using namespace kisyshot::compiler;
 
 namespace kisyshot::compiler {
+    std::unordered_set<int> spaces{0x1680, 0x180E, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007,
+                                   0x2008, 0x2009, 0x200A, 0x200B, 0x202F, 0x205F, 0x3000, 0xFEFF};
+
     Lexer::Lexer(const std::shared_ptr<Context> &context,
                  const std::shared_ptr<diagnostic::DiagnosticStream> &diagnosticStream) {
         _context = context;
@@ -40,10 +44,22 @@ namespace kisyshot::compiler {
         }
 
         // skip space characters
-        if (std::isspace(_code[_position])) {
+        if (std::isspace(_code[_position]) || _code[_position] == -96) {
             _position++;
             // goto start to lex start from next Token to skip spaces
             goto lex_start;
+        }
+
+        // skip utf-8 special spaces
+        if (_position + 1 < _code.size()) {
+            unsigned char high = _code[_position], low = _code[_position + 1];
+            int r = (high << 8) + low;
+            if (high == 0x20 || high == 0x30 ||high == 0xFE){
+                if (spaces.count(r) == 1){
+                    _position += 2;
+                    goto lex_start;
+                }
+            }
         }
 
         // lex number const
@@ -117,7 +133,7 @@ namespace kisyshot::compiler {
         return sameType(currTokenType(), token_type);
     }
 
-    bool Lexer::nextStringLiteral(){
+    bool Lexer::nextStringLiteral() {
         auto token = std::make_unique<Token>();
         token->offset = _position;
         token->token_type = TokenType::string_literal;
@@ -127,13 +143,13 @@ namespace kisyshot::compiler {
         // skip the '"'
         _position++;
         // before we met the end of the file
-        while (_position < _code.size()){
+        while (_position < _code.size()) {
             // get the current char, handle it with a DFA
-            switch (_code[_position]){
+            switch (_code[_position]) {
                 // we met a new '"'
-                case '\"':{
+                case '\"': {
                     // if the quote mark is not escaped, marks the string ended
-                    if(!escaped){
+                    if (!escaped) {
                         // form a token info and return
                         token->raw_code = _code.substr(startPos + 1, _position - startPos - 1);
                         _context->tokens.push_back(std::move(token));
@@ -145,8 +161,8 @@ namespace kisyshot::compiler {
                     escaped = false;
                     break;
                 }
-                // we met the escape mark '\'
-                case '\\':{
+                    // we met the escape mark '\'
+                case '\\': {
                     // mark the escape mode negative to itself
                     // true: when the current char escaped, it means current '\' is a escaped char so there
                     //       have already a char escaped, we should set it to false;
@@ -155,24 +171,24 @@ namespace kisyshot::compiler {
                     escaped = !escaped;
                     break;
                 }
-                // we met the new-line code
-                case '\n':{
+                    // we met the new-line code
+                case '\n': {
                     // when the new-line symbol is not escaped
-                    if(!escaped){
+                    if (!escaped) {
                         // it means it's a end of string that didn't end
                         // form the result and push an error
                         token->raw_code = _code.substr(startPos, 1);
                         _context->tokens.push_back(std::move(token));
                         _position++;
                         _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "string not closed")
-                            .at(_context->tokens.size() - 1);
+                                .at(_context->tokens.size() - 1);
                         return false;
                     }
                     // when the new-line symbol is escaped, set escaped variable to false
                     escaped = false;
                     break;
                 }
-                default:{
+                default: {
                     escaped = false;
                     break;
                 }
@@ -184,7 +200,7 @@ namespace kisyshot::compiler {
         token->raw_code = _code.substr(startPos, 1);
         _context->tokens.push_back(std::move(token));
         _diagnosticStream << diagnostic::Diagnostic(diagnostic::Error, _context, "string not closed")
-                            .at(_context->tokens.size() - 1);
+                .at(_context->tokens.size() - 1);
         return false;
     }
 
