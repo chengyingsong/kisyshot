@@ -44,9 +44,14 @@ namespace kisyshot::compiler {
         }
 
         // skip space characters
-        if (std::isspace(_code[_position]) || _code[_position] == -96) {
+        if (std::isspace(_code[_position])) {
             _position++;
             // goto start to lex start from next Token to skip spaces
+            goto lex_start;
+        }
+
+        if ((unsigned char)_code[_position] == 0xA0){
+            _position++;
             goto lex_start;
         }
 
