@@ -19,6 +19,8 @@ namespace kisyshot::compiler{
 
         std::pair<int, bool> checkCompileTimeConstExpr(const std::shared_ptr<ast::syntax::Expression>& expr);
         void flattenArray(const std::shared_ptr<ast::syntax::VarDefinition>& def,const std::shared_ptr<ast::syntax::ArrayInitializeExpression> &init, size_t target, size_t dim = 0);
+        void gccFlavouredFlattenArray(const std::shared_ptr<ast::syntax::VarDefinition>& def,const std::shared_ptr<ast::syntax::ArrayInitializeExpression> &init, size_t target, size_t dim = 0);
+
         // copy of the context
         std::shared_ptr<Context> _context;
         // copy of the diagnostic info collector

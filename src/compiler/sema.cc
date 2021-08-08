@@ -1,6 +1,6 @@
 #include <compiler/sema.h>
 #include <cassert>
-
+#include <queue>
 namespace kisyshot::compiler {
 
     Sema::Sema(
@@ -60,7 +60,7 @@ namespace kisyshot::compiler {
                 prepareArrayDef(def);
 
                 if (def->initialValue != nullptr) {
-                    flattenArray(def,
+                    gccFlavouredFlattenArray(def,
                                  std::dynamic_pointer_cast<
                                          ast::syntax::ArrayInitializeExpression>(
                                          def->initialValue),
@@ -314,7 +314,7 @@ namespace kisyshot::compiler {
                     }
 
                     if (!def->dimensionDef.empty()) {
-                        flattenArray(
+                        gccFlavouredFlattenArray(
                             def,
                             std::dynamic_pointer_cast<
                                 ast::syntax::ArrayInitializeExpression>(
@@ -434,7 +434,7 @@ namespace kisyshot::compiler {
                         singleCount = 0;
                     }
 
-                    flattenArray(def,
+                    gccFlavouredFlattenArray(def,
                                  std::dynamic_pointer_cast<
                                      ast::syntax::ArrayInitializeExpression>(i),
                                  innerTarget, dim + 1);
@@ -467,6 +467,32 @@ namespace kisyshot::compiler {
         }
         std::reverse(def->accumulation.begin(), def->accumulation.end());
         def->accumulation.back() = -1;
+    }
+
+    void Sema::gccFlavouredFlattenArray(const std::shared_ptr<ast::syntax::VarDefinition> &def,
+                                        const std::shared_ptr<ast::syntax::ArrayInitializeExpression> &init,
+                                        size_t target, size_t dim) {
+        std::stack<std::shared_ptr<ast::syntax::Expression>> s;
+        s.push(init);
+        while (!s.empty()){
+            auto e = s.top();
+            s.pop();
+
+            if (e->getType() == ast::syntax::SyntaxType::ArrayInitializeExpression){
+                auto a = std::dynamic_pointer_cast<ast::syntax::ArrayInitializeExpression>(e);
+                std::reverse(a->array.begin(), a->array.end());
+                for(auto i:a->array){
+                    s.push(i);
+                }
+            } else {
+                def->srcArray.push_back(e);
+            }
+        }
+
+        while (def->srcArray.size() < target){
+            def->srcArray.push_back(std::make_shared<ast::syntax::NumericLiteralExpression>());
+        }
+
     }
 
 } // namespace kisyshot::compiler
