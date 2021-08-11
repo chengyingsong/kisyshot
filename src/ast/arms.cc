@@ -33,7 +33,7 @@ int Arms::findRegForVar(Var * var) {
 
 int Arms::findCleanReg() {
     int index = -1;
-    for (int i = r0; i <= r9; i++) {
+    for (int i = r0; i <= r10; i++) {
         if ((regs[i].isDirty == false) && (regs[i].mutexLock == false)) {
             index = i;
             break;
@@ -95,7 +95,7 @@ void Arms::cleanReg(Register reg) {
 }
 
 void Arms::cleanRegForBranch() {
-    for (int i = r0; i <= r9; i++)
+    for (int i = r0; i <= r10; i++)
         if (regs[i].isDirty)
             if (getRegContents((Register)i) != NULL) {
                 if (getRegContents((Register)i)->type == VarType::GlobalVar)
@@ -106,7 +106,7 @@ void Arms::cleanRegForBranch() {
 }
 
 void Arms::cleanRegForCall() {
-    for (int i = r0; i <= r9; i++)
+    for (int i = r0; i <= r10; i++)
         if (regs[i].isDirty == true)
             if (getRegContents((Register)i) != NULL) {
                 if (getRegContents((Register)i)->type != VarType::TempVar)
@@ -128,7 +128,7 @@ void Arms::cleanRegForCall() {
 }
 
 void Arms::cleanRegForEndFunc() {
-    for (int i = r0; i <= r9; i++)
+    for (int i = r0; i <= r10; i++)
         if (regs[i].isDirty) 
             if (getRegContents((Register)i) != NULL) {
                 if (getRegContents((Register)i)->type == VarType::GlobalVar)
@@ -195,8 +195,8 @@ void Arms::fillReg(Var * src, Register reg) {
                     fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
                 else {
                     if (curFuncFrameSize - getOffset(src) > 255) {
-                        fprintf(fp, "\tmov32I r10, 0x%08x\n", getOffset(src) - curFuncFrameSize);
-                        fprintf(fp, "\tadd %s, fp, r10\n", regs[reg].name.c_str());
+                        fprintf(fp, "\tmov32I r12, 0x%08x\n", getOffset(src) - curFuncFrameSize);
+                        fprintf(fp, "\tadd %s, fp, r12\n", regs[reg].name.c_str());
                     }
                     else
                         fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
@@ -236,8 +236,8 @@ void Arms::fillReg(Var * src, Register reg) {
 void Arms::spillReg(Var * dst, Register reg) {
     if (!(dst->isArray)) {
         if (dst->type == VarType::GlobalVar) {
-            fprintf(fp, "\tmov32I %s, %s\n", regs[r10].name.c_str(), dst->getName().c_str());
-            fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r10].name.c_str(), dst->getName().c_str());
+            fprintf(fp, "\tmov32I %s, %s\n", regs[r12].name.c_str(), dst->getName().c_str());
+            fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r12].name.c_str(), dst->getName().c_str());
         }
         if (dst->type == VarType::LocalVar)
             fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(dst), dst->getName().c_str());
@@ -258,7 +258,7 @@ Arms::Arms(const std::shared_ptr<Context> &context) {
     regs[r9] = (RegContents){NULL, (std::string)"r9", false, false, false};
     regs[r10] = (RegContents){NULL, (std::string)"r10", false, false, false};
     regs[Fp] = (RegContents){NULL, (std::string)"fp", false, false, false};
-    regs[ip] = (RegContents){NULL, (std::string)"ip", false, false, false};
+    regs[r12] = (RegContents){NULL, (std::string)"r12", false, false, false};
     regs[sp] = (RegContents){NULL, (std::string)"sp", false, false, false};
     regs[lr] = (RegContents){NULL, (std::string)"lr", false, false, false};
     regs[pc] = (RegContents){NULL, (std::string)"pc", false, false, false};
@@ -488,8 +488,8 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\tpush {fp, lr}\n");
     fprintf(fp, "\tadd fp, sp, #0\n");
     if (frameSize > 255) {
-        fprintf(fp, "\tmov32I r10, 0x%08x\n", frameSize);
-        fprintf(fp, "\tsub sp, sp, r10\n");
+        fprintf(fp, "\tmov32I r12, 0x%08x\n", frameSize);
+        fprintf(fp, "\tsub sp, sp, r12\n");
     }
     else
         fprintf(fp, "\tsub sp, sp, #%d\n", frameSize);
@@ -510,7 +510,7 @@ void Arms::generateEndFunc(std::string curFunc, int frameSize) {
     fprintf(fp, "\t.size %s, .-%s\n", curFunc.c_str(), curFunc.c_str());
     regDescriptor.clear();
     stack.clear();
-    for (int i = r0; i <= r9; i++)
+    for (int i = r0; i <= r10; i++)
         regs[i].isDirty = false;
 }
 

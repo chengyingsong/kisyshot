@@ -12,7 +12,7 @@ namespace kisyshot::ast {
     private:
         typedef enum : int {
             r0, r1, r2, r3, r4, r5, r6, r7,
-            r8, r9, r10, Fp, ip, sp, lr, pc
+            r8, r9, r10, Fp, r12, sp, lr, pc
         } Register;
 
         struct RegContents {
