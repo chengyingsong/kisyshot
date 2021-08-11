@@ -51,7 +51,7 @@ int Arms::selectRandomReg() {
     bool flag = false;
     int select = 0;
     while (!flag) {
-        select = rand() % 10;
+        select = rand() % 11;
         if (regs[select].mutexLock == false) {
             if (getRegContents((Register)select) != NULL) {
                 if (getRegContents((Register)select)->type == VarType::GlobalVar)
@@ -112,19 +112,11 @@ void Arms::cleanRegForCall() {
                 if (getRegContents((Register)i)->type != VarType::TempVar)
                     spillReg(getRegContents((Register)i), (Register)i);
                 else {
-                    VarStack.push_back(getRegContents((Register)i));
-                    regStack.push_back(i);
+                    stack.push_back(getRegContents((Register)i));
+                    fprintf(fp, "\tpush {%s}\n", regs[i].name.c_str());
                     regDescriptorRemove(getRegContents((Register)i), (Register)i);
             }
         }
-    for (size_t i = 0; i < regStack.size(); i++) {
-        if (i == 0)
-            fprintf(fp, "\tpush {");
-        if (i == regStack.size() - 1)
-            fprintf(fp, "r%d}\n", regStack[i]);
-        else
-            fprintf(fp, "r%d, ", regStack[i]);
-    }
 }
 
 void Arms::cleanRegForEndFunc() {
@@ -534,11 +526,11 @@ void Arms::generateParam(Var * arg, int num, int frame) {
         if (arg->type == VarType::ConstVar || arg->type == VarType::GlobalVar || arg->type == VarType::LocalVar || arg->type == VarType::StringVar)
             fillReg(arg, (Register)(num - 1));
         else {
-            size_t index = 0;
-            for (index = 0; index < VarStack.size(); index++)
-                if (varsAreSame(arg, VarStack[index]))
+            int index = 0;
+            for (index = 0; index < (int)stack.size(); index++)
+                if (varsAreSame(arg, stack[index]))
                     break;
-            fprintf(fp, "\tldr r%d, [sp, #%u]\n", num - 1, index * 4);
+            fprintf(fp, "\tldr r%d, [sp, #%u]\n", num - 1, (stack.size() - index - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     } else {
@@ -547,12 +539,12 @@ void Arms::generateParam(Var * arg, int num, int frame) {
             fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
         }
         else {
-            size_t index = 0;
-            for (index = 0; index < VarStack.size(); index++)
-                if (varsAreSame(arg, VarStack[index]))
+            int index = 0;
+            for (index = 0; index < (int)stack.size(); index++)
+                if (varsAreSame(arg, stack[index]))
                     break;
-            fprintf(fp, "\tldr r4, [sp, #%u]\n", index * 4);
-            fprintf(fp, "\tstr r4, [sp, #%d]\n", 8 + frame - (num - 1) * 4);
+            fprintf(fp, "\tldr r4, [sp, #%u]\n", (stack.size() - index - 1) * 4);
+            fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     }
@@ -574,20 +566,6 @@ void Arms::generateCall(int numVars, std::string label, Var * result, int paramN
         fprintf(fp, "\t@ %s = %s\n", result->getName().c_str(), label.c_str());
         regs[rd].mutexLock = false;
     }
-    for (size_t i = 0; i < VarStack.size(); i++) {
-        int reg = pickRegForVar(VarStack[i]);
-        regs[reg].mutexLock = true;
-        fillReg(VarStack[i], (Register)reg);
-        regDescriptorInsert(VarStack[i], (Register)reg);
-        fprintf(fp, "\tpop {%s}\n", regs[reg].name.c_str());
-        fprintf(fp, "\t@ %s\n", VarStack[i]->getName().c_str());
-        regs[reg].mutexLock = false;
-    }
-    for (auto it = ParamDiscard.begin(); it != ParamDiscard.end(); it++)
-        if (it->second)
-            discardVarInReg(it->first, (Register)findRegForVar(it->first)); 
-    VarStack.clear();
-    regStack.clear();
 }
 
 void Arms::generateHeaders() {

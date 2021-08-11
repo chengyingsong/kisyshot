@@ -117,7 +117,6 @@ void ArmCodeGenerator::generateArmCode() {
             for (p = beginBlock; p != endBlock; p++) {
                 if ((*p)->getType() == InstructionType::Param_) {
                     paramNum++;
-                    arms.ParamDiscard.insert(std::pair<Var *, bool>((*p)->src_1, false));
                 }
                 else if ((*p)->getType() == InstructionType::Call_)
                     paramNum = 0;
@@ -125,8 +124,6 @@ void ArmCodeGenerator::generateArmCode() {
                 for (varListIterator = (*liveListIterator).begin(); varListIterator != (*liveListIterator).end(); varListIterator++)
                     if ((*p) == (*varListIterator).second) {
                         arms.generateDiscardVar((*varListIterator).first);
-                        if ((*p)->getType() == InstructionType::Param_)
-                            arms.ParamDiscard[(*p)->src_1] = true;
                     }  
             }
         }

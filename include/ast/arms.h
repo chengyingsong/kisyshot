@@ -14,7 +14,7 @@ namespace kisyshot::ast {
             r0, r1, r2, r3, r4, r5, r6, r7,
             r8, r9, r10, Fp, r12, sp, lr, pc
         } Register;
-
+        
         struct RegContents {
             Var * var;
             std::string name;
@@ -22,9 +22,6 @@ namespace kisyshot::ast {
             bool mutexLock;
             bool canDiscard;
         } regs[16];
-
-        std::vector<Var *> VarStack;
-        std::vector<int> regStack;
 
         std::string opName[11];
 
@@ -71,7 +68,6 @@ namespace kisyshot::ast {
         // 将寄存器映射至变量
         std::map<Register, Var *> regDescriptor;
         FILE * fp;
-        std::map<Var *, bool> ParamDiscard;
         std::vector<Var *> stack;
         int curFuncFrameSize;
         std::string curFuncLabel;
