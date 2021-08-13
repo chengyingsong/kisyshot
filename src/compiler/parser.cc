@@ -343,6 +343,20 @@ namespace kisyshot::compiler {
                             callExpr->rParenIndex = _current;
                             step();
                         }
+
+                        auto arg = std::make_shared<NumericLiteralExpression>();
+                        arg->number = _context->locate(callExpr->lParenIndex).line;
+                        if (callExpr->name->identifier == "starttime"){
+                            callExpr->name->identifier = "_sysy_starttime";
+                            callExpr->name->mangledId = "_sysy_starttime";
+                            callExpr->arguments.push_back(arg);
+                        }
+
+                        if (callExpr->name->identifier == "stoptime"){
+                            callExpr->name->identifier = "_sysy_stoptime";
+                            callExpr->name->mangledId = "_sysy_stoptime";
+                            callExpr->arguments.push_back(arg);
+                        }
                         left = callExpr;
                     }
                     break;
