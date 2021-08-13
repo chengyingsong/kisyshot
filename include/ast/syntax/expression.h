@@ -145,7 +145,6 @@ namespace kisyshot::ast::syntax{
         void genCode(compiler::CodeGenerator &gen,ast::Var* temp) override;
         std::size_t tokenIndex;
         int64_t number;
-        bool isFill;
         std::string_view rawCode;
     };
 

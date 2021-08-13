@@ -445,9 +445,7 @@ namespace kisyshot::compiler {
             }
         }
         while (def->srcArray.size() < current + target) {
-            auto filler = std::make_shared<ast::syntax::NumericLiteralExpression>();
-            filler->isFill = true;
-            def->srcArray.push_back(filler);
+            def->srcArray.push_back(std::make_shared<ast::syntax::NumericLiteralExpression>());
         }
     }
 

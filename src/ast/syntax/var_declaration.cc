@@ -154,10 +154,6 @@ namespace kisyshot::ast::syntax {
                 //数组初始化,先设置数组属性
                 //initialValue->genCode(gen,src_1);
                 for (size_t i = 0; i < srcArray.size(); i++) {
-                    if (srcArray[i]->getType() == SyntaxType::NumericLiteralExpression)
-                        if(std::dynamic_pointer_cast<NumericLiteralExpression>(srcArray[i])->isFill)
-                            continue;
-
                     //temp[i] = t;
                     Var *t = srcArray[i]->getVar(gen);
                     Var *offset = gen.getConstVar(i);
