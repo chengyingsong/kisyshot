@@ -6,24 +6,33 @@ namespace kisyshot {
                      std::size_t contextID) {
         this->code = code;
         this->contextID = contextID;
-        // initialize lines:
         std::size_t lastLine = 0;
+        size_t lineID = 1;
         for (std::size_t i = 0; i < code.size(); ++i) {
-            if (code[i] == '\n') {
+            if (this->code[i] == '\n') {
+                auto line = code.substr(lastLine, i - lastLine);
+                size_t s;
+                if ((s = line.find("starttime();")) != npos){
+                    auto rep = "_sysy_starttime(" + std::to_string(lineID) + ");";
+                    this->code.replace(lastLine + s, 12, rep);
+                }
+                if ((s = line.find("stoptime();")) != npos){
+                    auto rep = "_sysy_stoptime(" + std::to_string(lineID) + ");";
+                    this->code.replace(lastLine + s, 12, rep);
+                }
+                lastLine = i + 1;
+                lineID++;
+            }
+        }
+        lastLine = 0;
+        for (std::size_t i = 0; i < code.size(); ++i) {
+            if (this->code[i] == '\n') {
                 lineStartPos.push_back(lastLine);
                 lines.push_back(code.substr(lastLine, i - lastLine));
                 lastLine = i + 1;
             }
         }
-        for (std::size_t i = 0; i < lines.size(); ++i) {
-            size_t s;
-            while ((s = lines[i].find("starttime();")) != npos){
-                lines[i].replace(s, 12, "_sysy_starttime(" + std::to_string(i + 1) + ");");
-            }
-            while ((s = lines[i].find("stoptime();")) != npos){
-                lines[i].replace(s, 12, "_sysy_stoptime(" + std::to_string(i + 1) + ");");
-            }
-        }
+
         // handle with
         // "....str"
         //         ^  not end with \n!
