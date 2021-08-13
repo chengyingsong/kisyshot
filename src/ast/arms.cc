@@ -401,8 +401,10 @@ void Arms::generateBinaryOP(Binary_op::OpCode op, Var * dst, Var * src_1, Var * 
     regs[rt].mutexLock = true;
     fillReg(dst, rt);
     regDescriptorInsert(dst, rt);
-
-    fprintf(fp, "\t%s %s, %s, %s", opName[op].c_str(), regs[rt].name.c_str(), regs[rs].name.c_str(), regs[rd].name.c_str());
+    if (src_1->isArray)
+        fprintf(fp, "\t%s %s, %s, %s, lsl #2", opName[op].c_str(), regs[rt].name.c_str(), regs[rs].name.c_str(), regs[rd].name.c_str());
+    else
+        fprintf(fp, "\t%s %s, %s, %s", opName[op].c_str(), regs[rt].name.c_str(), regs[rs].name.c_str(), regs[rd].name.c_str());
     regs[rs].mutexLock = false;
     regs[rt].mutexLock = false;
     regs[rd].mutexLock = false; 
