@@ -183,8 +183,14 @@ void Arms::fillReg(Var * src, Register reg) {
     if (src->type == VarType::LocalVar) {
         if ((int)preReg == -1)
             if (src->isArray) {
-                if (src->isParam)
-                    fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
+                if (src->isParam) {
+                    if (curFuncFrameSize - getOffset(src) > 4095) {
+                        fprintf(fp, "\tmov32I r12, 0x%08x\n", getOffset(src) - curFuncFrameSize);
+                        fprintf(fp, "\tldr %s, [fp, r12]\n", regs[reg].name.c_str());
+                    }
+                    else
+                        fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
+                }
                 else {
                     if (curFuncFrameSize - getOffset(src) > 255) {
                         fprintf(fp, "\tmov32I r12, 0x%08x\n", getOffset(src) - curFuncFrameSize);
@@ -194,8 +200,14 @@ void Arms::fillReg(Var * src, Register reg) {
                         fprintf(fp, "\tadd %s, fp, #-%d\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
                 }
             }
-            else
-                fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));
+            else {
+                if (curFuncFrameSize - getOffset(src) > 4095) {
+                    fprintf(fp, "\tmov32I r12, 0x%08x\n", getOffset(src) - curFuncFrameSize);
+                    fprintf(fp, "\tldr %s, [fp, r12]\n", regs[reg].name.c_str());
+                }
+                else         
+                    fprintf(fp, "\tldr %s, [fp, #-%d]\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(src));       
+            }
         else if (reg != preReg)
             fprintf(fp, "\tmov %s, %s\n", regs[reg].name.c_str(), regs[preReg].name.c_str());
     }
@@ -231,8 +243,14 @@ void Arms::spillReg(Var * dst, Register reg) {
             fprintf(fp, "\tmov32I %s, %s\n", regs[r12].name.c_str(), dst->getName().c_str());
             fprintf(fp, "\tstr %s, [%s]\t@ spill %s into memory\n", regs[reg].name.c_str(), regs[r12].name.c_str(), dst->getName().c_str());
         }
-        if (dst->type == VarType::LocalVar)
-            fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(dst), dst->getName().c_str());
+        if (dst->type == VarType::LocalVar) {
+            if (curFuncFrameSize - getOffset(dst) > 4095) {
+                fprintf(fp, "\tmov32I r12, 0x%08x\n", getOffset(dst) - curFuncFrameSize);
+                fprintf(fp, "\tstr %s, [fp, r12]\t@ spill %s into memory\n", regs[reg].name.c_str(), dst->getName().c_str());
+                }
+            else       
+                fprintf(fp, "\tstr %s, [fp, #-%d]\t@ spill %s into memory\n", regs[reg].name.c_str(), curFuncFrameSize - getOffset(dst), dst->getName().c_str()); 
+        }
     }
     regDescriptorRemove(dst, reg);
 }
@@ -489,8 +507,15 @@ void Arms::generateBeginFunc(std::string curFunc, int frameSize) {
     int parNum = ctx->functions[curFunc]->params.size();
     if (parNum > 4)
         parNum = 4;
-    for (int i = 0; i < parNum; i++)
-        fprintf(fp, "\tstr r%d, [fp, #-%d]\n", i, frameSize - i * 4);
+    for (int i = 0; i < parNum; i++) {
+        if (frameSize - i * 4 > 4095) {
+            fprintf(fp, "\tmov32I r12, 0x%08x\n", i * 4 - frameSize);
+            fprintf(fp, "\tstr r%d, [fp, r12]\n", i);
+        }
+        else
+            fprintf(fp, "\tstr r%d, [fp, #-%d]\n", i, frameSize - i * 4);
+    }
+
 }
 
 void Arms::generateEndFunc(std::string curFunc, int frameSize) {
