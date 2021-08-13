@@ -213,7 +213,7 @@ void Arms::fillReg(Var * src, Register reg) {
     }
     if (src->type == VarType::ConstVar) {
         if (src->value > 65535 || src->value < 0)
-            fprintf(fp, "\tmov32I %s, 0x%08llx\n", regs[reg].name.c_str(), src->value);
+            fprintf(fp, "\tmov32I %s, %lld\n", regs[reg].name.c_str(), src->value);
         else
             fprintf(fp, "\tmov %s, #%lld\n", regs[reg].name.c_str(), src->value);
     }
@@ -302,7 +302,7 @@ void Arms::generateAssignConst(Var * dst, Var * src) {
     fillReg(dst, rd);
     regDescriptorInsert(dst, rd);
     if (src->value > 65535 || src->value < 0)
-        fprintf(fp, "\tmov32I %s, 0x%08llx\n", regs[rd].name.c_str(), src->value);
+        fprintf(fp, "\tmov32I %s, %lld\n", regs[rd].name.c_str(), src->value);
     else
         fprintf(fp, "\tmov %s, #%lld", regs[rd].name.c_str(), src->value);
     fprintf(fp, "\t@ %s = %s\n", dst->getName().c_str(), src->getName().c_str());
