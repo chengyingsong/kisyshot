@@ -1,9 +1,11 @@
 #include <compiler/armcode.h>
+#include <ast/ssa.h>
 
 using namespace kisyshot::compiler;
 using namespace kisyshot::ast;
 
-ArmCodeGenerator::ArmCodeGenerator(std::list<Instruction *> &tacCode, const std::shared_ptr<Context> &context) : code(tacCode) {
+ArmCodeGenerator::ArmCodeGenerator(std::list<Instruction *> &tacCode, const std::shared_ptr<Context> &context) {
+    code = SSADriver(tacCode).transform();
     ctx = context;
 }
 

@@ -44,6 +44,7 @@ set(core
         src/ast/tac.cc
         src/ast/token.cc
         src/ast/cfg.cc
+        src/ast/ssa.cc
         src/ast/arms.cc
         src/compiler/codegen.cc
         src/compiler/lexer.cc
