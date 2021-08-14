@@ -310,6 +310,10 @@ Var *Expression::getVar(compiler::CodeGenerator &gen) {
             genCode(gen, t);
         }
             break;
+        case SyntaxType::ParenthesesExpression: {
+            t = ((ParenthesesExpression*)this)->innerExpression->getVar(gen);
+        }
+           break;
         default :
             t = gen.newTempVar();
             genCode(gen, t);
