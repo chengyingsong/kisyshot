@@ -620,8 +620,18 @@ void Arms::generateGlobal() {
         fprintf(fp, "\t.size %s, %u\n", ctx->globals[i]->varName->toString().c_str(), ctx->globals[i]->accumulation.front() * 4);
         fprintf(fp, "%s:\n", ctx->globals[i]->varName->toString().c_str());
         if (ctx->globals[i]->initialValue != nullptr) {
-            for (size_t j = 0; j < ctx->globals[i]->values.size(); j++)
-                fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
+            int space = 0;
+            for (size_t j = 0; j < ctx->globals[i]->values.size(); j++) {
+                while ((ctx->globals[i]->values[j] == 0) && (j < ctx->globals[i]->values.size())) {
+                    space = space + 4;
+                    j++;
+                }
+                if (space != 0)
+                    fprintf(fp, "\t.space %d\n", space);
+                if ((ctx->globals[i]->values[j] != 0) && (j < ctx->globals[i]->values.size()))
+                    fprintf(fp, "\t.word %d\n", ctx->globals[i]->values[j]);
+                space = 0;
+            }
         }
         else
             fprintf(fp, "\t.space %d\n", ctx->globals[i]->accumulation.front() * 4);
