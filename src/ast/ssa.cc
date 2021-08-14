@@ -142,10 +142,11 @@ namespace kisyshot::ast{
 
     ControlBlockNode *ControlBlockGraph::intersect(ControlBlockNode *b1, ControlBlockNode *b2) {
         size_t f1 = ids[b1], f2 = ids[b2];
+        // 文章中entry id最大所以这里方向反过来
         while (f1 != f2){
-            while (f1 < f2)
+            while (f1 > f2)
                 f1 = ids[nodes[f1]->dominator];
-            while (f2 < f1)
+            while (f2 > f1)
                 f2 = ids[nodes[f2]->dominator];
         }
         return nodes[f1];
