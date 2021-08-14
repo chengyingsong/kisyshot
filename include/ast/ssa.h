@@ -31,7 +31,7 @@ namespace kisyshot::ast {
         std::vector<std::pair<std::string,std::string>> sEdges;
         std::unordered_map<std::string, ControlBlockNode*> names;
         std::unordered_map<ControlBlockNode*, size_t > ids;
-        std::unordered_map<ControlBlockNode*, ControlBlockNode* > doms;
+        bool addEdgeOnSwitch;
         ControlBlockNode* entry;
         ControlBlockGraph(std::list<Instruction *>::iterator beginFunc, std::list<Instruction *>::iterator endFunc);
         ControlBlockNode* newNode(const std::string& label, std::list<Instruction *>::iterator curr);

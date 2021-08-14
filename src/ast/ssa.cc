@@ -16,6 +16,7 @@ namespace kisyshot::ast{
                 }
                 case GOTO_:
                     sEdges.emplace_back(current->label, ((GOTO*)*it)->label);
+                    addEdgeOnSwitch = false;
                     break;
                 case IfZ_:
                     sEdges.emplace_back(current->label, ((IfZ*)*it)->trueLabel);
@@ -55,11 +56,13 @@ namespace kisyshot::ast{
         node->begin = curr;
         if (!nodes.empty()) {
             nodes.back()->end = std::prev(curr);
-            sEdges.emplace_back(nodes.back()->label, node->label);
+            if (addEdgeOnSwitch)
+                sEdges.emplace_back(nodes.back()->label, node->label);
         }
         names[label] = node;
         ids[node] = nodes.size();
         nodes.push_back(node);
+        addEdgeOnSwitch = true;
         return node;
     }
 
@@ -79,7 +82,11 @@ namespace kisyshot::ast{
         auto order = postOrder();
         order.pop_back();
         std::reverse(order.begin(), order.end());
-
+        std::cout << "reversed post order:";
+        for (auto node:order) {
+            std::cout << " " << node->label;
+        }
+        std::cout << std::endl;
         reset();
         entry->traverse = true;
         entry->dominator = entry;
