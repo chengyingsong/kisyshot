@@ -1,8 +1,11 @@
 #include <ast/ssa.h>
+#include <algorithm>
+#include <queue>
 namespace kisyshot::ast{
     ControlBlockGraph::ControlBlockGraph(std::list<Instruction *>::iterator beginFunc,
                                          std::list<Instruction *>::iterator endFunc) {
         ControlBlockNode* current = newNode(".entry", beginFunc);
+        entry = current;
         std::size_t unnamedIndex = 1;
         for (auto it = beginFunc; it != endFunc; it++) {
             switch ((*it)->getType()) {
@@ -54,6 +57,7 @@ namespace kisyshot::ast{
             sEdges.emplace_back(nodes.back()->label, node->label);
         }
         names[label] = node;
+        ids[node] = nodes.size();
         nodes.push_back(node);
         return node;
     }
@@ -65,13 +69,88 @@ namespace kisyshot::ast{
             delete node;
     }
 
-    void ControlBlockGraph::genDominanceTree() {
+    void ControlBlockGraph::genDominatorTree() {
+        // TODO check : https://blog.csdn.net/dashuniuniu/article/details/52224882
+        for (auto node:nodes) {
+            node->dominator = nullptr;
+        }
+        bool changed = true;
+        auto order = postOrder();
+        order.pop_back();
+        std::reverse(order.begin(), order.end());
 
+        reset();
+        entry->traverse = true;
+        entry->dominator = entry;
+
+        while (changed){
+            for(auto b:order){
+                b->traverse = true;
+                changed = false;
+                Edge* newIDomE;
+                ControlBlockNode* newIDom;
+                for(auto e:b->in){
+                    if (e->from->traverse){
+                        newIDomE = e;
+                        newIDom = e->from;
+                        break;
+                    }
+                }
+
+                for(auto e:b->in){
+                    if (e != newIDomE){
+                        if(e->from->dominator != nullptr){
+                            newIDom = intersect(e->from, newIDom);
+                        }
+                    }
+                }
+                if(b->dominator != newIDom){
+                    b->dominator = newIDom;
+                    changed = true;
+                }
+            }
+        }
     }
 
     void ControlBlockGraph::findFrontiers() {
-
+        for(auto node :nodes){
+            if (node->in.size() >= 2){
+                for(auto e: node->in){
+                    auto runner = e->from;
+                    while (runner != node->dominator){
+                        runner->frontiers.push_back(node);
+                        runner = runner->dominator;
+                    }
+                }
+            }
+        }
     }
+
+    std::vector<ControlBlockNode *> ControlBlockGraph::postOrder() {
+        std::vector<ControlBlockNode *> result;
+        reset();
+        entry->pDfs([&result] (ControlBlockNode* node)->void {
+            result.push_back(node);
+        });
+        return result;
+    }
+
+    void ControlBlockGraph::reset() {
+        for(auto node:nodes)
+            node->traverse = false;
+    }
+
+    ControlBlockNode *ControlBlockGraph::intersect(ControlBlockNode *b1, ControlBlockNode *b2) {
+        size_t f1 = ids[b1], f2 = ids[b2];
+        while (f1 != f2){
+            while (f1 < f2)
+                f1 = ids[nodes[f1]->dominator];
+            while (f2 < f1)
+                f2 = ids[nodes[f2]->dominator];
+        }
+        return nodes[f1];
+    }
+
 
     SSADriver::SSADriver(std::list<Instruction *> &inst) {
         original = inst;
@@ -86,9 +165,18 @@ namespace kisyshot::ast{
 
     std::list<Instruction *> SSADriver::transform() {
         for(auto& g:graphs) {
-            g.genDominanceTree();
+            g.genDominatorTree();
             g.findFrontiers();
         }
         return original;
+    }
+
+    void ControlBlockNode::pDfs(const std::function<void(ControlBlockNode *)> &consumer) {
+        traverse = true;
+        for(auto e:out){
+            if (!e->to->traverse)
+                e->to->pDfs(consumer);
+        }
+        consumer(this);
     }
 }

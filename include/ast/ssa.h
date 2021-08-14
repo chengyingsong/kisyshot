@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <vector>
+#include <functional>
 #include "tac.h"
 namespace kisyshot::ast {
     struct ControlBlockNode;
@@ -18,8 +19,10 @@ namespace kisyshot::ast {
         std::vector<Edge *> in, out;
         // 当前node的支配边界
         std::vector<ControlBlockNode *> frontiers;
-        // 当前node的支配树
-        std::vector<ControlBlockNode *> dominance;
+        // 当前node的支配树前节点
+        ControlBlockNode* dominator;
+        bool traverse;
+        void pDfs(const std::function<void(ControlBlockNode*)>& consumer);
     };
 
     struct ControlBlockGraph {
@@ -27,10 +30,15 @@ namespace kisyshot::ast {
         std::vector<Edge*> edges;
         std::vector<std::pair<std::string,std::string>> sEdges;
         std::unordered_map<std::string, ControlBlockNode*> names;
+        std::unordered_map<ControlBlockNode*, size_t > ids;
+        ControlBlockNode* entry;
         ControlBlockGraph(std::list<Instruction *>::iterator beginFunc, std::list<Instruction *>::iterator endFunc);
         ControlBlockNode* newNode(const std::string& label, std::list<Instruction *>::iterator curr);
-        void genDominanceTree();
+        ControlBlockNode* intersect(ControlBlockNode* b1, ControlBlockNode* b2);
+        void genDominatorTree();
         void findFrontiers();
+        void reset();
+        std::vector<ControlBlockNode*> postOrder();
         ~ControlBlockGraph();
     };
     // ssa 优化
