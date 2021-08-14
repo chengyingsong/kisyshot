@@ -558,7 +558,10 @@ void Arms::generateParam(Var * arg, int num, int frame) {
             for (index = 0; index < (int)stack.size(); index++)
                 if (varsAreSame(arg, stack[index]))
                     break;
-            fprintf(fp, "\tldr r%d, [sp, #%u]\n", num - 1, (stack.size() - index - 1) * 4);
+            if ((stack.size() - index - 1) * 4 == 0)
+                fprintf(fp, "\tpop {r%d}\n", num - 1);
+            else
+                fprintf(fp, "\tldr r%d, [sp, #%u]\n", num - 1, (stack.size() - index - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
     } else {
@@ -571,7 +574,10 @@ void Arms::generateParam(Var * arg, int num, int frame) {
             for (index = 0; index < (int)stack.size(); index++)
                 if (varsAreSame(arg, stack[index]))
                     break;
-            fprintf(fp, "\tldr r4, [sp, #%u]\n", (stack.size() - index - 1) * 4);
+            if ((stack.size() - index - 1) * 4 == 0)
+                fprintf(fp, "\tpop {r4}\n");
+            else
+                fprintf(fp, "\tldr r4, [sp, #%u]\n", (stack.size() - index - 1) * 4);
             fprintf(fp, "\tstr r4, [sp, #-%d]\n", 8 + frame - (num - 1) * 4);
         }
         fprintf(fp, "\t@ param %s\n", arg->getName().c_str());
