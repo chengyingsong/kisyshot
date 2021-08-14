@@ -1,6 +1,7 @@
 #include <ast/ssa.h>
 #include <algorithm>
 #include <queue>
+#include <iostream>
 namespace kisyshot::ast{
     ControlBlockGraph::ControlBlockGraph(std::list<Instruction *>::iterator beginFunc,
                                          std::list<Instruction *>::iterator endFunc) {
@@ -18,7 +19,7 @@ namespace kisyshot::ast{
                     break;
                 case IfZ_:
                     sEdges.emplace_back(current->label, ((IfZ*)*it)->trueLabel);
-                    current = newNode(".unnamed" + std::to_string(unnamedIndex), it);
+                    current = newNode(".unnamed" + std::to_string(unnamedIndex++), it);
                     break;
                 case CMP_:
                     // TODO push cmp edges
@@ -84,9 +85,8 @@ namespace kisyshot::ast{
         entry->dominator = entry;
 
         while (changed){
+            changed = false;
             for(auto b:order){
-                b->traverse = true;
-                changed = false;
                 Edge* newIDomE;
                 ControlBlockNode* newIDom;
                 for(auto e:b->in){
@@ -106,6 +106,7 @@ namespace kisyshot::ast{
                 }
                 if(b->dominator != newIDom){
                     b->dominator = newIDom;
+                    b->traverse = true;
                     changed = true;
                 }
             }
@@ -168,6 +169,21 @@ namespace kisyshot::ast{
         for(auto& g:graphs) {
             g.genDominatorTree();
             g.findFrontiers();
+
+            for(auto node:g.nodes) {
+                std::cout << "dominates: " << node->dominator->label << " -> " << node->label << std::endl;
+            }
+            for(auto node:g.nodes) {
+                if (!node->frontiers.empty()) {
+                    std::cout << "frontiers: " << node->label << " -> (";
+                    for (int i = 0; i < node->frontiers.size(); ++i) {
+                        std::cout << node->frontiers[i]->label;
+                        if (i != node->frontiers.size() - 1)
+                            std::cout << ", ";
+                    }
+                    std::cout << ")" << std::endl;
+                }
+            }
         }
         return original;
     }
