@@ -27,11 +27,11 @@ namespace kisyshot::ast{
                     sEdges.emplace_back(current->label, ((CMP*)*it)->label);
                     break;
                 case Assign_:
-                    if ((*it)->src_2->type == LocalVar)
+                    if ((*it)->src_2->type == LocalVar && !(*it)->src_2->isParam)
                         var2block[(*it)->src_2].emplace(current);
                     break;
                 case Binary_op_:
-                    if ((*it)->dst->type == LocalVar)
+                    if ((*it)->dst->type == LocalVar && !(*it)->dst->isParam)
                         var2block[(*it)->dst].emplace(current);
                     break;
                 case Load_:
@@ -255,19 +255,19 @@ namespace kisyshot::ast{
             auto instr = *it;
             switch (instr->getType()) {
                 case Binary_op_:
-                    if (instr->src_1->type == LocalVar)
+                    if (instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2->type == LocalVar)
+                    if (instr->src_2->type == LocalVar && !instr->src_1->isParam)
                         instr->src_2 = varStack[instr->src_2->variableName].back();
-                    if (instr->dst->type == LocalVar) {
+                    if (instr->dst->type == LocalVar && !instr->src_1->isParam) {
                         instr->dst = cloneVar(instr->dst);
                         varStack[instr->dst->variableName].push_back(instr->dst);
                     }
                     break;
                 case Assign_:
-                    if (instr->src_1->type == LocalVar)
+                    if (instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2->type == LocalVar) {
+                    if (instr->src_2->type == LocalVar && !instr->src_1->isParam) {
                         instr->src_2 = cloneVar(instr->src_2);
                         varStack[instr->src_2->variableName].push_back(instr->src_2);
                     }
@@ -277,9 +277,9 @@ namespace kisyshot::ast{
                 case BeginFunc_:
                     break;
                 default:
-                    if (instr->src_1 != nullptr && instr->src_1->type == LocalVar)
+                    if (instr->src_1 != nullptr && instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2 != nullptr && instr->src_2->type == LocalVar)
+                    if (instr->src_2 != nullptr && instr->src_2->type == LocalVar && !instr->src_1->isParam)
                         instr->src_2 = varStack[instr->src_2->variableName].back();
                     break;
             }
@@ -313,7 +313,7 @@ namespace kisyshot::ast{
             if ((*it)->getType() == BeginFunc_)
                 begin = it;
             if ((*it)->getType() == EndFunc_)
-                graphs.emplace_back(begin, it);
+                graphs.emplace_back(new ControlBlockGraph(begin, it));
         }
     }
 
@@ -321,24 +321,24 @@ namespace kisyshot::ast{
 
         std::list<Instruction*> transformed;
         for(auto& g:graphs) {
-            g.genDominatorTree();    //计算支配树
-            g.findFrontiers();      //计算支配边界
-            g.getVarMap();         //扫描节点，建立变量--> 赋值block map,即A
-            g.getClosure();       //计算A的闭包
-            g.insertPhi();        //向闭包中插入phi函数
-            g.rename();
+            g->genDominatorTree();    //计算支配树
+            g->findFrontiers();      //计算支配边界
+            g->getVarMap();         //扫描节点，建立变量--> 赋值block map,即A
+            g->getClosure();       //计算A的闭包
+            g->insertPhi();        //向闭包中插入phi函数
+            g->rename();
 
-            for(auto node:g.nodes){
+            for(auto node:g->nodes){
                 // SSA resolve
                 for(auto phi:node->Phis){
                     for(auto& [bName, var]:phi->sources){
-                        g.names[bName]->postMoves.push_back((Instruction*)new Assign(var, phi->i));
+                        g->names[bName]->postMoves.push_back((Instruction*)new Assign(var, phi->i));
                     }
                 }
             }
             // add function label
-            transformed.push_back(*std::prev(g.entry->begin));
-            for(auto node:g.nodes) {
+            transformed.push_back(*std::prev(g->entry->begin));
+            for(auto node:g->nodes) {
                 for (auto it = node->begin; it != node->end; it++) {
                     transformed.push_back(*it);
                 }
@@ -374,12 +374,12 @@ namespace kisyshot::ast{
 //                    }
 //                }
 //            }
-            std::cout << "SSA IR of function " + ((GOTO*)(*std::prev(g.entry->begin)))->label << std::endl;
-            for(auto node: g.nodes) {
+            std::cout << "SSA IR of function " + ((GOTO*)(*std::prev(g->entry->begin)))->label << std::endl;
+            for(auto node: g->nodes) {
                 for (auto it = node->begin; std::prev(it) != node->end; it++) {
                     if ((*it)->getType() == Label_) {
                         std::cout << (*it)->toString() << std::endl;
-                        for (auto phi:g.names[((Label *) *it)->label]->Phis) {
+                        for (auto phi:g->names[((Label *) *it)->label]->Phis) {
                             std::cout << "\t" << phi->i->getName() << "= φ(";
                             std::string phiContent;
                             for (auto &pair:phi->sources) {

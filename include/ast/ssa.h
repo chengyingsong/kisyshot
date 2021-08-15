@@ -63,7 +63,7 @@ namespace kisyshot::ast {
     };
     // ssa 优化
     struct SSADriver {
-        std::vector<ControlBlockGraph> graphs;
+        std::vector<ControlBlockGraph*> graphs;
         explicit SSADriver(std::list<Instruction *> &inst);
         std::list<Instruction*> transform();  //转换函数
     };
