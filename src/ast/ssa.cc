@@ -287,11 +287,17 @@ namespace kisyshot::ast{
         }
 
         for(auto e:node->out) {
+            std::vector<Phi*> newPhi;
             for(auto phi:e->to->Phis){
                 if (std::find(phi->blockLabels.begin(), phi->blockLabels.end(), node->label) != phi->blockLabels.end()){
-                    phi->sources[node->label] = varStack[phi->i->variableName].back();
+                    auto name = phi->i->variableName;
+                    if (varStack.count(name) != 0 && !varStack[name].empty()){
+                        phi->sources[node->label] = varStack[phi->i->variableName].back();
+                        newPhi.push_back(phi);
+                    }
                 }
             }
+            e->to->Phis = newPhi;
         }
 
         for(auto e:node->out){
