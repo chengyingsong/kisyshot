@@ -163,10 +163,10 @@ namespace kisyshot::ast{
     void ControlBlockGraph::getVarMap() {
         //扫描节点，建立变量--> 赋值block map
         for(auto node:nodes) {
-            for(auto it = node->begin;it != node->end;it++){
-                if((*it)->getType() == Assign_ && (*it)->dst->type == LocalVar) {
+            for(auto it = node->begin;std::prev(it)!= node->end;it++){
+                if((*it)->getType() == Assign_ && (*it)->src_2->type == LocalVar) {
                     //局部变量赋值语句
-                    Var* dst = (*it)->dst;
+                    Var* dst = (*it)->src_2;
                     if(var2block.count(dst) != 0) {
                         var2block[dst].emplace(node);   //把变量dst的赋值节点加入map中
                     } else {
@@ -182,14 +182,24 @@ namespace kisyshot::ast{
     void ControlBlockGraph::getClosure() {
         //计算闭包
         for(auto& v:var2block) {
-            std::unordered_set<ControlBlockNode*> set;
-            while(set != v.second){
-                v.second = set;
+            std::unordered_set<ControlBlockNode*> an1;
+            std::unordered_set<ControlBlockNode*> an2;
+            for(auto& node:v.second){
+                for(auto& frontier:node->frontiers)
+                    an1.emplace(frontier);
+            } //an1=DF[A]  B
+            while(an1 != an2){
+                an2 = an1;
+                an1.clear();
+                for(auto& node:an2){
+                    v.second.emplace(node);
+                }
                 for(auto& node:v.second){
                     for(auto& frontier:node->frontiers)
-                        set.emplace(frontier);
+                        an1.emplace(frontier);
                 }
             }
+            v.second = an2;
         }
     }
 
@@ -226,8 +236,27 @@ namespace kisyshot::ast{
             g.genDominatorTree();    //计算支配树
             g.findFrontiers();      //计算支配边界
             g.getVarMap();         //扫描节点，建立变量--> 赋值block map,即A
+
+/*            for(auto& v:g.var2block){
+                std::cout << v.first->getName() << ":" ;
+                for(auto& node:v.second){
+                    std::cout << node->label << ",";
+                }
+                std::cout << std::endl;
+            }*/
+
             g.getClosure();       //计算A的闭包
+
+/*            std::cout << "after" << std::endl;
+            for(auto& v:g.var2block){
+                std::cout << v.first->getName() << ":" ;
+                for(auto& node:v.second){
+                    std::cout << node->label << ",";
+                }
+                std::cout << std::endl;
+            }*/
             g.insertPhi();        //向闭包中插入phi函数
+
 
 
 
@@ -254,6 +283,7 @@ namespace kisyshot::ast{
                         for(auto& label:phi->blockLabels){
                             std::cout << phi->i->getName()<< "_" << label << ",";
                         }
+                        std::cout << ")" <<std::endl;
                     }
                 }
             }
