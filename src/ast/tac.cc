@@ -26,9 +26,9 @@ namespace kisyshot::ast {
     std::string Var::getName() {
         if (type == VarType::ConstVar)
             return std::to_string(value);
-        else if (index == 0)
-            return variableName;
-        return variableName + "_" + std::to_string(index);
+        else if (type == VarType::LocalVar && index == 0)
+            return variableName + "_" + std::to_string(index);
+        return variableName;
     }
 
     std::string Var::getBase() {
