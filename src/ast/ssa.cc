@@ -160,6 +160,56 @@ namespace kisyshot::ast{
         return nodes[f1];
     }
 
+    void ControlBlockGraph::getVarMap() {
+        //扫描节点，建立变量--> 赋值block map
+        for(auto node:nodes) {
+            for(auto it = node->begin;it != node->end;it++){
+                if((*it)->getType() == Assign_ && (*it)->dst->type == LocalVar) {
+                    //局部变量赋值语句
+                    Var* dst = (*it)->dst;
+                    if(var2block.count(dst) != 0) {
+                        var2block[dst].emplace(node);   //把变量dst的赋值节点加入map中
+                    } else {
+                        std::unordered_set<ControlBlockNode*> v;
+                        v.emplace(node);
+                        var2block[dst] = v;
+                    }
+                }
+            }
+        }
+    }
+
+    void ControlBlockGraph::getClosure() {
+        //计算闭包
+        for(auto& v:var2block) {
+            std::unordered_set<ControlBlockNode*> set(v.second);
+            while(set != v.second){
+                v.second = set;
+                set.clear();
+                for(auto& node:v.second){
+                    for(auto& frontier:node->frontiers)
+                        set.emplace(frontier);
+                }
+            }
+        }
+    }
+
+    void ControlBlockGraph::insertPhi() {
+        //在闭包中插入phi函数
+        for(auto& v:var2block) {
+            //对每一个变量查询闭包
+            for(auto& node:v.second){
+                //对每一个闭包中的node查看入边
+                std::vector<std::string> blockLabels;
+                for(auto& e:node->in){
+                    blockLabels.push_back(e->from->label);
+                }
+                //插入phi函数
+                node->Phis.push_back(new Phi(v.first,blockLabels));
+            }
+        }
+    }
+
 
     SSADriver::SSADriver(std::list<Instruction *> &inst) {
         original = inst;
@@ -174,8 +224,13 @@ namespace kisyshot::ast{
 
     std::list<Instruction *> SSADriver::transform() {
         for(auto& g:graphs) {
-            g.genDominatorTree();
-            g.findFrontiers();
+            g.genDominatorTree();    //计算支配树
+            g.findFrontiers();      //计算支配边界
+            g.getVarMap();         //扫描节点，建立变量--> 赋值block map,即A
+            g.getClosure();       //计算A的闭包
+            g.insertPhi();        //向闭包中插入phi函数
+
+
 
             for(auto node:g.nodes) {
                 std::cout << "dominates: " << node->dominator->label << " -> " << node->label << std::endl;
@@ -191,6 +246,18 @@ namespace kisyshot::ast{
                     std::cout << ")" << std::endl;
                 }
             }
+
+            for(auto node:g.nodes) {
+                std::cout << node->label << std::endl;
+                if(!node->Phis.empty()){
+                    for(auto& phi:node->Phis){
+                        std::cout << "Phi(";
+                        for(auto& label:phi->blockLabels){
+                            std::cout << phi->i->getName()<< "_" << label << ",";
+                        }
+                    }
+                }
+            }
         }
         return original;
     }
@@ -203,4 +270,6 @@ namespace kisyshot::ast{
         }
         consumer(this);
     }
+
+    Phi::Phi(Var *i, std::vector<std::string> blockLabels) :i(i),blockLabels(blockLabels){}
 }

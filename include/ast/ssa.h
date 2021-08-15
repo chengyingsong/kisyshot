@@ -9,6 +9,12 @@ namespace kisyshot::ast {
         ControlBlockNode *from, *to;
         Edge(ControlBlockNode *from, ControlBlockNode *to):from(from),to(to){};
     };
+    struct Phi  {
+        Var* i;
+        std::vector<std::string>  blockLabels;
+        Phi(Var* i,std::vector<std::string> blockLabels);
+    };
+
 
     struct ControlBlockNode {
         // 块标签
@@ -21,6 +27,7 @@ namespace kisyshot::ast {
         std::vector<ControlBlockNode *> frontiers;
         // 当前node的支配树前节点
         ControlBlockNode* dominator;
+        std::vector<Phi*> Phis;
         bool traverse;
         void pDfs(const std::function<void(ControlBlockNode*)>& consumer);
     };
@@ -31,6 +38,7 @@ namespace kisyshot::ast {
         std::vector<std::pair<std::string,std::string>> sEdges;
         std::unordered_map<std::string, ControlBlockNode*> names;
         std::unordered_map<ControlBlockNode*, size_t > ids;
+        std::unordered_map<Var*,std::unordered_set<ControlBlockNode*>> var2block;
         bool addEdgeOnSwitch;
         ControlBlockNode* entry;
         ControlBlockGraph(std::list<Instruction *>::iterator beginFunc, std::list<Instruction *>::iterator endFunc);
@@ -38,6 +46,9 @@ namespace kisyshot::ast {
         ControlBlockNode* intersect(ControlBlockNode* b1, ControlBlockNode* b2);
         void genDominatorTree();
         void findFrontiers();
+        void getVarMap();
+        void getClosure();
+        void insertPhi();
         void reset();
         std::vector<ControlBlockNode*> postOrder();
         ~ControlBlockGraph();
@@ -48,6 +59,6 @@ namespace kisyshot::ast {
         // TODO remove after ssa form ir generated
         std::list<Instruction*> original;
         explicit SSADriver(std::list<Instruction *> &inst);
-        std::list<Instruction*> transform();
+        std::list<Instruction*> transform();  //转换函数
     };
 }
