@@ -339,11 +339,10 @@ namespace kisyshot::ast{
             // add function label
             transformed.push_back(*std::prev(g->entry->begin));
             for(auto node:g->nodes) {
-                for (auto it = node->begin; it != node->end; it++) {
+                for (auto it = node->begin; std::prev(it) != node->end; it++) {
                     transformed.push_back(*it);
                 }
                 transformed.insert(transformed.end(), node->postMoves.begin(), node->postMoves.end());
-                transformed.push_back(*node->end);
             }
 
 
