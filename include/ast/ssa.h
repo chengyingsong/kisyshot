@@ -11,6 +11,7 @@ namespace kisyshot::ast {
     };
     struct Phi  {
         Var* i;
+        std::unordered_map<std::string, Var*> sources;
         std::vector<std::string>  blockLabels;
         Phi(Var* i,std::vector<std::string> blockLabels);
     };
@@ -27,6 +28,8 @@ namespace kisyshot::ast {
         std::vector<ControlBlockNode *> frontiers;
         // 当前node的支配树前节点
         ControlBlockNode* dominator;
+        std::vector<ControlBlockNode*> tree;
+        std::list<Instruction *> postMoves;
         std::vector<Phi*> Phis;
         bool traverse;
         void pDfs(const std::function<void(ControlBlockNode*)>& consumer);
@@ -39,6 +42,8 @@ namespace kisyshot::ast {
         std::unordered_map<std::string, ControlBlockNode*> names;
         std::unordered_map<ControlBlockNode*, size_t > ids;
         std::unordered_map<Var*,std::unordered_set<ControlBlockNode*>> var2block;
+        std::unordered_map<std::string, std::vector<Var*>> varStack;
+        std::unordered_map<std::string, size_t> counter;
         bool addEdgeOnSwitch;
         ControlBlockNode* entry;
         ControlBlockGraph(std::list<Instruction *>::iterator beginFunc, std::list<Instruction *>::iterator endFunc);
@@ -50,14 +55,15 @@ namespace kisyshot::ast {
         void getClosure();
         void insertPhi();
         void reset();
+        void rename();
+        void rename(ControlBlockNode* node);
+        Var* cloneVar(Var*);
         std::vector<ControlBlockNode*> postOrder();
         ~ControlBlockGraph();
     };
     // ssa 优化
     struct SSADriver {
         std::vector<ControlBlockGraph> graphs;
-        // TODO remove after ssa form ir generated
-        std::list<Instruction*> original;
         explicit SSADriver(std::list<Instruction *> &inst);
         std::list<Instruction*> transform();  //转换函数
     };

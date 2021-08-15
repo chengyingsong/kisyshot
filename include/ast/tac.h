@@ -34,6 +34,7 @@ namespace kisyshot::ast {
         VarType type;
         bool isArray = false;  //如果是数组，在初始化类Var的时候设置isArray为true。
         bool isParam = false; //形参
+        size_t index;
 
         //传入一个变量名建立一个Var对象，需要判断是否是全局变量
         Var(std::string variableName);
@@ -74,9 +75,9 @@ namespace kisyshot::ast {
         virtual InstructionType getType() = 0;
         //void generate();
 
-        Var*  src_1;
-        Var*  src_2;
-        Var*  dst;
+        Var*  src_1 = nullptr;
+        Var*  src_2 = nullptr;
+        Var*  dst = nullptr;
         int numVars;
         Instruction();
         Instruction(Var* src_1);
