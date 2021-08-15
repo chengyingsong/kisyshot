@@ -182,10 +182,9 @@ namespace kisyshot::ast{
     void ControlBlockGraph::getClosure() {
         //计算闭包
         for(auto& v:var2block) {
-            std::unordered_set<ControlBlockNode*> set(v.second);
+            std::unordered_set<ControlBlockNode*> set;
             while(set != v.second){
                 v.second = set;
-                set.clear();
                 for(auto& node:v.second){
                     for(auto& frontier:node->frontiers)
                         set.emplace(frontier);
