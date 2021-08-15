@@ -219,11 +219,11 @@ namespace kisyshot::ast{
                 //对每一个闭包中的node查看入边
                 std::vector<std::string> blockLabels;
                 for(auto& e:node->in){
-                    if(var2BlockOrigin[v.first].count(e->from) != 0)
-                        blockLabels.push_back(e->from->label);
+                   // if(var2BlockOrigin[v.first].count(e->from) != 0)
+                   blockLabels.push_back(e->from->label);
                 }
-                if(blockLabels.size() > 1)
-                    node->Phis.push_back(new Phi(v.first,blockLabels));
+                //if(blockLabels.size() > 1)
+                node->Phis.push_back(new Phi(v.first,blockLabels));
             }
         }
     }

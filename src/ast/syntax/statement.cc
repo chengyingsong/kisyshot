@@ -62,8 +62,9 @@ namespace kisyshot::ast::syntax {
          * t1 = condition
          * if t1==0 GOTO falseLabel
          * trueStatement
+         * GOTO endLabel
          * falseLabel:
-         *
+         * endLabel
          * */
         //TODO: Statement的继承属性直接写在前面
         Var* t1 = condition->getVar(gen);
@@ -86,13 +87,16 @@ namespace kisyshot::ast::syntax {
             gen.genLabel(ifEndLabel);
         } else{
             std::string falseLabel = gen.newLabel();
+            std::string ifEndLabel = gen.newLabel();
             gen.genIFZ(t1,falseLabel);
             ifClause->inTheWhile = inTheWhile;
             ifClause->beginLabel = beginLabel;
             ifClause->endLabel = endLabel;
             ifClause->endFuncLabel = endFuncLabel;
             ifClause->genCode(gen, nullptr);
+            gen.genGOTO(ifEndLabel);
             gen.genLabel(falseLabel);
+            gen.genLabel(ifEndLabel);
         }
     }
 
