@@ -219,7 +219,7 @@ namespace kisyshot::ast{
                 //对每一个闭包中的node查看入边
                 std::vector<std::string> blockLabels;
                 for(auto& e:node->in){
-                    if(var2block[v.first].count(e->from) != 0)
+                    if(var2BlockOrigin[v.first].count(e->from) != 0)
                         blockLabels.push_back(e->from->label);
                 }
                 if(blockLabels.size() > 1)
@@ -322,6 +322,7 @@ namespace kisyshot::ast{
 
         std::list<Instruction*> transformed;
         for(auto& g:graphs) {
+            g->var2BlockOrigin.insert(g->var2block.begin(),g->var2block.end());
             g->genDominatorTree();    //计算支配树
             g->findFrontiers();      //计算支配边界
             g->getVarMap();         //扫描节点，建立变量--> 赋值block map,即A

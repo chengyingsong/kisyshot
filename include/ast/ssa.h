@@ -42,6 +42,7 @@ namespace kisyshot::ast {
         std::unordered_map<std::string, ControlBlockNode*> names;
         std::unordered_map<ControlBlockNode*, size_t > ids;
         std::unordered_map<Var*,std::unordered_set<ControlBlockNode*>> var2block;
+        std::unordered_map<Var*,std::unordered_set<ControlBlockNode*>> var2BlockOrigin;
         std::unordered_map<std::string, std::vector<Var*>> varStack;
         std::unordered_map<std::string, size_t> counter;
         bool addEdgeOnSwitch;
