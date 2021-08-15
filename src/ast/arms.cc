@@ -429,7 +429,7 @@ void Arms::generateLabel(std::string label) {
     else
         cleanRegForBranch();
     fprintf(fp, "%s:\n", label.c_str());
-    stack.clear();
+//    stack.clear();
 }
 
 void Arms::generateGOTO(std::string label) {
