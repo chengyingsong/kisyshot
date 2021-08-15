@@ -229,7 +229,7 @@ namespace kisyshot::ast{
 
     Var *ControlBlockGraph::cloneVar(Var * dst) {
         Var* clone = new Var();
-        clone->type = dst->type;
+        clone->type = TempVar;
         clone->value = dst->value;
         clone->index = ++counter[dst->variableName];
         clone->isArray = dst->isArray;

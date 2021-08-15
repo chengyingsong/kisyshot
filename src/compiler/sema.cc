@@ -322,7 +322,7 @@ namespace kisyshot::compiler {
                             s);
                         _currFunc->stackSize += def->srcArray.size() * 4;
                     } else {
-                        _currFunc->stackSize += 4;
+                        _currFunc->stackSize += 0; // 局部变量不申请栈
                     }
                 }
                 break;
