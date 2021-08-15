@@ -257,9 +257,9 @@ namespace kisyshot::ast{
                 case Binary_op_:
                     if (instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2->type == LocalVar && !instr->src_1->isParam)
+                    if (instr->src_2->type == LocalVar && !instr->src_2->isParam)
                         instr->src_2 = varStack[instr->src_2->variableName].back();
-                    if (instr->dst->type == LocalVar && !instr->src_1->isParam) {
+                    if (instr->dst->type == LocalVar && !instr->dst->isParam) {
                         instr->dst = cloneVar(instr->dst);
                         varStack[instr->dst->variableName].push_back(instr->dst);
                     }
@@ -267,7 +267,7 @@ namespace kisyshot::ast{
                 case Assign_:
                     if (instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2->type == LocalVar && !instr->src_1->isParam) {
+                    if (instr->src_2->type == LocalVar && !instr->src_2->isParam) {
                         instr->src_2 = cloneVar(instr->src_2);
                         varStack[instr->src_2->variableName].push_back(instr->src_2);
                     }
@@ -279,7 +279,7 @@ namespace kisyshot::ast{
                 default:
                     if (instr->src_1 != nullptr && instr->src_1->type == LocalVar && !instr->src_1->isParam)
                         instr->src_1 = varStack[instr->src_1->variableName].back();
-                    if (instr->src_2 != nullptr && instr->src_2->type == LocalVar && !instr->src_1->isParam)
+                    if (instr->src_2 != nullptr && instr->src_2->type == LocalVar && !instr->src_2->isParam)
                         instr->src_2 = varStack[instr->src_2->variableName].back();
                     break;
             }
